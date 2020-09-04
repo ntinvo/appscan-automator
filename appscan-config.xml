@@ -1,0 +1,9 @@
+<Configuration>
+  <Targets>
+    <Target path="PROJECT_PATH">
+      <Include>*.class</Include>
+      <Exclude>bin/</Exclude>
+      <Exclude>NotShipped/</Exclude>
+    </Target>
+  </Targets>
+</Configuration>
