@@ -22,6 +22,9 @@ ALL = "all"
 main_logger = logging.getLogger(__name__)
 
 
+# ********************************* #
+# *             UTILS             * #
+# ********************************* #
 def run_subprocess(command, timeout=None, logger=None):
     popen = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     lines_iterator = iter(popen.stdout.readline, b"")
@@ -102,6 +105,9 @@ def parse_arguments():
     return args
 
 
+# ********************************* #
+# *        STATIC SCAN PREP       * #
+# ********************************* #
 def prep_static():
     # TODOS:
     # - fetch the source code
@@ -111,10 +117,13 @@ def prep_static():
     pass
 
 
+# ********************************* #
+# *       DYNAMIC SCAN PREP       * #
+# ********************************* #
 def prep_dynamic():
     # TODOS:
-    # - need to figure out which image tag to use
-    # - need to spin up the containers to create the env (including setting buildingthe ear and apps deployment)
+    # - need to figure out which image tag to use (this can be done by fetching the latest successful build from jenkins)
+    # - need to spin up the containers (rt and db2) to create the env (including setting building the ear and apps deployment)
     # - for each app (smcfs, sbc, sma, store, call center), need to create the new scan by calling the ASoC APIs (similar to the below)
     # - get the results
 
