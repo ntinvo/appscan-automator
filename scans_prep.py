@@ -116,10 +116,10 @@ def parse_arguments():
 # ********************************* #
 def prep_static():
     # TODOS:
-    # - fetch the source code
-    # - run subprocess to generate file needed to upload the ASoC (using its API)
-    # - use API to execute the scans
-    # - get the results
+    # ! - fetch the source code
+    # ! - run subprocess to generate file needed to upload the ASoC (using its API)
+    # ! - use API to execute the scans
+    # ! - get the results
     pass
 
 
@@ -154,10 +154,10 @@ def prep_dynamic():
     image_tag = get_latest_stable_image_tag()
     print(image_tag)
     # TODOS:
-    # - need to figure out which image tag to use (this can be done by fetching the latest successful build from jenkins)
-    # - need to spin up the containers (rt and db2) to create the env (including setting building the ear and apps deployment)
-    # - for each app (smcfs, sbc, sma, store, call center), need to create the new scan by calling the ASoC APIs (similar to the below)
-    # - get the results
+    # * - DONE - need to figure out which image tag to use (this can be done by fetching the latest successful build from jenkins)
+    # ! - need to spin up the containers (rt and db2) to create the env (including setting building the ear and apps deployment)
+    # ! - for each app (smcfs, sbc, sma, store, call center), need to create the new scan by calling the ASoC APIs (similar to the below)
+    # ! - get the results
 
     # headers = {
     #     "Content-Type": "application/json",
