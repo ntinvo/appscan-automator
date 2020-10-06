@@ -16,6 +16,7 @@ load_dotenv(dotenv_path)
 API_KEY = os.environ.get("API_KEY")
 DYNAMIC = "dymanic"
 STATIC = "static"
+ALL = "all"
 
 # main logger
 main_logger = logging.getLogger(__name__)
@@ -88,7 +89,13 @@ def parse_arguments():
         help="the verbose level of the script",
         default=logging.WARNING,
     )
-    parser.add_argument("-m", "--mode", choices=[DYNAMIC, STATIC], help=f"the type of scan to run.")
+    parser.add_argument(
+        "-m",
+        "--mode",
+        choices=[ALL, DYNAMIC, STATIC],
+        help=f"the type of scan to run. With mode {ALL}, it will run both {DYNAMIC} and {STATIC} preps.",
+        default=ALL,
+    )
 
     args = parser.parse_args()
     setup_main_logging(args.verbose)
