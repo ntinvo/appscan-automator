@@ -1,5 +1,7 @@
+import argparse
 import logging
 import os
+import requests
 import subprocess
 import sys
 import coloredlogs
@@ -10,8 +12,12 @@ from dotenv import load_dotenv
 dotenv_path = join(dirname(__file__), ".env")
 load_dotenv(dotenv_path)
 
+# consts
 API_KEY = os.environ.get("API_KEY")
+DYNAMIC = "dymanic"
+STATIC = "static"
 
+# main logger
 main_logger = logging.getLogger(__name__)
 
 
@@ -60,39 +66,73 @@ def setup_main_logging(verbose=logging.INFO):
     )
 
 
-headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-    "Authorization": f"Bearer {API_KEY}",
-}
+def parse_arguments():
+    """Set up the arguments parser for the script
+    Retrieves the arguments passed in by the user, parse them, and return.
+    Args:
+        None
+    Returns:
+        The argument parser
+    Raises:
+        None
+    """
+    parser = argparse.ArgumentParser(
+        description="This will run the scans preps.", epilog="Have a nice day! :)"
+    )
 
-data = {
-    "StartingUrl": "http://single1.fyre.ibm.com:7001/smcfs/console/login.jsp",
-    "LoginUser": "admin",
-    "LoginPassword": "password",
-    "ScanType": "Production",
-    "PresenceId": "418df2a0-0608-eb11-96f5-00155d55406c",
-    "IncludeVerifiedDomains": "true",
-    "HttpAuthUserName": "string",
-    "HttpAuthPassword": "string",
-    "HttpAuthDomain": "string",
-    "OnlyFullResults": "true",
-    "TestOptimizationLevel": "NoOptimization",
-    "ScanName": "SMCFS Scan",
-    "EnableMailNotification": "false",
-    "Locale": "en-US",
-    "AppId": "fc449ae1-8742-49e9-a06b-fe37988ca2a8",
-    "Execute": "true",
-    "Personal": "false",
-}
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        dest="verbose",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="the verbose level of the script",
+        default=logging.WARNING,
+    )
+    parser.add_argument("-m", "--mode", choices=[DYNAMIC, STATIC], help=f"the type of scan to run.")
 
-# import requests
+    args = parser.parse_args()
+    setup_main_logging(args.verbose)
+    return args
+
+
+# headers = {
+#     "Content-Type": "application/json",
+#     "Accept": "application/json",
+#     "Authorization": f"Bearer {API_KEY}",
+# }
+
+# data = {
+#     "StartingUrl": "http://single1.fyre.ibm.com:7001/smcfs/console/login.jsp",
+#     "LoginUser": "admin",
+#     "LoginPassword": "password",
+#     "ScanType": "Production",
+#     "PresenceId": "418df2a0-0608-eb11-96f5-00155d55406c",
+#     "IncludeVerifiedDomains": "true",
+#     "HttpAuthUserName": "string",
+#     "HttpAuthPassword": "string",
+#     "HttpAuthDomain": "string",
+#     "OnlyFullResults": "true",
+#     "TestOptimizationLevel": "NoOptimization",
+#     "ScanName": "SMCFS Scan",
+#     "EnableMailNotification": "false",
+#     "Locale": "en-US",
+#     "AppId": "fc449ae1-8742-49e9-a06b-fe37988ca2a8",
+#     "Execute": "true",
+#     "Personal": "false",
+# }
+
 
 # res = requests.post(
 #     "https://cloud.appscan.com/api/v2/Scans/DynamicAnalyzer", json=data, headers=headers
 # )
-setup_main_logging()
-run_subprocess("ls -al", logger=main_logger)
 
 # print(res.text)
 
+
+def main():
+    args = parse_arguments()
+    run_subprocess("ls -al", logger=main_logger)
+
+
+if __name__ == "__main__":
+    main()
