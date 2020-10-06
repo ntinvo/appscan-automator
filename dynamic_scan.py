@@ -102,42 +102,66 @@ def parse_arguments():
     return args
 
 
-# headers = {
-#     "Content-Type": "application/json",
-#     "Accept": "application/json",
-#     "Authorization": f"Bearer {API_KEY}",
-# }
-
-# data = {
-#     "StartingUrl": "http://single1.fyre.ibm.com:7001/smcfs/console/login.jsp",
-#     "LoginUser": "admin",
-#     "LoginPassword": "password",
-#     "ScanType": "Production",
-#     "PresenceId": "418df2a0-0608-eb11-96f5-00155d55406c",
-#     "IncludeVerifiedDomains": "true",
-#     "HttpAuthUserName": "string",
-#     "HttpAuthPassword": "string",
-#     "HttpAuthDomain": "string",
-#     "OnlyFullResults": "true",
-#     "TestOptimizationLevel": "NoOptimization",
-#     "ScanName": "SMCFS Scan",
-#     "EnableMailNotification": "false",
-#     "Locale": "en-US",
-#     "AppId": "fc449ae1-8742-49e9-a06b-fe37988ca2a8",
-#     "Execute": "true",
-#     "Personal": "false",
-# }
+def prep_static():
+    # TODOS:
+    # - fetch the source code
+    # - run subprocess to generate file needed to upload the ASoC (using its API)
+    # - use API to execute the scans
+    # - get the results
+    pass
 
 
-# res = requests.post(
-#     "https://cloud.appscan.com/api/v2/Scans/DynamicAnalyzer", json=data, headers=headers
-# )
+def prep_dynamic():
+    # TODOS:
+    # - need to figure out which image tag to use
+    # - need to spin up the containers to create the env (including setting buildingthe ear and apps deployment)
+    # - for each app (smcfs, sbc, sma, store, call center), need to create the new scan by calling the ASoC APIs (similar to the below)
+    # - get the results
 
-# print(res.text)
+    # headers = {
+    #     "Content-Type": "application/json",
+    #     "Accept": "application/json",
+    #     "Authorization": f"Bearer {API_KEY}",
+    # }
+
+    # data = {
+    #     "StartingUrl": "http://single1.fyre.ibm.com:7001/smcfs/console/login.jsp",
+    #     "LoginUser": "admin",
+    #     "LoginPassword": "password",
+    #     "ScanType": "Production",
+    #     "PresenceId": "000000000000000000000000 (CHANGE)",
+    #     "IncludeVerifiedDomains": "true",
+    #     "HttpAuthUserName": "string",
+    #     "HttpAuthPassword": "string",
+    #     "HttpAuthDomain": "string",
+    #     "OnlyFullResults": "true",
+    #     "TestOptimizationLevel": "NoOptimization",
+    #     "ScanName": "SMCFS Scan",
+    #     "EnableMailNotification": "false",
+    #     "Locale": "en-US",
+    #     "AppId": "000000000000000000000000 (CHANGE)",
+    #     "Execute": "true",
+    #     "Personal": "false",
+    # }
+
+    # res = requests.post(
+    #     "https://cloud.appscan.com/api/v2/Scans/DynamicAnalyzer", json=data, headers=headers
+    # )
+
+    # print(res.text)
+    pass
 
 
 def main():
     args = parse_arguments()
+    if args.mode == ALL:
+        prep_static()
+        prep_dynamic()
+    elif args.mode == STATIC:
+        prep_static()
+    else:
+        prep_dynamic()
+
     run_subprocess("ls -al", logger=main_logger)
 
 
