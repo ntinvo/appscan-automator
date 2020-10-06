@@ -5,16 +5,22 @@ import requests
 import subprocess
 import sys
 import coloredlogs
+import xml.etree.ElementTree as ET
 
-from os.path import join, dirname
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
+from os.path import join, dirname
 
 dotenv_path = join(dirname(__file__), ".env")
 load_dotenv(dotenv_path)
 
 # consts
+SINGLE_STREAM_RSS_URL = (
+    "http://9.121.242.67:9080/jenkins/view/L3%20Builds/job/Single_Stream_Project/rssAll"
+)
+NS = {"W3": "http://www.w3.org/2005/Atom"}
 API_KEY = os.environ.get("API_KEY")
-DYNAMIC = "dymanic"
+DYNAMIC = "dynamic"
 STATIC = "static"
 ALL = "all"
 
@@ -120,7 +126,33 @@ def prep_static():
 # ********************************* #
 # *       DYNAMIC SCAN PREP       * #
 # ********************************* #
+def fetch_available_build_urls(url):
+    res = requests.get(url)
+    build_urls = []
+    if res.ok:
+        root = ET.fromstring(res.text)
+        entries = root.findall("W3:entry", NS)
+        for entry in entries:
+            title = entry.find("W3:title", NS).text
+            if "broken" in title or "aborted" in title:
+                continue
+            link = entry.find("W3:link", NS)
+            build_urls.append(link.get("href"))
+    return build_urls
+
+
+def get_latest_stable_image_tag():
+    latest_stable_build_url = fetch_available_build_urls(SINGLE_STREAM_RSS_URL)[0]
+    res = requests.get(latest_stable_build_url)
+    soup = BeautifulSoup(res.text, "html.parser")
+    title_soup = soup.find("title")
+    title = title_soup.text
+    return title.split(" ")[1]
+
+
 def prep_dynamic():
+    image_tag = get_latest_stable_image_tag()
+    print(image_tag)
     # TODOS:
     # - need to figure out which image tag to use (this can be done by fetching the latest successful build from jenkins)
     # - need to spin up the containers (rt and db2) to create the env (including setting building the ear and apps deployment)
