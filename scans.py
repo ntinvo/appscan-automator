@@ -208,9 +208,9 @@ def parse_arguments():
     parser.add_argument(
         "-m",
         "--mode",
+        required=True,
         choices=[SCAN, REPORTS],
-        help=f"the type of scan to run. With mode {ALL}, it will run both {DYNAMIC} and {STATIC} preps.",
-        default=ALL,
+        help=f"the mode to run the scan; {SCAN} will create the scan, and {REPORTS} will generate and download the reports for the scans.",
     )
 
     args = parser.parse_args()
