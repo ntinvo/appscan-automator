@@ -27,7 +27,9 @@ from constants import (
     NETWORK_SCAN,
     NS,
     PRESENCE_ID,
+    REPORTS,
     RT_SCAN,
+    SCAN,
     SINGLE_DYNAMIC,
     SINGLE_STREAM_RSS_URL,
     STATIC,
@@ -196,9 +198,16 @@ def parse_arguments():
         default=logging.WARNING,
     )
     parser.add_argument(
+        "-t",
+        "--type",
+        choices=[ALL, DYNAMIC, STATIC],
+        help=f"the type of scan to run. With mode {ALL}, it will run both {DYNAMIC} and {STATIC} preps.",
+        default=ALL,
+    )
+    parser.add_argument(
         "-m",
         "--mode",
-        choices=[ALL, DYNAMIC, STATIC],
+        choices=[SCAN, REPORTS],
         help=f"the type of scan to run. With mode {ALL}, it will run both {DYNAMIC} and {STATIC} preps.",
         default=ALL,
     )
@@ -217,6 +226,22 @@ def get_bearer_token():
         headers={"Accept": "application/json"},
     )
     return res.json()["Token"]
+
+
+headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": f"Bearer {get_bearer_token()}",
+}
+
+
+@timer
+@logger
+def get_scans(app_id):
+    """Get the list of scans for the application"""
+    res = requests.get(f"https://cloud.appscan.com/api/v2/Apps/{app_id}/Scans", headers=headers)
+    if res.status_code == 200:
+        return res.json()
 
 
 # ********************************* #
@@ -443,18 +468,12 @@ def dynamic_scan():
     # spin up the containers (rt and db2)
     # prep_containers(image_tag)
 
-    # request header for the API
-    headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": f"Bearer {get_bearer_token()}",
-    }
-
     # read the old scan ids
-    old_scans = {}
+    # TODO: fetch the scans of the app from the API
+    dynamic_old_scans = {}
     try:
-        with open("old_scans.json") as f:
-            old_scans = json.load(f)
+        with open("dynamic_old_scans.json") as f:
+            dynamic_old_scans = json.load(f)
     except Exception as e:
         main_logger.warning(e)
 
@@ -463,10 +482,10 @@ def dynamic_scan():
         passwd = "password" if app != "WSC" else "csmith"
 
         # remove the scan before creating a new one
-        main_logger.info(f"Removing the scan: {app} - {old_scans[app]}... ")
+        main_logger.info(f"Removing the scan: {app} - {dynamic_old_scans[app]}... ")
         try:
             res = requests.delete(
-                f"https://cloud.appscan.com/api/v2/Scans/{old_scans[app]}?deleteIssues=true",
+                f"https://cloud.appscan.com/api/v2/Scans/{dynamic_old_scans[app]}?deleteIssues=true",
                 headers=headers,
             )
         except Exception as e:
@@ -496,24 +515,128 @@ def dynamic_scan():
         # creating a new scan
         main_logger.info(f"Creating a new scan for {app}...")
         res = requests.post(ASOC_DYNAMIC_ENDPOINT, json=create_scan_data, headers=headers)
-        old_scans[app] = res.json()["Id"]
+        dynamic_old_scans[app] = res.json()["Id"]
 
     # save old scans
-    with open("old_scans.json", "w") as f:
-        json.dump(old_scans, f)
+    with open("dynamic_old_scans.json", "w") as f:
+        json.dump(dynamic_old_scans, f)
+
+
+@timer
+@logger
+def run_scan(args):
+    if args.type == ALL:
+        static_scan()
+        dynamic_scan()
+    elif args.type == STATIC:
+        static_scan()
+    else:
+        dynamic_scan()
+
+
+# ********************************* #
+# *            REPORTS            * #
+# ********************************* #
+@timer
+@logger
+def dynamic_reports():
+    scans = get_scans(SINGLE_DYNAMIC)
+    generated_reports = []
+    # for scan in scans:
+    #     # only generate report for ready scan
+    #     if scan["LatestExecution"]["Status"] == "Ready":
+    #         config_data = {
+    #             "Configuration": {
+    #                 "Summary": "true",
+    #                 "Details": "true",
+    #                 "Discussion": "true",
+    #                 "Overview": "true",
+    #                 "TableOfContent": "true",
+    #                 "Advisories": "true",
+    #                 "FixRecommendation": "true",
+    #                 "History": "true",
+    #                 "Coverage": "true",
+    #                 "IsTrialReport": "true",
+    #                 "MinimizeDetails": "true",
+    #                 "ReportFileType": "Html",
+    #                 "Title": scan["Name"].replace(" ", "_").lower(),
+    #                 "Locale": "en-US",
+    #             },
+    #         }
+    #         res = requests.post(
+    #             f"https://cloud.appscan.com/api/v2/Reports/Security/Scan/{scan['Id']}",
+    #             json=config_data,
+    #             headers=headers,
+    #         )
+    #         if res.status_code == 200:
+    #             generated_reports.append(res.json())
+    rp = {
+        "Id": "b3f1484b-668e-4fd8-9e3b-db45e03a218a",
+        "Name": "smcfs_scan",
+        "Status": "Pending",
+        "Progress": 0,
+        "ValidUntil": "2020-10-08T18:38:21.2043596Z",
+        "HtmlInsteadOfPdf": "false",
+    }
+    generated_reports.append(rp)
+
+    for report in generated_reports:
+        # wait for the report to be ready
+        while True:
+            res = requests.get(
+                f"https://cloud.appscan.com/api/v2/Reports/{report['Id']}", headers=headers
+            )
+            if res.status_code != 200:
+                break
+
+            if res.status_code == 200 and res.json()["Status"] == "Ready":
+                break
+
+            main_logger.info(f"Report for {report['Name']} is not ready. Waiting...")
+            time.sleep(300)
+
+        # download the report
+        res = requests.get(
+            f"https://cloud.appscan.com/api/v2/Reports/Download/{report['Id']}", headers=headers
+        )
+        if res.status_code == 200:
+            with open(f"{report['Name']}.html", "wb") as f:
+                f.write(res.content)
+
+
+@timer
+@logger
+def static_reports():
+    pass
+
+
+@timer
+@logger
+def get_reports(args):
+    if args.type == ALL:
+        static_reports()
+        dynamic_reports()
+    elif args.type == STATIC:
+        static_reports()
+    else:
+        dynamic_reports()
+    # read the old scan ids
+    # dynamic_old_scans = {}
+    # try:
+    #     with open("dynamic_old_scans.json") as f:
+    #         dynamic_old_scans = json.load(f)
+    # except Exception as e:
+    #     main_logger.warning(e)
 
 
 @timer
 @logger
 def main():
     args = parse_arguments()
-    if args.mode == ALL:
-        static_scan()
-        dynamic_scan()
-    elif args.mode == STATIC:
-        static_scan()
-    else:
-        dynamic_scan()
+    if args.mode == SCAN:
+        run_scan(args)
+    elif args.mode == REPORTS:
+        get_reports(args)
 
 
 if __name__ == "__main__":

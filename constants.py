@@ -22,6 +22,8 @@ NS = {"W3": "http://www.w3.org/2005/Atom"}
 DYNAMIC = "dynamic"
 STATIC = "static"
 ALL = "all"
+SCAN = "scan"
+REPORTS = "reports"
 
 # dynamic consts
 DB2_SCAN = "db2_scan"
