@@ -19,7 +19,8 @@ SINGLE_STREAM_RSS_URL = (
     "http://9.121.242.67:9080/jenkins/view/L3%20Builds/job/Single_Stream_Project/rssAll"
 )
 NS = {"W3": "http://www.w3.org/2005/Atom"}
-API_KEY = os.environ.get("API_KEY")
+KEY_ID = os.environ.get("KEY_ID")
+KEY_SECRET = os.environ.get("KEY_SECRET")
 DYNAMIC = "dynamic"
 STATIC = "static"
 ALL = "all"
@@ -111,6 +112,15 @@ def parse_arguments():
     return args
 
 
+def get_bearer_token():
+    res = requests.post(
+        "https://cloud.appscan.com/api/V2/Account/ApiKeyLogin",
+        json={"KeyId": KEY_ID, "KeySecret": KEY_SECRET},
+        headers={"Accept": "application/json"},
+    )
+    return res.json()["Token"]
+
+
 # ********************************* #
 # *        STATIC SCAN PREP       * #
 # ********************************* #
@@ -151,46 +161,45 @@ def get_latest_stable_image_tag():
 
 
 def dynamic_scan():
-    image_tag = get_latest_stable_image_tag()
-    print(image_tag)
+    # image_tag = get_latest_stable_image_tag()
+    # print(image_tag)
     # TODOS:
     # * - DONE - need to figure out which image tag to use (this can be done by fetching the latest successful build from jenkins)
     # ! - need to spin up the containers (rt and db2) to create the env (including setting building the ear and apps deployment)
     # ! - for each app (smcfs, sbc, sma, store, call center), need to create the new scan by calling the ASoC APIs (similar to the below - remember to delete or save the old scan)
     # ! - get the results
 
-    # headers = {
-    #     "Content-Type": "application/json",
-    #     "Accept": "application/json",
-    #     "Authorization": f"Bearer {API_KEY}",
-    # }
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {get_bearer_token()}",
+    }
 
-    # data = {
-    #     "StartingUrl": "http://single1.fyre.ibm.com:7001/smcfs/console/login.jsp",
-    #     "LoginUser": "admin",
-    #     "LoginPassword": "password",
-    #     "ScanType": "Production",
-    #     "PresenceId": "000000000000000000000000 (CHANGE)",
-    #     "IncludeVerifiedDomains": "true",
-    #     "HttpAuthUserName": "string",
-    #     "HttpAuthPassword": "string",
-    #     "HttpAuthDomain": "string",
-    #     "OnlyFullResults": "true",
-    #     "TestOptimizationLevel": "NoOptimization",
-    #     "ScanName": "SMCFS Scan",
-    #     "EnableMailNotification": "false",
-    #     "Locale": "en-US",
-    #     "AppId": "000000000000000000000000 (CHANGE)",
-    #     "Execute": "true",
-    #     "Personal": "false",
-    # }
+    data = {
+        "StartingUrl": "http://single1.fyre.ibm.com:7001/smcfs/yfshttpapi/yantrahttpapitester.jsp",
+        "LoginUser": "admin",
+        "LoginPassword": "password",
+        "ScanType": "Production",
+        "PresenceId": "418df2a0-0608-eb11-96f5-00155d55406c",
+        "IncludeVerifiedDomains": "true",
+        "HttpAuthUserName": "string",
+        "HttpAuthPassword": "string",
+        "HttpAuthDomain": "string",
+        "OnlyFullResults": "true",
+        "TestOptimizationLevel": "NoOptimization",
+        "ScanName": "API Tester Scan",
+        "EnableMailNotification": "false",
+        "Locale": "en-US",
+        "AppId": "fc449ae1-8742-49e9-a06b-fe37988ca2a8",
+        "Execute": "true",
+        "Personal": "false",
+    }
 
-    # res = requests.post(
-    #     "https://cloud.appscan.com/api/v2/Scans/DynamicAnalyzer", json=data, headers=headers
-    # )
+    res = requests.post(
+        "https://cloud.appscan.com/api/v2/Scans/DynamicAnalyzer", json=data, headers=headers
+    )
 
-    # print(res.text)
-    pass
+    print(res.text)
 
 
 def main():
