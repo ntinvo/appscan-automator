@@ -420,18 +420,18 @@ def prep_containers(image_tag):
     """
     docker_login()
 
-    # # Starting db2 and rt containers
-    # main_logger.info("Starting db2 and rt containers...")
-    # start_db2_container(image_tag)
-    # start_rt_container(image_tag)
+    # Starting db2 and rt containers
+    main_logger.info("Starting db2 and rt containers...")
+    start_db2_container(image_tag)
+    start_rt_container(image_tag)
 
-    # # Build the ear
-    # main_logger.info("Building ear file...")
-    # run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs,wsc"')
+    # Build the ear
+    main_logger.info("Building ear file...")
+    run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs,wsc"')
 
-    # # Start liberty server
-    # main_logger.info("Starting liberty server...")
-    # run_subprocess(f'docker exec {RT_SCAN} bash -lc "__lbstart"')
+    # Start liberty server
+    main_logger.info("Starting liberty server...")
+    run_subprocess(f'docker exec {RT_SCAN} bash -lc "__lbstart"')
 
     # Wait for the server to finish initializing
     main_logger.info("Waiting for the server to finish initializing...")
@@ -461,12 +461,12 @@ def cleanup():
 @timer
 @logger
 def dynamic_scan():
-    # # get the image tag
-    # image_tag = get_latest_stable_image_tag()
-    # print(image_tag)
+    # get the image tag
+    image_tag = get_latest_stable_image_tag()
+    print(image_tag)
 
     # spin up the containers (rt and db2)
-    # prep_containers(image_tag)
+    prep_containers(image_tag)
 
     # read the old scan ids
     # TODO: fetch the scans of the app from the API
