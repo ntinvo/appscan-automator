@@ -450,8 +450,10 @@ def prep_containers(image_tag):
     main_logger.info("Starting weblogic server...")
     run_subprocess(f'docker exec {RT_SCAN} bash -lc "__wlstart -autodeploy=true"')
 
-    # Wait for the server to finish initializing
-    main_logger.info("Waiting for the server to finish initializing...")
+    # Check to make sure the apps are run and running
+    main_logger.info(
+        "Checking deployment @ http://single1.fyre.ibm.com:7001/smcfs/console/login.jsp..."
+    )
     while True:
         try:
             res = requests.get(
@@ -488,27 +490,22 @@ def dynamic_scan():
     prep_containers(image_tag)
 
     # read the old scan ids
-    # TODO: fetch the scans of the app from the API
-    dynamic_old_scans = {}
-    try:
-        with open("dynamic_old_scans.json") as f:
-            dynamic_old_scans = json.load(f)
-    except Exception as e:
-        main_logger.warning(e)
+    dynamic_old_scans = get_scans(SINGLE_DYNAMIC)
 
-    for app, url in APP_URL_DICT.items():
-        user = "admin" if app != "WSC" else "csmith"
-        passwd = "password" if app != "WSC" else "csmith"
-
-        # remove the scan before creating a new one
-        main_logger.info(f"Removing the scan: {app} - {dynamic_old_scans[app]}... ")
+    # remove the old scans from the app before creating new ones
+    for old_scan in dynamic_old_scans:
+        main_logger.info(f"Removing {old_scan['Name']} - {old_scan['Id']}... ")
         try:
-            res = requests.delete(
-                f"{ASOC_API_ENDPOINT}/Scans/{dynamic_old_scans[app]}?deleteIssues=true",
-                headers=headers,
+            _ = requests.delete(
+                f"{ASOC_API_ENDPOINT}/Scans/{old_scan['Id']}?deleteIssues=true", headers=headers,
             )
         except Exception as e:
             main_logger.warning(e)
+
+    # create the new scans
+    for app, url in APP_URL_DICT.items():
+        user = "admin" if app != "WSC" else "csmith"
+        passwd = "password" if app != "WSC" else "csmith"
 
         # scan data
         create_scan_data = {
@@ -533,14 +530,9 @@ def dynamic_scan():
 
         # creating a new scan
         main_logger.info(f"Creating a new scan for {app}...")
-        res = requests.post(
+        _ = requests.post(
             f"{ASOC_API_ENDPOINT}/Scans/DynamicAnalyzer", json=create_scan_data, headers=headers
         )
-        dynamic_old_scans[app] = res.json()["Id"]
-
-    # save old scans
-    with open("dynamic_old_scans.json", "w") as f:
-        json.dump(dynamic_old_scans, f)
 
 
 @timer
