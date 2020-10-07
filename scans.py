@@ -519,7 +519,7 @@ def dynamic_scan():
             "HttpAuthPassword": "string",
             "HttpAuthDomain": "string",
             "OnlyFullResults": "true",
-            "TestOptimizationLevel": "NoOptimization",
+            "TestOptimizationLevel": "Fast",
             "ScanName": f"{app} Scan",
             "EnableMailNotification": "false",
             "Locale": "en-US",
