@@ -18,8 +18,7 @@ from dotenv import load_dotenv
 from constants import (
     ALL,
     APP_URL_DICT,
-    ASOC_DYNAMIC_ENDPOINT,
-    ASOC_LOGIN_ENDPOINT,
+    ASOC_API_ENDPOINT,
     DB2_SCAN,
     DYNAMIC,
     JFROG_REGISTRY,
@@ -221,7 +220,7 @@ def parse_arguments():
 @logger
 def get_bearer_token():
     res = requests.post(
-        ASOC_LOGIN_ENDPOINT,
+        f"{ASOC_API_ENDPOINT}/Account/ApiKeyLogin",
         json={"KeyId": KEY_ID, "KeySecret": KEY_SECRET},
         headers={"Accept": "application/json"},
     )
@@ -239,7 +238,7 @@ headers = {
 @logger
 def get_scans(app_id):
     """Get the list of scans for the application"""
-    res = requests.get(f"https://cloud.appscan.com/api/v2/Apps/{app_id}/Scans", headers=headers)
+    res = requests.get(f"{ASOC_API_ENDPOINT}/Apps/{app_id}/Scans", headers=headers)
     if res.status_code == 200:
         return res.json()
 
@@ -378,7 +377,7 @@ def start_rt_container(image_tag, logger=main_logger):
         None
     """
     try:
-        rt_image_repo = f"{JFROG_REGISTRY}/oms-single-db2-rt:{image_tag}-liberty"
+        rt_image_repo = f"{JFROG_REGISTRY}/oms-single-db2-rt:{image_tag}-weblogic"
         logger.info(f"#### STARTING DB2 CONTAINER: {RT_SCAN} - {rt_image_repo} ####")
         run_subprocess(
             f" \
@@ -407,7 +406,7 @@ def prep_containers(image_tag):
     - login to the registry 
     - start db2 and rt containers 
     - build the ear for deployment 
-    - start liberty server 
+    - start weblogic server 
     - wait for the server to be ready
     - logout of the registry
 
@@ -429,21 +428,21 @@ def prep_containers(image_tag):
     main_logger.info("Building ear file...")
     run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs,wsc"')
 
-    # Start liberty server
-    main_logger.info("Starting liberty server...")
-    run_subprocess(f'docker exec {RT_SCAN} bash -lc "__lbstart"')
+    # Start weblogic server
+    main_logger.info("Starting weblogic server...")
+    run_subprocess(f'docker exec {RT_SCAN} bash -lc "__wlstart -autodeploy=true"')
 
     # Wait for the server to finish initializing
     main_logger.info("Waiting for the server to finish initializing...")
     while True:
-        # TODO: need to change the below URL
-        res = requests.get("http://localhost:9080/smcfs/console/login.jsp")
-        if res.status_code == 200:
-            break
-        time.sleep(60)
+        try:
+            res = requests.get("http://localhost:7001/smcfs/console/login.jsp", timeout=20)
+            if res.status_code == 200:
+                break
+        except Exception as _e:
+            time.sleep(10)
 
     main_logger.info("The db2 and rt containers are up and running...")
-
     docker_logout()
 
 
@@ -485,7 +484,7 @@ def dynamic_scan():
         main_logger.info(f"Removing the scan: {app} - {dynamic_old_scans[app]}... ")
         try:
             res = requests.delete(
-                f"https://cloud.appscan.com/api/v2/Scans/{dynamic_old_scans[app]}?deleteIssues=true",
+                f"{ASOC_API_ENDPOINT}/Scans/{dynamic_old_scans[app]}?deleteIssues=true",
                 headers=headers,
             )
         except Exception as e:
@@ -514,7 +513,9 @@ def dynamic_scan():
 
         # creating a new scan
         main_logger.info(f"Creating a new scan for {app}...")
-        res = requests.post(ASOC_DYNAMIC_ENDPOINT, json=create_scan_data, headers=headers)
+        res = requests.post(
+            f"{ASOC_API_ENDPOINT}/Scans/DynamicAnalyzer", json=create_scan_data, headers=headers
+        )
         dynamic_old_scans[app] = res.json()["Id"]
 
     # save old scans
@@ -564,7 +565,7 @@ def dynamic_reports():
     #             },
     #         }
     #         res = requests.post(
-    #             f"https://cloud.appscan.com/api/v2/Reports/Security/Scan/{scan['Id']}",
+    #             f"{ASOC_API_ENDPOINT}/Reports/Security/Scan/{scan['Id']}",
     #             json=config_data,
     #             headers=headers,
     #         )
@@ -583,9 +584,7 @@ def dynamic_reports():
     for report in generated_reports:
         # wait for the report to be ready
         while True:
-            res = requests.get(
-                f"https://cloud.appscan.com/api/v2/Reports/{report['Id']}", headers=headers
-            )
+            res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/{report['Id']}", headers=headers)
             if res.status_code != 200:
                 break
 
@@ -596,9 +595,7 @@ def dynamic_reports():
             time.sleep(300)
 
         # download the report
-        res = requests.get(
-            f"https://cloud.appscan.com/api/v2/Reports/Download/{report['Id']}", headers=headers
-        )
+        res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/Download/{report['Id']}", headers=headers)
         if res.status_code == 200:
             with open(f"{report['Name']}.html", "wb") as f:
                 f.write(res.content)
