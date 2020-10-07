@@ -19,12 +19,18 @@ from constants import (
     APP_URL_DICT,
     ASOC_DYNAMIC_ENDPOINT,
     ASOC_LOGIN_ENDPOINT,
+    DB2_SCAN,
     DYNAMIC,
+    JFROG_REGISTRY,
+    JFROG_USER,
+    NETWORK_SCAN,
     NS,
     PRESENCE_ID,
+    RT_SCAN,
     SINGLE_DYNAMIC,
     SINGLE_STREAM_RSS_URL,
     STATIC,
+    VOL_SCAN,
 )
 
 # get env variables
@@ -33,6 +39,7 @@ load_dotenv(dotenv_path)
 
 KEY_ID = os.environ.get("KEY_ID")
 KEY_SECRET = os.environ.get("KEY_SECRET")
+JFROG_APIKEY = os.environ.get("JFROG_APIKEY")
 
 # main logger
 main_logger = logging.getLogger(__name__)
@@ -105,7 +112,7 @@ def timer(func):
     return wrapper
 
 
-def run_subprocess(command, timeout=None, logger=None):
+def run_subprocess(command, timeout=None, logger=main_logger):
     popen = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     lines_iterator = iter(popen.stdout.readline, b"")
     output = ""
@@ -243,14 +250,102 @@ def get_latest_stable_image_tag():
 
 @timer
 @logger
+def docker_login():
+    main_logger.info(f"#### Login to {JFROG_REGISTRY} ####")
+    run_subprocess(
+        f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}", logger=main_logger,
+    )
+
+
+@timer
+@logger
+def docker_logout():
+    main_logger.info(f"#### Logout of {JFROG_REGISTRY} ####")
+    run_subprocess(
+        f"docker logout {JFROG_REGISTRY}", logger=main_logger,
+    )
+
+
+@timer
+@logger
+def start_db2_container(image_tag, logger=main_logger):
+    """Start the db2 container for deployment."""
+    try:
+        db_image_repo = f"{JFROG_REGISTRY}/oms-single-db2-db:{image_tag}-refs"
+        logger.info(f"#### STARTING DB2 CONTAINER: {DB2_SCAN} - {db_image_repo} ####")
+        run_subprocess(
+            f" \
+            docker volume create {VOL_SCAN} && \
+            docker network create {NETWORK_SCAN} && \
+            docker run -di --name {DB2_SCAN} --privileged \
+            --network={NETWORK_SCAN} \
+            -e DB2INSTANCE=db2inst1 \
+            -e DB2INST1_PASSWORD=db2inst1 \
+            -e DB_USER=omsuser \
+            -e DB_PASSWORD=omsuser \
+            -e LICENSE=accept \
+            -e DBNAME=omdb \
+            -e AUTOCONFIG=false \
+            -v {VOL_SCAN}:/database \
+            -p 50005:50000 {db_image_repo} && \
+            chmod +x {os.getcwd()}/waitDB2.sh && \
+            /bin/bash {os.getcwd()}/waitDB2.sh {DB2_SCAN}",
+            logger=logger,
+        )
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        logger.error(e)
+        raise Exception
+
+
+@timer
+@logger
+def start_rt_container(image_tag, logger=main_logger):
+    """Start the rt container for deployment"""
+    try:
+        rt_image_repo = f"{JFROG_REGISTRY}/oms-single-db2-rt:{image_tag}-liberty"
+        logger.info(f"#### STARTING DB2 CONTAINER: {RT_SCAN} - {rt_image_repo} ####")
+        run_subprocess(
+            f" \
+            docker run -di --name {RT_SCAN} --privileged \
+            --network={NETWORK_SCAN} \
+            -e DB_HOST={DB2_SCAN} \
+            -e DB_PORT=50000 \
+            -e DB_VENDOR=db2 \
+            -e DB_NAME=OMDB \
+            -p 9080:9080 \
+            -p 9443:9443 \
+            {rt_image_repo}",
+            logger=logger,
+        )
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        logger.error(e)
+        raise Exception
+
+
+@timer
+@logger
+def prep_containers(image_tag):
+    docker_login()
+    start_db2_container(image_tag)
+    start_rt_container(image_tag)
+    docker_logout()
+
+
+@timer
+@logger
 def dynamic_scan():
     # image_tag = get_latest_stable_image_tag()
     # print(image_tag)
     # TODOS:
     # * - DONE - need to figure out which image tag to use (this can be done by fetching the latest successful build from jenkins)
     # ! - need to spin up the containers (rt and db2) to create the env (including setting building the ear and apps deployment)
-    # ! - for each app (smcfs, sbc, sma, wsc, isccs), need to create the new scan by calling the ASoC APIs (similar to the below - remember to delete or save the old scan)
+    # * - DONE - for each app (smcfs, sbc, sma, wsc, isccs), need to create the new scan by calling the ASoC APIs (similar to the below - remember to delete or save the old scan)
     # ! - get the results
+
+    # spin up the containers (rt and db2)
+    prep_containers("20201006-0735")
 
     # request header for the API
     # headers = {
@@ -259,34 +354,34 @@ def dynamic_scan():
     #     "Authorization": f"Bearer {get_bearer_token()}",
     # }
 
-    for app, url in APP_URL_DICT.items():
-        user = "admin" if app != "WSC" else "csmith"
-        passwd = "password" if app != "WSC" else "csmith"
-        data = {
-            "StartingUrl": url,
-            "LoginUser": user,
-            "LoginPassword": passwd,
-            "ScanType": "Production",
-            "PresenceId": PRESENCE_ID,
-            "IncludeVerifiedDomains": "true",
-            "HttpAuthUserName": "string",
-            "HttpAuthPassword": "string",
-            "HttpAuthDomain": "string",
-            "OnlyFullResults": "true",
-            "TestOptimizationLevel": "NoOptimization",
-            "ScanName": f"{app} Scan",
-            "EnableMailNotification": "false",
-            "Locale": "en-US",
-            "AppId": SINGLE_DYNAMIC,
-            "Execute": "true",
-            "Personal": "false",
-        }
+    # for app, url in APP_URL_DICT.items():
+    #     user = "admin" if app != "WSC" else "csmith"
+    #     passwd = "password" if app != "WSC" else "csmith"
+    #     data = {
+    #         "StartingUrl": url,
+    #         "LoginUser": user,
+    #         "LoginPassword": passwd,
+    #         "ScanType": "Production",
+    #         "PresenceId": PRESENCE_ID,
+    #         "IncludeVerifiedDomains": "true",
+    #         "HttpAuthUserName": "string",
+    #         "HttpAuthPassword": "string",
+    #         "HttpAuthDomain": "string",
+    #         "OnlyFullResults": "true",
+    #         "TestOptimizationLevel": "NoOptimization",
+    #         "ScanName": f"{app} Scan",
+    #         "EnableMailNotification": "false",
+    #         "Locale": "en-US",
+    #         "AppId": SINGLE_DYNAMIC,
+    #         "Execute": "true",
+    #         "Personal": "false",
+    #     }
 
-        print(data)
+    #     print(data)
 
-        # res = requests.post(ASOC_DYNAMIC_ENDPOINT, json=data, headers=headers)
+    # res = requests.post(ASOC_DYNAMIC_ENDPOINT, json=data, headers=headers)
 
-        # print(res.text)
+    # print(res.text)
 
 
 @timer

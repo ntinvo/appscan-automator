@@ -1,4 +1,7 @@
 # consts
+JFROG_REGISTRY = "wce-oms-onprem-dev-imgs-docker-local.artifactory.swg-devops.com"
+JFROG_USER = "tin.vo@ibm.com"
+JFROG_API_ENDPOINT = "https://na.artifactory.swg-devops.com/artifactory/api/docker/wce-oms-onprem-dev-imgs-docker-local/v2"
 SINGLE_STREAM_RSS_URL = (
     "http://9.121.242.67:9080/jenkins/view/L3%20Builds/job/Single_Stream_Project/rssAll"
 )
@@ -19,6 +22,12 @@ NS = {"W3": "http://www.w3.org/2005/Atom"}
 DYNAMIC = "dynamic"
 STATIC = "static"
 ALL = "all"
+
+# dynamic consts
+DB2_SCAN = "db2_scan"
+RT_SCAN = "rt_scan"
+VOL_SCAN = "vol_scan"
+NETWORK_SCAN = "network_scan"
 
 # ASoC consts
 OMS_APP_ID = "87af65be-ef31-4aa7-871f-8354e19d6328"
