@@ -452,8 +452,11 @@ def dynamic_scan():
 
     # read the old scan ids
     old_scans = {}
-    with open("old_scans.json") as f:
-        old_scans = json.load(f)
+    try:
+        with open("old_scans.json") as f:
+            old_scans = json.load(f)
+    except Exception as e:
+        main_logger.warning(e)
 
     for app, url in APP_URL_DICT.items():
         user = "admin" if app != "WSC" else "csmith"
@@ -461,10 +464,13 @@ def dynamic_scan():
 
         # remove the scan before creating a new one
         main_logger.info(f"Removing the scan: {app} - {old_scans[app]}... ")
-        res = requests.delete(
-            f"https://cloud.appscan.com/api/v2/Scans/{old_scans[app]}?deleteIssues=true",
-            headers=headers,
-        )
+        try:
+            res = requests.delete(
+                f"https://cloud.appscan.com/api/v2/Scans/{old_scans[app]}?deleteIssues=true",
+                headers=headers,
+            )
+        except Exception as e:
+            main_logger.warning(e)
 
         # scan data
         create_scan_data = {
