@@ -1,4 +1,5 @@
 import argparse
+import errno
 import functools
 import json
 import logging
@@ -8,6 +9,7 @@ import sys
 import time
 import traceback
 import xml.etree.ElementTree as ET
+from datetime import datetime
 from os.path import dirname, join
 
 import coloredlogs
@@ -243,6 +245,23 @@ def get_scans(app_id):
         return res.json()
 
 
+@timer
+@logger
+def get_date_str():
+    return datetime.today().strftime("%Y_%m_%d")
+
+
+@timer
+@logger
+def create_dir(path):
+    if not os.path.exists(path):
+        try:
+            os.makedirs(path)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+
+
 # ********************************* #
 # *        STATIC SCAN PREP       * #
 # ********************************* #
@@ -387,8 +406,7 @@ def start_rt_container(image_tag, logger=main_logger):
             -e DB_PORT=50000 \
             -e DB_VENDOR=db2 \
             -e DB_NAME=OMDB \
-            -p 9080:9080 \
-            -p 9443:9443 \
+            -p 7001:7001 \
             {rt_image_repo}",
             logger=logger,
         )
@@ -436,7 +454,9 @@ def prep_containers(image_tag):
     main_logger.info("Waiting for the server to finish initializing...")
     while True:
         try:
-            res = requests.get("http://localhost:7001/smcfs/console/login.jsp", timeout=20)
+            res = requests.get(
+                "http://single1.fyre.ibm.com:7001/smcfs/console/login.jsp", timeout=20
+            )
             if res.status_code == 200:
                 break
         except Exception as _e:
@@ -597,7 +617,9 @@ def dynamic_reports():
         # download the report
         res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/Download/{report['Id']}", headers=headers)
         if res.status_code == 200:
-            with open(f"{report['Name']}.html", "wb") as f:
+            reports_dir_path = f"reports/dynamic/{get_date_str()}"
+            create_dir(reports_dir_path)
+            with open(f"{reports_dir_path}/{report['Name']}.html", "wb") as f:
                 f.write(res.content)
 
 
@@ -626,6 +648,9 @@ def get_reports(args):
     #     main_logger.warning(e)
 
 
+# ********************************* #
+# *             MAIN              * #
+# ********************************* #
 @timer
 @logger
 def main():
