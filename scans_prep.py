@@ -1,10 +1,14 @@
 import argparse
+import coloredlogs
+import functools
 import logging
 import os
 import requests
 import subprocess
 import sys
-import coloredlogs
+import time
+import traceback
+
 import xml.etree.ElementTree as ET
 
 from bs4 import BeautifulSoup
@@ -32,6 +36,70 @@ main_logger = logging.getLogger(__name__)
 # ********************************* #
 # *             UTILS             * #
 # ********************************* #
+def logger(func):
+    """Print the function signature and return value"""
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            args_repr = [repr(a) for a in args]
+            kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]
+            signature = ", ".join(args_repr + kwargs_repr)
+            main_logger.info(f"START - {func.__name__}")
+            main_logger.debug(f"{func.__name__}({signature})")
+            value = func(*args, **kwargs)
+            main_logger.debug(f"{func.__name__!r} returned {value!r}")
+            return value
+        except Exception as e:
+            main_logger.error(traceback.format_exc())
+            main_logger.error(f"ERROR - {func.__name__} : {e}")
+            raise
+        finally:
+            main_logger.info(f"END - {func.__name__}")
+            sys.stdout.flush()
+
+    return wrapper
+
+
+def get_run_duration(run_time):
+    """Convert seconds to hours/minutes/seconds
+    Args:
+        run_time: the time to convert to hours/minutes/seconds
+    Returns:
+        hours: converted hours
+        minutes: converted minutes
+        seconds: converted seconds
+    Raises:
+        None
+    """
+    seconds = run_time % (24 * 3600)
+    hours = run_time // 3600
+    seconds %= 3600
+    minutes = seconds // 60
+    seconds %= 60
+    hours = int(hours)
+    minutes = int(minutes)
+    seconds = int(seconds)
+
+    return hours, minutes, seconds
+
+
+def timer(func):
+    """Print the runtime of the decorated function"""
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        value = func(*args, **kwargs)
+        end_time = time.time()
+        run_time = end_time - start_time
+        hours, minutes, seconds = get_run_duration(run_time)
+        main_logger.info(f"{func.__name__}() completed in: {hours}h {minutes}m {seconds}s")
+        return value
+
+    return wrapper
+
+
 def run_subprocess(command, timeout=None, logger=None):
     popen = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     lines_iterator = iter(popen.stdout.readline, b"")
@@ -112,6 +180,8 @@ def parse_arguments():
     return args
 
 
+@timer
+@logger
 def get_bearer_token():
     res = requests.post(
         "https://cloud.appscan.com/api/V2/Account/ApiKeyLogin",
@@ -124,6 +194,8 @@ def get_bearer_token():
 # ********************************* #
 # *        STATIC SCAN PREP       * #
 # ********************************* #
+@timer
+@logger
 def static_scan():
     # TODOS:
     # ! - fetch the source code
@@ -136,6 +208,8 @@ def static_scan():
 # ********************************* #
 # *       DYNAMIC SCAN PREP       * #
 # ********************************* #
+@timer
+@logger
 def fetch_available_build_urls(url):
     res = requests.get(url)
     build_urls = []
@@ -151,6 +225,8 @@ def fetch_available_build_urls(url):
     return build_urls
 
 
+@timer
+@logger
 def get_latest_stable_image_tag():
     latest_stable_build_url = fetch_available_build_urls(SINGLE_STREAM_RSS_URL)[0]
     res = requests.get(latest_stable_build_url)
@@ -160,6 +236,8 @@ def get_latest_stable_image_tag():
     return title.split(" ")[1]
 
 
+@timer
+@logger
 def dynamic_scan():
     # image_tag = get_latest_stable_image_tag()
     # print(image_tag)
@@ -202,6 +280,8 @@ def dynamic_scan():
     print(res.text)
 
 
+@timer
+@logger
 def main():
     args = parse_arguments()
     if args.mode == ALL:
@@ -212,7 +292,7 @@ def main():
     else:
         dynamic_scan()
 
-    run_subprocess("ls -al", logger=main_logger)
+    # run_subprocess("ls -al", logger=main_logger)
 
 
 if __name__ == "__main__":
