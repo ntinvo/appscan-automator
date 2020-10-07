@@ -328,9 +328,42 @@ def start_rt_container(image_tag, logger=main_logger):
 @logger
 def prep_containers(image_tag):
     docker_login()
-    start_db2_container(image_tag)
-    start_rt_container(image_tag)
+
+    # # Starting db2 and rt containers
+    # main_logger.info("Starting db2 and rt containers...")
+    # start_db2_container(image_tag)
+    # start_rt_container(image_tag)
+
+    # # Build the ear
+    # main_logger.info("Building ear file...")
+    # run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs,wsc"')
+
+    # # Start liberty server
+    # main_logger.info("Starting liberty server...")
+    # run_subprocess(f'docker exec {RT_SCAN} bash -lc "__lbstart"')
+
+    # Wait for the server to finish initializing
+    main_logger.info("Waiting for the server to finish initializing...")
+    while True:
+        # TODO: need to change the below URL
+        res = requests.get("http://localhost:9080/smcfs/console/login.jsp")
+        if res.status_code == 200:
+            break
+        time.sleep(60)
+
+    main_logger.info("The db2 and rt containers are up and running...")
+
     docker_logout()
+
+
+@timer
+@logger
+def cleanup():
+    main_logger.info(f"Removing volume {VOL_SCAN}...")
+    run_subprocess(f"docker volume rm {VOL_SCAN}")
+
+    main_logger.info(f"Removing network {NETWORK_SCAN}...")
+    run_subprocess(f"docker network rm {NETWORK_SCAN}")
 
 
 @timer
