@@ -436,11 +436,9 @@ def cleanup():
 @logger
 def dynamic_scan():
     # TODOS:
-    # * - DONE - need to figure out which image tag to use (this can be done by fetching the latest successful build from jenkins)
-    # * - DONE - need to spin up the containers (rt and db2) to create the env (including setting building the ear and apps deployment)
-    # * - DONE - for each app (smcfs, sbc, sma, wsc, isccs), need to create the new scan by calling the ASoC APIs (similar to the below - remember to delete or save the old scan)
     # ! - get the results
 
+    # # get the image tag
     # image_tag = get_latest_stable_image_tag()
     # print(image_tag)
 
