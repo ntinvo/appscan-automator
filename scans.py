@@ -49,7 +49,14 @@ main_logger = logging.getLogger(__name__)
 # *             UTILS             * #
 # ********************************* #
 def logger(func):
-    """Print the function signature and return value"""
+    """
+    Print the function signature and return value.
+    
+    Args:
+        func: the function to be wrapped
+    Returns:
+        wrapper: return the logger wrapper for the passed in function
+    """
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -74,15 +81,15 @@ def logger(func):
 
 
 def get_run_duration(run_time):
-    """Convert seconds to hours/minutes/seconds
+    """
+    Convert seconds to hours/minutes/seconds.
+    
     Args:
         run_time: the time to convert to hours/minutes/seconds
     Returns:
         hours: converted hours
         minutes: converted minutes
         seconds: converted seconds
-    Raises:
-        None
     """
     seconds = run_time % (24 * 3600)
     hours = run_time // 3600
@@ -97,7 +104,14 @@ def get_run_duration(run_time):
 
 
 def timer(func):
-    """Print the runtime of the decorated function"""
+    """
+    Print the runtime of the decorated function.
+    
+    Args:
+        func: the function to be wrapped
+    Returns:
+        wrapper: return the timer wrapper for the passed in function
+    """
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -113,6 +127,7 @@ def timer(func):
 
 
 def run_subprocess(command, timeout=None, logger=main_logger):
+    """Run the subprocess."""
     popen = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     lines_iterator = iter(popen.stdout.readline, b"")
     output = ""
@@ -223,6 +238,14 @@ def static_scan():
 @timer
 @logger
 def fetch_available_build_urls(url):
+    """
+    Fetch all of the stable build urls from Jenkins server.
+    
+    Args:
+        url: the build job url 
+    Returns:
+        build_urls: the available stable urls
+    """
     res = requests.get(url)
     build_urls = []
     if res.ok:
@@ -240,6 +263,14 @@ def fetch_available_build_urls(url):
 @timer
 @logger
 def get_latest_stable_image_tag():
+    """
+    Get latest stable image tag.
+    
+    Args:
+        None 
+    Returns:
+        The latest available stable url
+    """
     latest_stable_build_url = fetch_available_build_urls(SINGLE_STREAM_RSS_URL)[0]
     res = requests.get(latest_stable_build_url)
     soup = BeautifulSoup(res.text, "html.parser")
@@ -251,6 +282,7 @@ def get_latest_stable_image_tag():
 @timer
 @logger
 def docker_login():
+    """Login to the registry."""
     main_logger.info(f"#### Login to {JFROG_REGISTRY} ####")
     run_subprocess(
         f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}", logger=main_logger,
@@ -260,6 +292,7 @@ def docker_login():
 @timer
 @logger
 def docker_logout():
+    """Logout of the registry."""
     main_logger.info(f"#### Logout of {JFROG_REGISTRY} ####")
     run_subprocess(
         f"docker logout {JFROG_REGISTRY}", logger=main_logger,
@@ -269,7 +302,15 @@ def docker_logout():
 @timer
 @logger
 def start_db2_container(image_tag, logger=main_logger):
-    """Start the db2 container for deployment."""
+    """
+    Start the db2 container for deployment.
+    
+    Args:
+        image_tag: the tag of the image
+        logger: the logger to log the output
+    Returns:
+        None
+    """
     try:
         db_image_repo = f"{JFROG_REGISTRY}/oms-single-db2-db:{image_tag}-refs"
         logger.info(f"#### STARTING DB2 CONTAINER: {DB2_SCAN} - {db_image_repo} ####")
@@ -301,7 +342,15 @@ def start_db2_container(image_tag, logger=main_logger):
 @timer
 @logger
 def start_rt_container(image_tag, logger=main_logger):
-    """Start the rt container for deployment"""
+    """
+    Start the rt container for deployment
+    
+    Args:
+        image_tag: the tag of the image
+        logger: the logger to log the output
+    Returns:
+        None
+    """
     try:
         rt_image_repo = f"{JFROG_REGISTRY}/oms-single-db2-rt:{image_tag}-liberty"
         logger.info(f"#### STARTING DB2 CONTAINER: {RT_SCAN} - {rt_image_repo} ####")
@@ -327,6 +376,22 @@ def start_rt_container(image_tag, logger=main_logger):
 @timer
 @logger
 def prep_containers(image_tag):
+    """
+    Prepare the rt and db2 container. This function will do the followings:
+    - login to the registry 
+    - start db2 and rt containers 
+    - build the ear for deployment 
+    - start liberty server 
+    - wait for the server to be ready
+    - logout of the registry
+
+    Args:
+        image_tag: the tag of the image
+    Returns:
+        None
+
+    NOTE: as of now, this only supports single images; this can be enhanced to prep other versions    
+    """
     docker_login()
 
     # # Starting db2 and rt containers
@@ -359,6 +424,7 @@ def prep_containers(image_tag):
 @timer
 @logger
 def cleanup():
+    """Clean up resouces."""
     main_logger.info(f"Removing volume {VOL_SCAN}...")
     run_subprocess(f"docker volume rm {VOL_SCAN}")
 
@@ -369,14 +435,16 @@ def cleanup():
 @timer
 @logger
 def dynamic_scan():
-    # image_tag = get_latest_stable_image_tag()
-    # print(image_tag)
     # TODOS:
     # * - DONE - need to figure out which image tag to use (this can be done by fetching the latest successful build from jenkins)
-    # ! - need to spin up the containers (rt and db2) to create the env (including setting building the ear and apps deployment)
+    # * - DONE - need to spin up the containers (rt and db2) to create the env (including setting building the ear and apps deployment)
     # * - DONE - for each app (smcfs, sbc, sma, wsc, isccs), need to create the new scan by calling the ASoC APIs (similar to the below - remember to delete or save the old scan)
     # ! - get the results
 
+    # image_tag = get_latest_stable_image_tag()
+    # print(image_tag)
+
+    # TODO: pass the image tag to the prep_containers
     # spin up the containers (rt and db2)
     prep_containers("20201006-0735")
 
@@ -428,8 +496,6 @@ def main():
         static_scan()
     else:
         dynamic_scan()
-
-    # run_subprocess("ls -al", logger=main_logger)
 
 
 if __name__ == "__main__":
