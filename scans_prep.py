@@ -22,12 +22,22 @@ load_dotenv(dotenv_path)
 SINGLE_STREAM_RSS_URL = (
     "http://9.121.242.67:9080/jenkins/view/L3%20Builds/job/Single_Stream_Project/rssAll"
 )
+APPS = ["SMCFS", "SBC", "SMA", "STORE", "CALL CENTER"]
 NS = {"W3": "http://www.w3.org/2005/Atom"}
-KEY_ID = os.environ.get("KEY_ID")
-KEY_SECRET = os.environ.get("KEY_SECRET")
 DYNAMIC = "dynamic"
 STATIC = "static"
 ALL = "all"
+
+# ASoC consts
+OMS_APP_ID = "87af65be-ef31-4aa7-871f-8354e19d6328"
+SINGLE_DYNAMIC = "fc449ae1-8742-49e9-a06b-fe37988ca2a8"
+SINGLE_STATIC = "14ad3e4d-8c6e-4e1a-a092-1249ef2b5d74"
+KEY_ID = os.environ.get("KEY_ID")
+KEY_SECRET = os.environ.get("KEY_SECRET")
+PRESENCE_ID = "418df2a0-0608-eb11-96f5-00155d55406c"
+ASOC_LOGIN_ENDPOINT = "https://cloud.appscan.com/api/V2/Account/ApiKeyLogin"
+ASOC_DYNAMIC_ENDPOINT = "https://cloud.appscan.com/api/v2/Scans/DynamicAnalyzer"
+ASOC_FILE_UPLOAD = "https://cloud.appscan.com/api/v2/FileUpload"
 
 # main logger
 main_logger = logging.getLogger(__name__)
@@ -184,7 +194,7 @@ def parse_arguments():
 @logger
 def get_bearer_token():
     res = requests.post(
-        "https://cloud.appscan.com/api/V2/Account/ApiKeyLogin",
+        ASOC_LOGIN_ENDPOINT,
         json={"KeyId": KEY_ID, "KeySecret": KEY_SECRET},
         headers={"Accept": "application/json"},
     )
@@ -258,7 +268,7 @@ def dynamic_scan():
         "LoginUser": "admin",
         "LoginPassword": "password",
         "ScanType": "Production",
-        "PresenceId": "418df2a0-0608-eb11-96f5-00155d55406c",
+        "PresenceId": PRESENCE_ID,
         "IncludeVerifiedDomains": "true",
         "HttpAuthUserName": "string",
         "HttpAuthPassword": "string",
@@ -268,14 +278,12 @@ def dynamic_scan():
         "ScanName": "API Tester Scan",
         "EnableMailNotification": "false",
         "Locale": "en-US",
-        "AppId": "fc449ae1-8742-49e9-a06b-fe37988ca2a8",
+        "AppId": SINGLE_DYNAMIC,
         "Execute": "true",
         "Personal": "false",
     }
 
-    res = requests.post(
-        "https://cloud.appscan.com/api/v2/Scans/DynamicAnalyzer", json=data, headers=headers
-    )
+    res = requests.post(ASOC_DYNAMIC_ENDPOINT, json=data, headers=headers)
 
     print(res.text)
 
