@@ -1,20 +1,20 @@
 import argparse
-import coloredlogs
 import functools
 import logging
 import os
-import requests
 import subprocess
 import sys
 import time
 import traceback
-
 import xml.etree.ElementTree as ET
+from os.path import dirname, join
 
+import coloredlogs
+import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from os.path import join, dirname
 
+# get env variables
 dotenv_path = join(dirname(__file__), ".env")
 load_dotenv(dotenv_path)
 
