@@ -1,5 +1,6 @@
 import argparse
 import functools
+import json
 import logging
 import os
 import subprocess
@@ -435,52 +436,65 @@ def cleanup():
 @timer
 @logger
 def dynamic_scan():
-    # TODOS:
-    # ! - get the results
-
     # # get the image tag
     # image_tag = get_latest_stable_image_tag()
     # print(image_tag)
 
-    # TODO: pass the image tag to the prep_containers
     # spin up the containers (rt and db2)
-    prep_containers("20201006-0735")
+    # prep_containers(image_tag)
 
     # request header for the API
-    # headers = {
-    #     "Content-Type": "application/json",
-    #     "Accept": "application/json",
-    #     "Authorization": f"Bearer {get_bearer_token()}",
-    # }
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {get_bearer_token()}",
+    }
 
-    # for app, url in APP_URL_DICT.items():
-    #     user = "admin" if app != "WSC" else "csmith"
-    #     passwd = "password" if app != "WSC" else "csmith"
-    #     data = {
-    #         "StartingUrl": url,
-    #         "LoginUser": user,
-    #         "LoginPassword": passwd,
-    #         "ScanType": "Production",
-    #         "PresenceId": PRESENCE_ID,
-    #         "IncludeVerifiedDomains": "true",
-    #         "HttpAuthUserName": "string",
-    #         "HttpAuthPassword": "string",
-    #         "HttpAuthDomain": "string",
-    #         "OnlyFullResults": "true",
-    #         "TestOptimizationLevel": "NoOptimization",
-    #         "ScanName": f"{app} Scan",
-    #         "EnableMailNotification": "false",
-    #         "Locale": "en-US",
-    #         "AppId": SINGLE_DYNAMIC,
-    #         "Execute": "true",
-    #         "Personal": "false",
-    #     }
+    # read the old scan ids
+    old_scans = {}
+    with open("old_scans.json") as f:
+        old_scans = json.load(f)
 
-    #     print(data)
+    for app, url in APP_URL_DICT.items():
+        user = "admin" if app != "WSC" else "csmith"
+        passwd = "password" if app != "WSC" else "csmith"
 
-    # res = requests.post(ASOC_DYNAMIC_ENDPOINT, json=data, headers=headers)
+        # remove the scan before creating a new one
+        main_logger.info(f"Removing the scan: {app} - {old_scans[app]}... ")
+        res = requests.delete(
+            f"https://cloud.appscan.com/api/v2/Scans/{old_scans[app]}?deleteIssues=true",
+            headers=headers,
+        )
 
-    # print(res.text)
+        # scan data
+        create_scan_data = {
+            "StartingUrl": url,
+            "LoginUser": user,
+            "LoginPassword": passwd,
+            "ScanType": "Production",
+            "PresenceId": PRESENCE_ID,
+            "IncludeVerifiedDomains": "true",
+            "HttpAuthUserName": "string",
+            "HttpAuthPassword": "string",
+            "HttpAuthDomain": "string",
+            "OnlyFullResults": "true",
+            "TestOptimizationLevel": "NoOptimization",
+            "ScanName": f"{app} Scan",
+            "EnableMailNotification": "false",
+            "Locale": "en-US",
+            "AppId": SINGLE_DYNAMIC,
+            "Execute": "true",
+            "Personal": "false",
+        }
+
+        # creating a new scan
+        main_logger.info(f"Creating a new scan for {app}...")
+        res = requests.post(ASOC_DYNAMIC_ENDPOINT, json=create_scan_data, headers=headers)
+        old_scans[app] = res.json()["Id"]
+
+    # save old scans
+    with open("old_scans.json", "w") as f:
+        json.dump(old_scans, f)
 
 
 @timer
