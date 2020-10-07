@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 
 from constants import (
     ALL,
+    APP_URL_DICT,
     ASOC_DYNAMIC_ENDPOINT,
     ASOC_LOGIN_ENDPOINT,
     DYNAMIC,
@@ -248,38 +249,44 @@ def dynamic_scan():
     # TODOS:
     # * - DONE - need to figure out which image tag to use (this can be done by fetching the latest successful build from jenkins)
     # ! - need to spin up the containers (rt and db2) to create the env (including setting building the ear and apps deployment)
-    # ! - for each app (smcfs, sbc, sma, store, call center), need to create the new scan by calling the ASoC APIs (similar to the below - remember to delete or save the old scan)
+    # ! - for each app (smcfs, sbc, sma, wsc, isccs), need to create the new scan by calling the ASoC APIs (similar to the below - remember to delete or save the old scan)
     # ! - get the results
 
-    headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": f"Bearer {get_bearer_token()}",
-    }
+    # request header for the API
+    # headers = {
+    #     "Content-Type": "application/json",
+    #     "Accept": "application/json",
+    #     "Authorization": f"Bearer {get_bearer_token()}",
+    # }
 
-    data = {
-        "StartingUrl": "http://single1.fyre.ibm.com:7001/smcfs/yfshttpapi/yantrahttpapitester.jsp",
-        "LoginUser": "admin",
-        "LoginPassword": "password",
-        "ScanType": "Production",
-        "PresenceId": PRESENCE_ID,
-        "IncludeVerifiedDomains": "true",
-        "HttpAuthUserName": "string",
-        "HttpAuthPassword": "string",
-        "HttpAuthDomain": "string",
-        "OnlyFullResults": "true",
-        "TestOptimizationLevel": "NoOptimization",
-        "ScanName": "API Tester Scan",
-        "EnableMailNotification": "false",
-        "Locale": "en-US",
-        "AppId": SINGLE_DYNAMIC,
-        "Execute": "true",
-        "Personal": "false",
-    }
+    for app, url in APP_URL_DICT.items():
+        user = "admin" if app != "WSC" else "csmith"
+        passwd = "password" if app != "WSC" else "csmith"
+        data = {
+            "StartingUrl": url,
+            "LoginUser": user,
+            "LoginPassword": passwd,
+            "ScanType": "Production",
+            "PresenceId": PRESENCE_ID,
+            "IncludeVerifiedDomains": "true",
+            "HttpAuthUserName": "string",
+            "HttpAuthPassword": "string",
+            "HttpAuthDomain": "string",
+            "OnlyFullResults": "true",
+            "TestOptimizationLevel": "NoOptimization",
+            "ScanName": f"{app} Scan",
+            "EnableMailNotification": "false",
+            "Locale": "en-US",
+            "AppId": SINGLE_DYNAMIC,
+            "Execute": "true",
+            "Personal": "false",
+        }
 
-    res = requests.post(ASOC_DYNAMIC_ENDPOINT, json=data, headers=headers)
+        print(data)
 
-    print(res.text)
+        # res = requests.post(ASOC_DYNAMIC_ENDPOINT, json=data, headers=headers)
+
+        # print(res.text)
 
 
 @timer

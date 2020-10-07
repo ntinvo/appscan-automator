@@ -3,8 +3,8 @@ SINGLE_STREAM_RSS_URL = (
     "http://9.121.242.67:9080/jenkins/view/L3%20Builds/job/Single_Stream_Project/rssAll"
 )
 DEPLOY_SERVER = "http://single1.fyre.ibm.com:7001"
-SMCFS_URL = f"{DEPLOY_SERVER}/sbc/sbc/login.do"
-SBC_URL = f"{DEPLOY_SERVER}/smcfs/console/login.jsp"
+SMCFS_URL = f"{DEPLOY_SERVER}/smcfs/console/login.jsp"
+SBC_URL = f"{DEPLOY_SERVER}/sbc/sbc/login.do"
 SMA_URL = f"{DEPLOY_SERVER}/sma/sma/container/home.do"
 ISCCS_URL = f"{DEPLOY_SERVER}/isccs/isccs/login.do"
 WSC_URL = f"{DEPLOY_SERVER}/wsc/wsc/login.do"
