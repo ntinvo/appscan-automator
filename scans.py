@@ -212,10 +212,25 @@ def parse_arguments():
         choices=[SCAN, REPORTS],
         help=f"the mode to run the scan; {SCAN} will create the scan, and {REPORTS} will generate and download the reports for the scans.",
     )
+    parser.add_argument(
+        "-s",
+        "--source",
+        help=f"the path to source code. When running type {STATIC} and mode {SCAN}, this is required.",
+    )
 
     args = parser.parse_args()
     setup_main_logging(args.verbose)
+    validate_args(args)
     return args
+
+
+@timer
+@logger
+def validate_args(args):
+    if (args.type == STATIC and args.mode == SCAN) and not args.source:
+        raise ValueError(
+            f"Param: source is required when running type {STATIC} and mode {SCAN} . Args: {args.source}"
+        )
 
 
 @timer
@@ -267,13 +282,38 @@ def create_dir(path):
 # ********************************* #
 @timer
 @logger
-def static_scan():
+def get_projects():
+    projects = []
+    with open("projects.list", "r") as f:
+        projects = f.readlines()
+    return projects
+
+
+@timer
+@logger
+def accept_changes():
+    pass
+
+
+def generate_appscan_config_file(args, project):
+    with open("appscan-config.xml") as r:
+        text = r.read().replace("PROJECT_PATH", f"{args.source}/{project.strip()}")
+    with open("appscan-config-tmp.xml", "w") as w:
+        w.write(text)
+
+
+@timer
+@logger
+def static_scan(args):
     # TODOS:
     # ! - fetch the source code
     # ! - run subprocess to generate file needed to upload the ASoC (using its API)
     # ! - use API to execute the scans
     # ! - get the results
-    pass
+    projects = get_projects()
+    for project in projects:
+        project_name = project.strip().replace("/", "_")
+        generate_appscan_config_file(args, project)
 
 
 # ********************************* #
@@ -539,10 +579,10 @@ def dynamic_scan():
 @logger
 def run_scan(args):
     if args.type == ALL:
-        static_scan()
+        static_scan(args)
         dynamic_scan()
     elif args.type == STATIC:
-        static_scan()
+        static_scan(args)
     else:
         dynamic_scan()
 
