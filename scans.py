@@ -34,6 +34,7 @@ from constants import (
     RT_SCAN,
     SCAN,
     SINGLE_DYNAMIC,
+    SINGLE_STATIC,
     SINGLE_STREAM_RSS_URL,
     STATIC,
     VOL_SCAN,
@@ -321,6 +322,25 @@ def static_scan(args):
         run_subprocess(
             f"appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_name}.irx -d {os.getcwd()}/configs -v -sp"
         )
+        with open(f"{os.getcwd()}/configs/{project_name}.irx", "rb") as irx_file:
+            file_data = {"fileToUpload": irx_file}
+            file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
+            res = requests.post(
+                f"{ASOC_API_ENDPOINT}/FileUpload", files=file_data, headers=file_req_header
+            )
+            if res.status_code == 201:
+                data = {
+                    "ARSAFileId": res.json()["FileId"],
+                    "ScanName": project,
+                    "AppId": SINGLE_STATIC,
+                    "Locale": "en-US",
+                    "Execute": "true",
+                    "Personal": "false",
+                }
+                print(data)
+                _ = requests.post(
+                    f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers
+                )
 
 
 # ********************************* #

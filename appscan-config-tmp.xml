@@ -1,6 +1,6 @@
 <Configuration>
   <Targets>
-    <Target path="/Users/tinnvo/Documents/Sources/Release/afc.uiproduct/platform_uifwk_ide/product">
+    <Target path="/Users/tinnvo/Documents/Sources/Release/App_Enterprise_Admin">
       <Include>*.class</Include>
       <Exclude>bin/</Exclude>
       <Exclude>NotShipped/</Exclude>
