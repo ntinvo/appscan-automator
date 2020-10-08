@@ -555,43 +555,35 @@ def run_scan(args):
 def dynamic_reports():
     scans = get_scans(SINGLE_DYNAMIC)
     generated_reports = []
-    # for scan in scans:
-    #     # only generate report for ready scan
-    #     if scan["LatestExecution"]["Status"] == "Ready":
-    #         config_data = {
-    #             "Configuration": {
-    #                 "Summary": "true",
-    #                 "Details": "true",
-    #                 "Discussion": "true",
-    #                 "Overview": "true",
-    #                 "TableOfContent": "true",
-    #                 "Advisories": "true",
-    #                 "FixRecommendation": "true",
-    #                 "History": "true",
-    #                 "Coverage": "true",
-    #                 "IsTrialReport": "true",
-    #                 "MinimizeDetails": "true",
-    #                 "ReportFileType": "Html",
-    #                 "Title": scan["Name"].replace(" ", "_").lower(),
-    #                 "Locale": "en-US",
-    #             },
-    #         }
-    #         res = requests.post(
-    #             f"{ASOC_API_ENDPOINT}/Reports/Security/Scan/{scan['Id']}",
-    #             json=config_data,
-    #             headers=headers,
-    #         )
-    #         if res.status_code == 200:
-    #             generated_reports.append(res.json())
-    rp = {
-        "Id": "b3f1484b-668e-4fd8-9e3b-db45e03a218a",
-        "Name": "smcfs_scan",
-        "Status": "Pending",
-        "Progress": 0,
-        "ValidUntil": "2020-10-08T18:38:21.2043596Z",
-        "HtmlInsteadOfPdf": "false",
-    }
-    generated_reports.append(rp)
+    for scan in scans:
+        print(scan)
+        # only generate report for ready scan
+        if scan["LatestExecution"]["Status"] == "Ready":
+            config_data = {
+                "Configuration": {
+                    "Summary": "true",
+                    "Details": "true",
+                    "Discussion": "true",
+                    "Overview": "true",
+                    "TableOfContent": "true",
+                    "Advisories": "true",
+                    "FixRecommendation": "true",
+                    "History": "true",
+                    "Coverage": "true",
+                    "IsTrialReport": "true",
+                    "MinimizeDetails": "true",
+                    "ReportFileType": "Html",
+                    "Title": scan["Name"].replace(" ", "_").lower(),
+                    "Locale": "en-US",
+                },
+            }
+            res = requests.post(
+                f"{ASOC_API_ENDPOINT}/Reports/Security/Scan/{scan['Id']}",
+                json=config_data,
+                headers=headers,
+            )
+            if res.status_code == 200:
+                generated_reports.append(res.json())
 
     for report in generated_reports:
         # wait for the report to be ready
