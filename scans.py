@@ -20,6 +20,8 @@ from dotenv import load_dotenv
 from constants import (
     ALL,
     APP_URL_DICT,
+    APPSCAN_CONFIG,
+    APPSCAN_CONFIG_TMP,
     ASOC_API_ENDPOINT,
     DB2_SCAN,
     DYNAMIC,
@@ -296,9 +298,9 @@ def accept_changes():
 
 
 def generate_appscan_config_file(args, project):
-    with open("appscan-config.xml") as r:
+    with open(APPSCAN_CONFIG) as r:
         text = r.read().replace("PROJECT_PATH", f"{args.source}/{project.strip()}")
-    with open("appscan-config-tmp.xml", "w") as w:
+    with open(APPSCAN_CONFIG_TMP, "w") as w:
         w.write(text)
 
 
@@ -311,9 +313,14 @@ def static_scan(args):
     # ! - use API to execute the scans
     # ! - get the results
     projects = get_projects()
+
     for project in projects:
         project_name = project.strip().replace("/", "_")
         generate_appscan_config_file(args, project)
+        main_logger.info(f"Generating {project_name}.irx file...")
+        run_subprocess(
+            f"appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_name}.irx -d {os.getcwd()}/configs -v -sp"
+        )
 
 
 # ********************************* #
