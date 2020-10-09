@@ -326,6 +326,7 @@ def remove_old_scans(app_id):
 @timer
 @logger
 def wait_for_report(report):
+    """Wait for the generated report to be ready"""
     while True:
         res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/{report['Id']}", headers=headers)
         if res.status_code != 200:
@@ -341,12 +342,37 @@ def wait_for_report(report):
 @timer
 @logger
 def download_report(report):
+    """Download the generated report"""
     res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/Download/{report['Id']}", headers=headers)
     if res.status_code == 200:
         reports_dir_path = f"reports/dynamic/{get_date_str()}"
         create_dir(reports_dir_path)
         with open(f"{reports_dir_path}/{report['Name']}.html", "wb") as f:
             f.write(res.content)
+
+
+@timer
+@logger
+def get_download_config(name):
+    """Get the report download configurations"""
+    return {
+        "Configuration": {
+            "Summary": "true",
+            "Details": "true",
+            "Discussion": "true",
+            "Overview": "true",
+            "TableOfContent": "true",
+            "Advisories": "true",
+            "FixRecommendation": "true",
+            "History": "true",
+            "Coverage": "true",
+            "IsTrialReport": "true",
+            "MinimizeDetails": "true",
+            "ReportFileType": "Html",
+            "Title": name.replace(" ", "_").lower(),
+            "Locale": "en-US",
+        },
+    }
 
 
 # ********************************* #
@@ -731,24 +757,7 @@ def dynamic_reports():
     for scan in scans:
         # only generate report for ready scan
         if scan["LatestExecution"]["Status"] == "Ready":
-            config_data = {
-                "Configuration": {
-                    "Summary": "true",
-                    "Details": "true",
-                    "Discussion": "true",
-                    "Overview": "true",
-                    "TableOfContent": "true",
-                    "Advisories": "true",
-                    "FixRecommendation": "true",
-                    "History": "true",
-                    "Coverage": "true",
-                    "IsTrialReport": "true",
-                    "MinimizeDetails": "true",
-                    "ReportFileType": "Html",
-                    "Title": scan["Name"].replace(" ", "_").lower(),
-                    "Locale": "en-US",
-                },
-            }
+            config_data = get_download_config(scan["Name"])
             res = requests.post(
                 f"{ASOC_API_ENDPOINT}/Reports/Security/Scan/{scan['Id']}",
                 json=config_data,
@@ -768,37 +777,18 @@ def dynamic_reports():
 @timer
 @logger
 def static_reports():
-    # scans = get_scans(SINGLE_STATIC)
-    SINGLE_STATIC = "87af65be-ef31-4aa7-871f-8354e19d6328"
     scans = get_scans(SINGLE_STATIC)
     app_name = "static_report"
     # for static reports, we will wait until all of the
     # scan in the static application to finish running
     # before we generate and download the reports
     for scan in scans:
-        app_name = scan["AppName"].replace(" ", "_").lower()
+        app_name = scan["AppName"]
         if scan["LatestExecution"]["Status"] != "Ready":
             return
 
     # cinfig data for the reports
-    config_data = {
-        "Configuration": {
-            "Summary": "true",
-            "Details": "true",
-            "Discussion": "true",
-            "Overview": "true",
-            "TableOfContent": "true",
-            "Advisories": "true",
-            "FixRecommendation": "true",
-            "History": "true",
-            "Coverage": "true",
-            "IsTrialReport": "true",
-            "MinimizeDetails": "true",
-            "ReportFileType": "Html",
-            "Title": app_name,
-            "Locale": "en-US",
-        },
-    }
+    config_data = get_download_config(app_name)
 
     # generate the reports for the application
     res = requests.post(
