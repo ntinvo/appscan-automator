@@ -177,9 +177,7 @@ def setup_main_logging(verbose=logging.INFO):
         None
     """
     coloredlogs.install(
-        level=verbose,
-        logger=main_logger,
-        fmt="%(asctime)s %(hostname)s %(name)s[%(process)d] %(levelname)s %(message)s",
+        level=verbose, logger=main_logger, fmt="%(asctime)s %(levelname)s %(message)s",
     )
 
 
