@@ -290,16 +290,24 @@ def remove_old_scans(app_id):
     # read the old scan ids
     old_scans = get_scans(app_id)
     scan_status_dict = {}
-    scans_running = False
+    scans_pending = False
 
-    # if any of the scan in the app is still running
+    # if any of the scan in the app is still running or
+    # in Running, InQueue, Paused, Pausing, Stopping
     # do not remove the scan and return the old scans
     # with their current statuses (as a dict)
     for old_scan in old_scans:
         scan_status_dict[old_scan["Name"]] = old_scan["LatestExecution"]["Status"]
-        if old_scan["LatestExecution"]["Status"] == "Running":
-            scans_running = True
-    if scans_running:
+        if old_scan["LatestExecution"]["Status"] in [
+            "Running",
+            "InQueue",
+            "Paused",
+            "Pausing",
+            "Stopping",
+        ]:
+            scans_pending = True
+    if scans_pending:
+        main_logger.info("Scan(s) pending. Returning...")
         return scan_status_dict
 
     # remove the old scans from the app before creating new ones
