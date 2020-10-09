@@ -448,7 +448,13 @@ def static_scan(args):
         project_file_name = project.strip().replace("/", "_")
 
         # if the old scan still running, skip
-        if project in old_scan_status_dict and old_scan_status_dict[project] == "Running":
+        if project in old_scan_status_dict and old_scan_status_dict[project] in [
+            "Running",
+            "InQueue",
+            "Paused",
+            "Pausing",
+            "Stopping",
+        ]:
             continue
 
         # generate config file for appscan
