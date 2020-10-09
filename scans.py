@@ -290,6 +290,7 @@ def create_dir(path):
 @timer
 @logger
 def get_projects():
+    """Get the list of projects to scan."""
     projects = []
     with open("projects.list", "r") as f:
         projects = f.readlines()
@@ -299,12 +300,21 @@ def get_projects():
 @timer
 @logger
 def accept_changes(args):
+    """Accepting the changes from the stream."""
     run_subprocess(
         f"cd {args.source} && lscm accept --verbose -r {JAZZ_REPO} -u {JAZZ_USER} -P {JAZZ_PASS} -i -s {JAZZ_SINGLE_WS_ID}"
     )
 
 
+@timer
+@logger
+def build_source_code(args):
+    """Build the source code."""
+    run_subprocess(f"cd {args.source} && Build/gradlew all")
+
+
 def generate_appscan_config_file(args, project):
+    """Generate appscan config file."""
     with open(APPSCAN_CONFIG) as r:
         text = r.read().replace("PROJECT_PATH", f"{args.source}/{project.strip()}")
     with open(APPSCAN_CONFIG_TMP, "w") as w:
@@ -316,6 +326,9 @@ def generate_appscan_config_file(args, project):
 def static_scan(args):
     # accept the changes
     accept_changes(args)
+
+    # build source code
+    build_source_code(args)
 
     # read the list of projects to scan
     projects = get_projects()
