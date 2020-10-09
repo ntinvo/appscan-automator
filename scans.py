@@ -25,6 +25,7 @@ from constants import (
     ASOC_API_ENDPOINT,
     DB2_SCAN,
     DYNAMIC,
+    JAZZ_SINGLE_WS_ID,
     JFROG_REGISTRY,
     JFROG_USER,
     NETWORK_SCAN,
@@ -47,6 +48,9 @@ load_dotenv(dotenv_path)
 KEY_ID = os.environ.get("KEY_ID")
 KEY_SECRET = os.environ.get("KEY_SECRET")
 JFROG_APIKEY = os.environ.get("JFROG_APIKEY")
+JAZZ_REPO = os.environ.get("JAZZ_REPO")
+JAZZ_USER = os.environ.get("JAZZ_USER")
+JAZZ_PASS = os.environ.get("JAZZ_PASS")
 
 # main logger
 main_logger = logging.getLogger(__name__)
@@ -294,8 +298,10 @@ def get_projects():
 
 @timer
 @logger
-def accept_changes():
-    pass
+def accept_changes(args):
+    run_subprocess(
+        f"cd {args.source} && lscm accept --verbose -r {JAZZ_REPO} -u {JAZZ_USER} -P {JAZZ_PASS} -i -s {JAZZ_SINGLE_WS_ID}"
+    )
 
 
 def generate_appscan_config_file(args, project):
@@ -308,13 +314,17 @@ def generate_appscan_config_file(args, project):
 @timer
 @logger
 def static_scan(args):
-    # TODOS:
-    # ! - fetch the source code
-    # ! - run subprocess to generate file needed to upload the ASoC (using its API)
-    # ! - use API to execute the scans
-    # ! - get the results
+    # accept the changes
+    accept_changes(args)
+
+    # read the list of projects to scan
     projects = get_projects()
 
+    # the below block of code would do:
+    # - go through the list of projects
+    # - generate the irx file for each project
+    # - upload the generated irx file to ASoC
+    # - create and execute the static scan
     for project in projects:
         project_name = project.strip().replace("/", "_")
         generate_appscan_config_file(args, project)
@@ -337,7 +347,6 @@ def static_scan(args):
                     "Execute": "true",
                     "Personal": "false",
                 }
-                print(data)
                 _ = requests.post(
                     f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers
                 )

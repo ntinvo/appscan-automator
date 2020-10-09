@@ -25,6 +25,9 @@ ALL = "all"
 SCAN = "scan"
 REPORTS = "reports"
 
+# jazz
+JAZZ_SINGLE_WS_ID = "1016"
+
 # dynamic consts
 DB2_SCAN = "db2_scan"
 RT_SCAN = "rt_scan"
