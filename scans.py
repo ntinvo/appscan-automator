@@ -17,11 +17,29 @@ import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
-from constants import (ALL, APP_URL_DICT, APPSCAN_CONFIG, APPSCAN_CONFIG_TMP,
-                       ASOC_API_ENDPOINT, DB2_SCAN, DYNAMIC, JAZZ_SINGLE_WS_ID,
-                       JFROG_REGISTRY, JFROG_USER, NETWORK_SCAN, NS,
-                       PRESENCE_ID, REPORTS, RT_SCAN, SCAN, SINGLE_DYNAMIC,
-                       SINGLE_STATIC, SINGLE_STREAM_RSS_URL, STATIC, VOL_SCAN)
+from constants import (
+    ALL,
+    APP_URL_DICT,
+    APPSCAN_CONFIG,
+    APPSCAN_CONFIG_TMP,
+    ASOC_API_ENDPOINT,
+    DB2_SCAN,
+    DYNAMIC,
+    JAZZ_SINGLE_WS_ID,
+    JFROG_REGISTRY,
+    JFROG_USER,
+    NETWORK_SCAN,
+    NS,
+    PRESENCE_ID,
+    REPORTS,
+    RT_SCAN,
+    SCAN,
+    SINGLE_DYNAMIC,
+    SINGLE_STATIC,
+    SINGLE_STREAM_RSS_URL,
+    STATIC,
+    VOL_SCAN,
+)
 
 # get env variables
 dotenv_path = join(dirname(__file__), ".env")
@@ -369,10 +387,12 @@ def static_scan(args):
     projects = get_projects()
 
     # the below block of code would do:
+    # - remove the old irx files in configs dir
     # - go through the list of projects
     # - generate the irx file for each project
     # - upload the generated irx file to ASoC
     # - create and execute the static scan
+    run_subprocess(f"rm -rf {os.getcwd()}/configs")
     for project in projects:
         project = project.strip()
         project_file_name = project.strip().replace("/", "_")
