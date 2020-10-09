@@ -686,13 +686,19 @@ def cleanup():
 def dynamic_scan():
     # get the image tag
     image_tag = get_latest_stable_image_tag()
-    print(image_tag)
-
-    # spin up the containers (rt and db2)
-    prep_containers(image_tag)
 
     # remove the old scans
-    remove_old_scans(SINGLE_DYNAMIC)
+    old_scan_status_dict = remove_old_scans(SINGLE_DYNAMIC)
+
+    # spin up the containers (rt and db2), if
+    # there is no scan in pending statuses
+    start_new_containers = True
+    for status in old_scan_status_dict.values():
+        if status in PENDING_STATUSES:
+            start_new_containers = False
+            break
+    if start_new_containers:
+        prep_containers(image_tag)
 
     # create the new scans
     for app, url in APP_URL_DICT.items():
