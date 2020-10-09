@@ -703,7 +703,6 @@ def dynamic_reports():
     scans = get_scans(SINGLE_DYNAMIC)
     generated_reports = []
     for scan in scans:
-        print(scan)
         # only generate report for ready scan
         if scan["LatestExecution"]["Status"] == "Ready":
             config_data = {
@@ -757,7 +756,67 @@ def dynamic_reports():
 @timer
 @logger
 def static_reports():
-    pass
+    # scans = get_scans(SINGLE_STATIC)
+    SINGLE_STATIC = "87af65be-ef31-4aa7-871f-8354e19d6328"
+    scans = get_scans(SINGLE_STATIC)
+    app_name = "static_report"
+    # for static reports, we will wait until all of the
+    # scan in the static application to finish running
+    # before we generate and download the reports
+    for scan in scans:
+        app_name = scan["AppName"].replace(" ", "_").lower()
+        if scan["LatestExecution"]["Status"] != "Ready":
+            return
+
+    # cinfig data for the reports
+    config_data = {
+        "Configuration": {
+            "Summary": "true",
+            "Details": "true",
+            "Discussion": "true",
+            "Overview": "true",
+            "TableOfContent": "true",
+            "Advisories": "true",
+            "FixRecommendation": "true",
+            "History": "true",
+            "Coverage": "true",
+            "IsTrialReport": "true",
+            "MinimizeDetails": "true",
+            "ReportFileType": "Html",
+            "Title": app_name,
+            "Locale": "en-US",
+        },
+    }
+
+    # generate the reports for the application
+    res = requests.post(
+        f"{ASOC_API_ENDPOINT}/Reports/Security/Application/{SINGLE_STATIC}",
+        json=config_data,
+        headers=headers,
+    )
+
+    if res.status_code == 200:
+        report = res.json()
+
+        # wait for the report to be ready
+        while True:
+            res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/{report['Id']}", headers=headers)
+            if res.status_code != 200:
+                break
+
+            if res.status_code == 200 and res.json()["Status"] == "Ready":
+                break
+
+            main_logger.info(f"Report for {report['Name']} is not ready. Waiting...")
+            time.sleep(300)
+
+        # download the report
+        res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/Download/{report['Id']}", headers=headers)
+        if res.status_code == 200:
+            reports_dir_path = f"reports/static/{get_date_str()}"
+            create_dir(reports_dir_path)
+            with open(f"{reports_dir_path}/{report['Name']}.html", "wb") as f:
+                f.write(res.content)
 
 
 @timer
