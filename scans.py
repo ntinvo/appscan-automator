@@ -17,29 +17,11 @@ import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
-from constants import (
-    ALL,
-    APP_URL_DICT,
-    APPSCAN_CONFIG,
-    APPSCAN_CONFIG_TMP,
-    ASOC_API_ENDPOINT,
-    DB2_SCAN,
-    DYNAMIC,
-    JAZZ_SINGLE_WS_ID,
-    JFROG_REGISTRY,
-    JFROG_USER,
-    NETWORK_SCAN,
-    NS,
-    PRESENCE_ID,
-    REPORTS,
-    RT_SCAN,
-    SCAN,
-    SINGLE_DYNAMIC,
-    SINGLE_STATIC,
-    SINGLE_STREAM_RSS_URL,
-    STATIC,
-    VOL_SCAN,
-)
+from constants import (ALL, APP_URL_DICT, APPSCAN_CONFIG, APPSCAN_CONFIG_TMP,
+                       ASOC_API_ENDPOINT, DB2_SCAN, DYNAMIC, JAZZ_SINGLE_WS_ID,
+                       JFROG_REGISTRY, JFROG_USER, NETWORK_SCAN, NS,
+                       PRESENCE_ID, REPORTS, RT_SCAN, SCAN, SINGLE_DYNAMIC,
+                       SINGLE_STATIC, SINGLE_STREAM_RSS_URL, STATIC, VOL_SCAN)
 
 # get env variables
 dotenv_path = join(dirname(__file__), ".env")
@@ -293,7 +275,7 @@ def remove_old_scans(app_id):
     scans_pending = False
 
     # if any of the scan in the app is still running or
-    # in Running, InQueue, Paused, Pausing, Stopping
+    # in InQueue, Paused, Pausing, Stopping status,
     # do not remove the scan and return the old scans
     # with their current statuses (as a dict)
     for old_scan in old_scans:
@@ -307,7 +289,7 @@ def remove_old_scans(app_id):
         ]:
             scans_pending = True
     if scans_pending:
-        main_logger.info("Scan(s) pending. Returning...")
+        main_logger.warning("Scan(s) pending. Returning...")
         return scan_status_dict
 
     # remove the old scans from the app before creating new ones
