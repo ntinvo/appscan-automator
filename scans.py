@@ -329,6 +329,9 @@ def generate_appscan_config_file(args, project):
 @timer
 @logger
 def static_scan(args):
+    # prepare the header for requests
+    file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
+
     # accept the changes
     main_logger.info(f"Accepting changes...")
     accept_changes(args)
@@ -350,12 +353,12 @@ def static_scan(args):
         project_name = project.strip().replace("/", "_")
         generate_appscan_config_file(args, project)
         main_logger.info(f"Generating {project_name}.irx file...")
-        # run_subprocess(
-        #     f"appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_name}.irx -d {os.getcwd()}/configs -v -sp"
-        # )
+        run_subprocess(
+            f"appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_name}.irx -d {os.getcwd()}/configs -v -sp"
+        )
         with open(f"{os.getcwd()}/configs/{project_name}.irx", "rb") as irx_file:
             file_data = {"fileToUpload": irx_file}
-            file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
+
             res = requests.post(
                 f"{ASOC_API_ENDPOINT}/FileUpload", files=file_data, headers=file_req_header
             )
