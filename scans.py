@@ -323,6 +323,32 @@ def remove_old_scans(app_id):
     return scan_status_dict
 
 
+@timer
+@logger
+def wait_for_report(report):
+    while True:
+        res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/{report['Id']}", headers=headers)
+        if res.status_code != 200:
+            break
+
+        if res.status_code == 200 and res.json()["Status"] == "Ready":
+            break
+
+        main_logger.info(f"Report for {report['Name']} is not ready. Waiting...")
+        time.sleep(300)
+
+
+@timer
+@logger
+def download_report(report):
+    res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/Download/{report['Id']}", headers=headers)
+    if res.status_code == 200:
+        reports_dir_path = f"reports/dynamic/{get_date_str()}"
+        create_dir(reports_dir_path)
+        with open(f"{reports_dir_path}/{report['Name']}.html", "wb") as f:
+            f.write(res.content)
+
+
 # ********************************* #
 # *        STATIC SCAN PREP       * #
 # ********************************* #
@@ -733,24 +759,10 @@ def dynamic_reports():
 
     for report in generated_reports:
         # wait for the report to be ready
-        while True:
-            res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/{report['Id']}", headers=headers)
-            if res.status_code != 200:
-                break
-
-            if res.status_code == 200 and res.json()["Status"] == "Ready":
-                break
-
-            main_logger.info(f"Report for {report['Name']} is not ready. Waiting...")
-            time.sleep(300)
+        wait_for_report(report)
 
         # download the report
-        res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/Download/{report['Id']}", headers=headers)
-        if res.status_code == 200:
-            reports_dir_path = f"reports/dynamic/{get_date_str()}"
-            create_dir(reports_dir_path)
-            with open(f"{reports_dir_path}/{report['Name']}.html", "wb") as f:
-                f.write(res.content)
+        download_report(report)
 
 
 @timer
@@ -799,24 +811,10 @@ def static_reports():
         report = res.json()
 
         # wait for the report to be ready
-        while True:
-            res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/{report['Id']}", headers=headers)
-            if res.status_code != 200:
-                break
-
-            if res.status_code == 200 and res.json()["Status"] == "Ready":
-                break
-
-            main_logger.info(f"Report for {report['Name']} is not ready. Waiting...")
-            time.sleep(300)
+        wait_for_report(report)
 
         # download the report
-        res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/Download/{report['Id']}", headers=headers)
-        if res.status_code == 200:
-            reports_dir_path = f"reports/static/{get_date_str()}"
-            create_dir(reports_dir_path)
-            with open(f"{reports_dir_path}/{report['Name']}.html", "wb") as f:
-                f.write(res.content)
+        download_report(report)
 
 
 @timer
@@ -829,13 +827,6 @@ def get_reports(args):
         static_reports()
     else:
         dynamic_reports()
-    # read the old scan ids
-    # dynamic_old_scans = {}
-    # try:
-    #     with open("dynamic_old_scans.json") as f:
-    #         dynamic_old_scans = json.load(f)
-    # except Exception as e:
-    #     main_logger.warning(e)
 
 
 # ********************************* #
