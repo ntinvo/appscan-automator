@@ -286,12 +286,24 @@ def create_dir(path):
 
 @timer
 @logger
-def remove_old_scan(app_id):
+def remove_old_scans(app_id):
     # read the old scan ids
-    dynamic_old_scans = get_scans(app_id)
+    old_scans = get_scans(app_id)
+    scan_status_dict = {}
+    scans_running = False
+
+    # if any of the scan in the app is still running
+    # do not remove the scan and return the old scans
+    # with their current statuses (as a dict)
+    for old_scan in old_scans:
+        scan_status_dict[old_scan["Name"]] = old_scan["LatestExecution"]["Status"]
+        if old_scan["LatestExecution"]["Status"] == "Running":
+            scans_running = True
+    if scans_running:
+        return scan_status_dict
 
     # remove the old scans from the app before creating new ones
-    for old_scan in dynamic_old_scans:
+    for old_scan in old_scans:
         main_logger.info(f"Removing {old_scan['Name']} - {old_scan['Id']}... ")
         try:
             _ = requests.delete(
@@ -299,6 +311,8 @@ def remove_old_scan(app_id):
             )
         except Exception as e:
             main_logger.warning(e)
+
+    return scan_status_dict
 
 
 # ********************************* #
@@ -350,7 +364,7 @@ def static_scan(args):
     file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
 
     # remove the old scans
-    remove_old_scan(SINGLE_STATIC)
+    old_scan_status_dict = remove_old_scans(SINGLE_STATIC)
 
     # accept the changes
     main_logger.info(f"Accepting changes...")
@@ -370,30 +384,43 @@ def static_scan(args):
     # - upload the generated irx file to ASoC
     # - create and execute the static scan
     for project in projects:
-        project_name = project.strip().replace("/", "_")
-        generate_appscan_config_file(args, project)
-        main_logger.info(f"Generating {project_name}.irx file...")
-        run_subprocess(
-            f"appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_name}.irx -d {os.getcwd()}/configs -v -sp"
-        )
-        with open(f"{os.getcwd()}/configs/{project_name}.irx", "rb") as irx_file:
-            file_data = {"fileToUpload": irx_file}
+        project = project.strip()
+        project_file_name = project.strip().replace("/", "_")
 
-            res = requests.post(
-                f"{ASOC_API_ENDPOINT}/FileUpload", files=file_data, headers=file_req_header
-            )
-            if res.status_code == 201:
-                data = {
-                    "ARSAFileId": res.json()["FileId"],
-                    "ScanName": project,
-                    "AppId": SINGLE_STATIC,
-                    "Locale": "en-US",
-                    "Execute": "true",
-                    "Personal": "false",
-                }
-                _ = requests.post(
-                    f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers
+        # if the old scan still running, skip
+        if old_scan_status_dict[project] == "Running":
+            continue
+
+        # generate config file for appscan
+        generate_appscan_config_file(args, project)
+        main_logger.info(f"Generating {project_file_name}.irx file...")
+        run_subprocess(
+            f"appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_file_name}.irx -d {os.getcwd()}/configs -v -sp"
+        )
+
+        # call ASoC API to create the static scan
+        try:
+            with open(f"{os.getcwd()}/configs/{project_file_name}.irx", "rb") as irx_file:
+                file_data = {"fileToUpload": irx_file}
+
+                res = requests.post(
+                    f"{ASOC_API_ENDPOINT}/FileUpload", files=file_data, headers=file_req_header
                 )
+                if res.status_code == 201:
+                    data = {
+                        "ARSAFileId": res.json()["FileId"],
+                        "ScanName": project,
+                        "AppId": SINGLE_STATIC,
+                        "Locale": "en-US",
+                        "Execute": "true",
+                        "Personal": "false",
+                    }
+                    _ = requests.post(
+                        f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers
+                    )
+        except Exception as e:
+            main_logger.warning(traceback.format_exc())
+            main_logger.warning(e)
 
 
 # ********************************* #
@@ -610,7 +637,7 @@ def dynamic_scan():
     prep_containers(image_tag)
 
     # remove the old scans
-    remove_old_scan(SINGLE_DYNAMIC)
+    remove_old_scans(SINGLE_DYNAMIC)
 
     # create the new scans
     for app, url in APP_URL_DICT.items():
