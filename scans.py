@@ -325,12 +325,15 @@ def generate_appscan_config_file(args, project):
 @logger
 def static_scan(args):
     # accept the changes
+    main_logger.info(f"Accepting changes...")
     accept_changes(args)
 
     # build source code
+    main_logger.info(f"Building source code...")
     build_source_code(args)
 
     # read the list of projects to scan
+    main_logger.info(f"Getting the projects...")
     projects = get_projects()
 
     # the below block of code would do:
