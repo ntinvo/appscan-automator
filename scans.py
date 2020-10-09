@@ -301,9 +301,14 @@ def get_projects():
 @logger
 def accept_changes(args):
     """Accepting the changes from the stream."""
-    run_subprocess(
-        f"cd {args.source} && lscm accept --verbose -r {JAZZ_REPO} -u {JAZZ_USER} -P {JAZZ_PASS} -i -s {JAZZ_SINGLE_WS_ID}"
-    )
+    try:
+        run_subprocess(
+            f"cd {args.source} && lscm accept --verbose -r {JAZZ_REPO} -u {JAZZ_USER} -P {JAZZ_PASS} -i -s {JAZZ_SINGLE_WS_ID}"
+        )
+    except Exception as _:
+        main_logger.warning(
+            "Attempt to accept the changes. The return code is not 0, this can be ignored. Continue..."
+        )
 
 
 @timer
