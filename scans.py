@@ -284,6 +284,23 @@ def create_dir(path):
                 raise
 
 
+@timer
+@logger
+def remove_old_scan(app_id):
+    # read the old scan ids
+    dynamic_old_scans = get_scans(app_id)
+
+    # remove the old scans from the app before creating new ones
+    for old_scan in dynamic_old_scans:
+        main_logger.info(f"Removing {old_scan['Name']} - {old_scan['Id']}... ")
+        try:
+            _ = requests.delete(
+                f"{ASOC_API_ENDPOINT}/Scans/{old_scan['Id']}?deleteIssues=true", headers=headers,
+            )
+        except Exception as e:
+            main_logger.warning(e)
+
+
 # ********************************* #
 # *        STATIC SCAN PREP       * #
 # ********************************* #
@@ -331,6 +348,9 @@ def generate_appscan_config_file(args, project):
 def static_scan(args):
     # prepare the header for requests
     file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
+
+    # remove the old scans
+    remove_old_scan(SINGLE_STATIC)
 
     # accept the changes
     main_logger.info(f"Accepting changes...")
@@ -589,18 +609,8 @@ def dynamic_scan():
     # spin up the containers (rt and db2)
     prep_containers(image_tag)
 
-    # read the old scan ids
-    dynamic_old_scans = get_scans(SINGLE_DYNAMIC)
-
-    # remove the old scans from the app before creating new ones
-    for old_scan in dynamic_old_scans:
-        main_logger.info(f"Removing {old_scan['Name']} - {old_scan['Id']}... ")
-        try:
-            _ = requests.delete(
-                f"{ASOC_API_ENDPOINT}/Scans/{old_scan['Id']}?deleteIssues=true", headers=headers,
-            )
-        except Exception as e:
-            main_logger.warning(e)
+    # remove the old scans
+    remove_old_scan(SINGLE_DYNAMIC)
 
     # create the new scans
     for app, url in APP_URL_DICT.items():
