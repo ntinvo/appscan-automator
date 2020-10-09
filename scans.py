@@ -30,6 +30,7 @@ from constants import (
     JFROG_USER,
     NETWORK_SCAN,
     NS,
+    PENDING_STATUSES,
     PRESENCE_ID,
     REPORTS,
     RT_SCAN,
@@ -296,13 +297,7 @@ def remove_old_scans(app_id):
     # with their current statuses (as a dict)
     for old_scan in old_scans:
         scan_status_dict[old_scan["Name"]] = old_scan["LatestExecution"]["Status"]
-        if old_scan["LatestExecution"]["Status"] in [
-            "Running",
-            "InQueue",
-            "Paused",
-            "Pausing",
-            "Stopping",
-        ]:
+        if old_scan["LatestExecution"]["Status"] in PENDING_STATUSES:
             scans_pending = True
     if scans_pending:
         main_logger.warning("Scan(s) pending. Returning...")
@@ -447,14 +442,8 @@ def static_scan(args):
         project = project.strip()
         project_file_name = project.strip().replace("/", "_")
 
-        # if the old scan still running, skip
-        if project in old_scan_status_dict and old_scan_status_dict[project] in [
-            "Running",
-            "InQueue",
-            "Paused",
-            "Pausing",
-            "Stopping",
-        ]:
+        # if the old scan still pending, skip
+        if project in old_scan_status_dict and old_scan_status_dict[project] in PENDING_STATUSES:
             continue
 
         # generate config file for appscan

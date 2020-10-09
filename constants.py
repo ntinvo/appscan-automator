@@ -24,6 +24,7 @@ STATIC = "static"
 ALL = "all"
 SCAN = "scan"
 REPORTS = "reports"
+PENDING_STATUSES = ["Running", "InQueue", "Paused", "Pausing", "Stopping"]
 
 # jazz
 JAZZ_SINGLE_WS_ID = "1016"
