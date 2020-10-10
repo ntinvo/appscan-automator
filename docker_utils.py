@@ -18,8 +18,35 @@ client = docker.from_env()
 
 @timer
 @logger
+def docker_login():
+    """Login to the registry."""
+    main_logger.info(f"#### Login to {JFROG_REGISTRY} ####")
+    run_subprocess(
+        f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}", logger=main_logger,
+    )
+
+
+@timer
+@logger
+def docker_logout():
+    """Logout of the registry."""
+    main_logger.info(f"#### Logout of {JFROG_REGISTRY} ####")
+    run_subprocess(
+        f"docker logout {JFROG_REGISTRY}", logger=main_logger,
+    )
+
+
+@timer
+@logger
 def get_remove_image_list(args):
-    """Get the list of image to remove before spinning up new containers"""
+    """
+    Get the list of image to remove before spinning up new containers.
+    
+    Args: 
+        args: the arguments passed to the script
+    Returns:
+        None
+    """
     containers = client.containers.list()
     return [
         image
@@ -32,7 +59,14 @@ def get_remove_image_list(args):
 @timer
 @logger
 def cleanup_helper(cmd):
-    """Clean up helper to run the command passed by cleanup func"""
+    """
+    Clean up helper to run the command passed by cleanup func
+    
+    Args: 
+        cmd: the command to to in subprocess
+    Returns:
+        None
+    """
     try:
         run_subprocess(cmd)
     except Exception as e:
@@ -42,6 +76,20 @@ def cleanup_helper(cmd):
 @timer
 @logger
 def cleanup(args):
+    """
+    Cleaning up the resources before creating new containers.
+    The will do the followings:
+    - get the image list to remove 
+    - remove rt and db2 containers 
+    - remove volume and network 
+    - remove images
+
+    Args: 
+        args: the arguments passed to the script
+    Returns:
+        None
+    """
+
     """Clean up before creating new containers"""
     remove_images = get_remove_image_list(args)
 
@@ -68,31 +116,12 @@ def cleanup(args):
 
 @timer
 @logger
-def docker_login():
-    """Login to the registry."""
-    main_logger.info(f"#### Login to {JFROG_REGISTRY} ####")
-    run_subprocess(
-        f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}", logger=main_logger,
-    )
-
-
-@timer
-@logger
-def docker_logout():
-    """Logout of the registry."""
-    main_logger.info(f"#### Logout of {JFROG_REGISTRY} ####")
-    run_subprocess(
-        f"docker logout {JFROG_REGISTRY}", logger=main_logger,
-    )
-
-
-@timer
-@logger
 def start_db2_container(args, image_tag, logger=main_logger):
     """
     Start the db2 container for deployment.
     
     Args:
+        args: the arguments passed to the script
         image_tag: the tag of the image
         logger: the logger to log the output
     Returns:
@@ -133,6 +162,7 @@ def start_rt_container(args, image_tag, logger=main_logger):
     Start the rt container for deployment
     
     Args:
+        args: the arguments passed to the script
         image_tag: the tag of the image
         logger: the logger to log the output
     Returns:
@@ -172,11 +202,11 @@ def prep_containers(args, image_tag):
     - logout of the registry
 
     Args:
+        args: the arguments passed to the script
         image_tag: the tag of the image
     Returns:
         None
 
-    NOTE: as of now, this only supports single images; this can be enhanced to prep other versions    
     """
     # clean up
     cleanup(args)
