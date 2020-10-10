@@ -151,7 +151,7 @@ def static_scan(args):
 # ********************************* #
 @timer
 @logger
-def dynamic_scan():
+def dynamic_scan(args):
     # get the image tag
     image_tag = get_latest_stable_image_tag()
 
@@ -166,7 +166,7 @@ def dynamic_scan():
             start_new_containers = False
             break
     if start_new_containers:
-        prep_containers(image_tag)
+        prep_containers(args, image_tag)
 
     # create the new scans
     for app, url in APP_URL_DICT.items():
@@ -206,11 +206,11 @@ def dynamic_scan():
 def run_scan(args):
     if args.type == ALL:
         static_scan(args)
-        dynamic_scan()
+        dynamic_scan(args)
     elif args.type == STATIC:
         static_scan(args)
     else:
-        dynamic_scan()
+        dynamic_scan(args)
 
 
 # ********************************* #

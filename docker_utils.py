@@ -16,12 +16,17 @@ main_logger = logging.getLogger(__name__)
 client = docker.from_env()
 
 
-def get_remove_image_list():
-    """
-    docstring
-    """
+@timer
+@logger
+def get_remove_image_list(args):
+    """Get the list of image to remove before spinning up new containers"""
     containers = client.containers.list()
-    return [image for con in containers for image in con.image.tags if "oms-single-db2" in image]
+    return [
+        image
+        for con in containers
+        for image in con.image.tags
+        if f"oms-{args.version}-db2" in image
+    ]
 
 
 @timer
@@ -46,7 +51,7 @@ def docker_logout():
 
 @timer
 @logger
-def start_db2_container(image_tag, logger=main_logger):
+def start_db2_container(args, image_tag, logger=main_logger):
     """
     Start the db2 container for deployment.
     
@@ -57,7 +62,7 @@ def start_db2_container(image_tag, logger=main_logger):
         None
     """
     try:
-        db_image_repo = f"{JFROG_REGISTRY}/oms-single-db2-db:{image_tag}-refs"
+        db_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-db:{image_tag}-refs"
         logger.info(f"#### STARTING DB2 CONTAINER: {DB2_SCAN} - {db_image_repo} ####")
         run_subprocess(
             f" \
@@ -86,7 +91,7 @@ def start_db2_container(image_tag, logger=main_logger):
 
 @timer
 @logger
-def start_rt_container(image_tag, logger=main_logger):
+def start_rt_container(args, image_tag, logger=main_logger):
     """
     Start the rt container for deployment
     
@@ -97,7 +102,7 @@ def start_rt_container(image_tag, logger=main_logger):
         None
     """
     try:
-        rt_image_repo = f"{JFROG_REGISTRY}/oms-single-db2-rt:{image_tag}-weblogic"
+        rt_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-rt:{image_tag}-weblogic"
         logger.info(f"#### STARTING DB2 CONTAINER: {RT_SCAN} - {rt_image_repo} ####")
         run_subprocess(
             f" \
@@ -119,7 +124,7 @@ def start_rt_container(image_tag, logger=main_logger):
 
 @timer
 @logger
-def prep_containers(image_tag):
+def prep_containers(args, image_tag):
     """
     Prepare the rt and db2 container. This function will do the followings:
     - login to the registry 
@@ -138,20 +143,20 @@ def prep_containers(image_tag):
     """
     docker_login()
 
-    # Starting db2 and rt containers
+    # starting db2 and rt containers
     main_logger.info("Starting db2 and rt containers...")
-    start_db2_container(image_tag)
-    start_rt_container(image_tag)
+    start_db2_container(args, image_tag)
+    start_rt_container(args, image_tag)
 
-    # Build the ear
+    # build the ear
     main_logger.info("Building ear file...")
     run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs,wsc"')
 
-    # Start weblogic server
+    # start weblogic server
     main_logger.info("Starting weblogic server...")
     run_subprocess(f'docker exec {RT_SCAN} bash -lc "__wlstart -autodeploy=true"')
 
-    # Check to make sure the apps are run and running
+    # check to make sure the apps are run and running
     main_logger.info(
         "Checking deployment @ http://single1.fyre.ibm.com:7001/smcfs/console/login.jsp..."
     )

@@ -14,7 +14,20 @@ import coloredlogs
 import requests
 from bs4 import BeautifulSoup
 
-from constants import ALL, DYNAMIC, NS, REPORTS, SCAN, SINGLE_STREAM_RSS_URL, STATIC
+from constants import (
+    ALL,
+    COC,
+    COCDEV,
+    DYNAMIC,
+    NS,
+    REPORTS,
+    SCAN,
+    SINGLE,
+    SINGLE_STREAM_RSS_URL,
+    STATIC,
+    V10,
+    V95,
+)
 
 # logging
 main_logger = logging.getLogger(__name__)
@@ -177,6 +190,14 @@ def parse_arguments():
         required=True,
         choices=[SCAN, REPORTS],
         help=f"the mode to run the scan; {SCAN} will create the scan, and {REPORTS} will generate and download the reports for the scans.",
+    )
+    parser.add_argument(
+        "-ver",
+        "--version",
+        required=True,
+        choices=[SINGLE, COCDEV, COC, V95, V10],
+        help=f"the version to run the scan on.",
+        default=SINGLE,
     )
     parser.add_argument(
         "-s",
