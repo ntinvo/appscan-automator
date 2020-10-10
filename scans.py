@@ -218,7 +218,7 @@ def run_scan(args):
 # ********************************* #
 @timer
 @logger
-def dynamic_reports():
+def dynamic_reports(args):
     scans = get_scans(SINGLE_DYNAMIC)
     generated_reports = []
     for scan in scans:
@@ -238,12 +238,12 @@ def dynamic_reports():
         wait_for_report(report)
 
         # download the report
-        download_report(report)
+        download_report(args, report)
 
 
 @timer
 @logger
-def static_reports():
+def static_reports(args):
     scans = get_scans(SINGLE_STATIC)
     app_name = "static_report"
     # for static reports, we will wait until all of the
@@ -271,19 +271,19 @@ def static_reports():
         wait_for_report(report)
 
         # download the report
-        download_report(report)
+        download_report(args, report)
 
 
 @timer
 @logger
 def get_reports(args):
     if args.type == ALL:
-        static_reports()
-        dynamic_reports()
+        static_reports(args)
+        dynamic_reports(args)
     elif args.type == STATIC:
-        static_reports()
+        static_reports(args)
     else:
-        dynamic_reports()
+        dynamic_reports(args)
 
 
 # ********************************* #
