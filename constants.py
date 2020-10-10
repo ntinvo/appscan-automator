@@ -25,6 +25,7 @@ ALL = "all"
 SCAN = "scan"
 REPORTS = "reports"
 PENDING_STATUSES = ["Running", "InQueue", "Paused", "Pausing", "Stopping"]
+TIME_TO_SLEEP = 120
 
 # jazz
 JAZZ_SINGLE_WS_ID = "1016"
