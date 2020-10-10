@@ -42,7 +42,6 @@ def cleanup_helper(cmd):
 @timer
 @logger
 def cleanup(args):
-    # TODO: clean this up
     """Clean up before creating new containers"""
     remove_images = get_remove_image_list(args)
 
@@ -179,6 +178,10 @@ def prep_containers(args, image_tag):
 
     NOTE: as of now, this only supports single images; this can be enhanced to prep other versions    
     """
+    # clean up
+    cleanup(args)
+
+    # login to registry
     docker_login()
 
     # starting db2 and rt containers
@@ -209,4 +212,6 @@ def prep_containers(args, image_tag):
             time.sleep(10)
 
     main_logger.info("The db2 and rt containers are up and running...")
+
+    # logout of registry
     docker_logout()
