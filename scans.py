@@ -55,7 +55,7 @@ def accept_changes(args):
     """Accepting the changes from the stream."""
     try:
         run_subprocess(
-            f"cd {args.source} && lscm accept --verbose -r {JAZZ_REPO} -u {JAZZ_USER} -P {JAZZ_PASS} -i -s {JAZZ_SINGLE_WS_ID}"
+            f"source ~/.bashrc && cd {args.source} && lscm accept --verbose -r {JAZZ_REPO} -u {JAZZ_USER} -P {JAZZ_PASS} -i -s {JAZZ_SINGLE_WS_ID}"
         )
     except Exception as _:
         main_logger.warning(
