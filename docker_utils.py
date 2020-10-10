@@ -31,6 +31,50 @@ def get_remove_image_list(args):
 
 @timer
 @logger
+def cleanup(args):
+    # TODO: clean this up
+    """Clean up before creating new containers"""
+    remove_images = get_remove_image_list(args)
+
+    # removing runtime container
+    main_logger.info(f"Removing runtime container {RT_SCAN}...")
+    try:
+        run_subprocess(f"docker rm -f {RT_SCAN}")
+    except Exception as e:
+        main_logger.warning(e)
+
+    # removing runtime container
+    main_logger.info(f"Removing db2 container {DB2_SCAN}...")
+    try:
+        run_subprocess(f"docker rm -f {DB2_SCAN}")
+    except Exception as e:
+        main_logger.warning(e)
+
+    # removing runtime container
+    main_logger.info(f"Removing volume {VOL_SCAN}...")
+    try:
+        run_subprocess(f"docker volume rm {VOL_SCAN}")
+    except Exception as e:
+        main_logger.warning(e)
+
+    # removing runtime container
+    main_logger.info(f"Removing network {NETWORK_SCAN}...")
+    try:
+        run_subprocess(f"docker network rm {NETWORK_SCAN}")
+    except Exception as e:
+        main_logger.warning(e)
+
+    # removing images
+    for image in remove_images:
+        main_logger.info(f"Removing image {image}...")
+        try:
+            run_subprocess(f"docker rmi {image}")
+        except Exception as e:
+            main_logger.warning(e)
+
+
+@timer
+@logger
 def docker_login():
     """Login to the registry."""
     main_logger.info(f"#### Login to {JFROG_REGISTRY} ####")
