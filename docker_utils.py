@@ -31,6 +31,16 @@ def get_remove_image_list(args):
 
 @timer
 @logger
+def cleanup_helper(cmd):
+    """Clean up helper to run the command passed by cleanup func"""
+    try:
+        run_subprocess(cmd)
+    except Exception as e:
+        main_logger.warning(e)
+
+
+@timer
+@logger
 def cleanup(args):
     # TODO: clean this up
     """Clean up before creating new containers"""
@@ -38,39 +48,23 @@ def cleanup(args):
 
     # removing runtime container
     main_logger.info(f"Removing runtime container {RT_SCAN}...")
-    try:
-        run_subprocess(f"docker rm -f {RT_SCAN}")
-    except Exception as e:
-        main_logger.warning(e)
+    cleanup_helper(f"docker rm -f {RT_SCAN}")
 
     # removing runtime container
     main_logger.info(f"Removing db2 container {DB2_SCAN}...")
-    try:
-        run_subprocess(f"docker rm -f {DB2_SCAN}")
-    except Exception as e:
-        main_logger.warning(e)
+    cleanup_helper(f"docker rm -f {DB2_SCAN}")
 
     # removing runtime container
     main_logger.info(f"Removing volume {VOL_SCAN}...")
-    try:
-        run_subprocess(f"docker volume rm {VOL_SCAN}")
-    except Exception as e:
-        main_logger.warning(e)
+    cleanup_helper(f"docker volume rm {VOL_SCAN}")
 
     # removing runtime container
-    main_logger.info(f"Removing network {NETWORK_SCAN}...")
-    try:
-        run_subprocess(f"docker network rm {NETWORK_SCAN}")
-    except Exception as e:
-        main_logger.warning(e)
+    run_subprocess(f"docker network rm {NETWORK_SCAN}")
 
     # removing images
     for image in remove_images:
         main_logger.info(f"Removing image {image}...")
-        try:
-            run_subprocess(f"docker rmi {image}")
-        except Exception as e:
-            main_logger.warning(e)
+        cleanup_helper(f"docker rmi {image}")
 
 
 @timer
