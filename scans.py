@@ -195,13 +195,12 @@ def dynamic_scan(args):
 
     # spin up the containers (rt and db2), if
     # there is no scan in pending statuses
-    start_new_containers = True
     for status in old_scan_status_dict.values():
         if status in PENDING_STATUSES:
-            start_new_containers = False
-            break
-    if start_new_containers:
-        prep_containers(args, image_tag)
+            return
+
+    # prep containers for the scans
+    prep_containers(args, image_tag)
 
     # create the new scans
     for app, url in APP_URL_DICT.items():
