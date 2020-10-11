@@ -91,8 +91,14 @@ def cleanup(args):
         args ([dict]): the arguments passed to the script
     """
 
-    # Clean up before creating new containers
+    # clean up before creating new containers
     remove_images = get_remove_image_list(args)
+
+    # disconnect the containers and network
+    main_logger.info(f"Disconnecting runtime container {RT_SCAN} from network {NETWORK_SCAN}...")
+    cleanup_helper(f"docker network disconnect -f {NETWORK_SCAN} {RT_SCAN}")
+    main_logger.info(f"Disconnecting db2 container {DB2_SCAN} from network {NETWORK_SCAN}...")
+    cleanup_helper(f"docker network disconnect -f {NETWORK_SCAN} {DB2_SCAN}")
 
     # removing runtime container
     main_logger.info(f"Removing runtime container {RT_SCAN}...")
@@ -104,7 +110,7 @@ def cleanup(args):
 
     # removing runtime container
     main_logger.info(f"Removing volume {VOL_SCAN}...")
-    cleanup_helper(f"docker volume rm {VOL_SCAN}")
+    cleanup_helper(f"docker volume rm -f {VOL_SCAN}")
 
     # removing runtime container
     run_subprocess(f"docker network rm {NETWORK_SCAN}")
