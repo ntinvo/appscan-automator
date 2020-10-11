@@ -42,7 +42,12 @@ main_logger = logging.getLogger(__name__)
 @timer
 @logger
 def get_projects():
-    """Get the list of projects to scan."""
+    """
+    Get the list of projects to scan.
+
+    Returns:
+        [list]: list of the oms projects to scan
+    """
     projects = []
     with open("projects.list", "r") as f:
         projects = f.readlines()
@@ -52,7 +57,12 @@ def get_projects():
 @timer
 @logger
 def accept_changes(args):
-    """Accepting the changes from the stream."""
+    """
+    Accepting the changes from the stream.
+    
+    Args:
+        args ([dict]): the arguments passed to the script
+    """
     try:
         run_subprocess(
             f"source ~/.bashrc && cd {args.source} && lscm accept --verbose -r {JAZZ_REPO} -u {JAZZ_USER} -P {JAZZ_PASS} -i -s {JAZZ_SINGLE_WS_ID}"
@@ -66,12 +76,23 @@ def accept_changes(args):
 @timer
 @logger
 def build_source_code(args):
-    """Build the source code."""
+    """
+    Build the source code to prep for the scans.
+    
+    Args:
+        args ([dict]): the arguments passed to the script
+    """
     run_subprocess(f"cd {args.source} && Build/gradlew all")
 
 
 def generate_appscan_config_file(args, project):
-    """Generate appscan config file."""
+    """
+    Generate appscan config file.
+
+    Args:
+        args ([dict]): the arguments passed to the script
+        project ([str]): the project name
+    """
     with open(APPSCAN_CONFIG) as r:
         text = r.read().replace("PROJECT_PATH", f"{args.source}/{project.strip()}")
     with open(APPSCAN_CONFIG_TMP, "w") as w:
@@ -81,6 +102,13 @@ def generate_appscan_config_file(args, project):
 @timer
 @logger
 def static_scan(args):
+    """
+    Prepare and run the static scan.
+
+    Args:
+        args ([dict]): the arguments passed to the script
+    """
+
     # prepare the header for requests
     file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
 
@@ -152,6 +180,13 @@ def static_scan(args):
 @timer
 @logger
 def dynamic_scan(args):
+    """
+    Prepare and run the dynamic scan.
+
+    Args:
+        args ([dict]): the arguments passed to the script
+    """
+
     # get the image tag
     image_tag = get_latest_stable_image_tag()
 
@@ -204,6 +239,12 @@ def dynamic_scan(args):
 @timer
 @logger
 def run_scan(args):
+    """
+    Run the scans. This can run either static or dynamic or both
+
+    Args:
+        args ([dict]): the arguments passed to the script
+    """
     if args.type == ALL:
         static_scan(args)
         dynamic_scan(args)
@@ -219,6 +260,12 @@ def run_scan(args):
 @timer
 @logger
 def dynamic_reports(args):
+    """
+    Generate and download dynamic reports.
+
+    Args:
+        args ([dict]): the arguments passed to the script
+    """
     scans = get_scans(SINGLE_DYNAMIC)
     generated_reports = []
     for scan in scans:
@@ -244,6 +291,12 @@ def dynamic_reports(args):
 @timer
 @logger
 def static_reports(args):
+    """
+    Generate and download static reports.
+
+    Args:
+        args ([dict]): the arguments passed to the script
+    """
     scans = get_scans(SINGLE_STATIC)
     app_name = "static_report"
     # for static reports, we will wait until all of the
@@ -277,6 +330,11 @@ def static_reports(args):
 @timer
 @logger
 def get_reports(args):
+    """Get the reports for the scans
+
+    Args:
+        args ([dict]): the arguments passed to the script
+    """
     if args.type == ALL:
         static_reports(args)
         dynamic_reports(args)
