@@ -19,7 +19,9 @@ client = docker.from_env()
 @timer
 @logger
 def docker_login():
-    """Login to the registry."""
+    """
+    Login to the registry.
+    """
     main_logger.info(f"#### Login to {JFROG_REGISTRY} ####")
     run_subprocess(
         f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}", logger=main_logger,
@@ -29,7 +31,9 @@ def docker_login():
 @timer
 @logger
 def docker_logout():
-    """Logout of the registry."""
+    """
+    Logout of the registry.
+    """
     main_logger.info(f"#### Logout of {JFROG_REGISTRY} ####")
     run_subprocess(
         f"docker logout {JFROG_REGISTRY}", logger=main_logger,
@@ -41,11 +45,12 @@ def docker_logout():
 def get_remove_image_list(args):
     """
     Get the list of image to remove before spinning up new containers.
-    
-    Args: 
-        args: the arguments passed to the script
+
+    Args:
+        args ([dict]): the arguments passed to the script
+
     Returns:
-        None
+        [list]: list of images to remove
     """
     containers = client.containers.list()
     return [
@@ -61,11 +66,9 @@ def get_remove_image_list(args):
 def cleanup_helper(cmd):
     """
     Clean up helper to run the command passed by cleanup func
-    
-    Args: 
-        cmd: the command to to in subprocess
-    Returns:
-        None
+
+    Args:
+        cmd ([str]): the command to to in subprocess
     """
     try:
         run_subprocess(cmd)
@@ -79,18 +82,16 @@ def cleanup(args):
     """
     Cleaning up the resources before creating new containers.
     The will do the followings:
-    - get the image list to remove 
-    - remove rt and db2 containers 
-    - remove volume and network 
-    - remove images
+        - get the image list to remove 
+        - remove rt and db2 containers 
+        - remove volume and network 
+        - remove images
 
-    Args: 
-        args: the arguments passed to the script
-    Returns:
-        None
+    Args:
+        args ([dict]): the arguments passed to the script
     """
 
-    """Clean up before creating new containers"""
+    # Clean up before creating new containers
     remove_images = get_remove_image_list(args)
 
     # removing runtime container
@@ -119,13 +120,14 @@ def cleanup(args):
 def start_db2_container(args, image_tag, logger=main_logger):
     """
     Start the db2 container for deployment.
-    
+
     Args:
-        args: the arguments passed to the script
-        image_tag: the tag of the image
-        logger: the logger to log the output
-    Returns:
-        None
+        args ([str]): the arguments passed to the script
+        image_tag ([str]): the tag of the image
+        logger ([logging], optional): the logger to log the output. Defaults to main_logger.
+
+    Raises:
+        Exception: exception raised when running subprocess
     """
     try:
         db_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-db:{image_tag}-refs"
@@ -160,14 +162,16 @@ def start_db2_container(args, image_tag, logger=main_logger):
 def start_rt_container(args, image_tag, logger=main_logger):
     """
     Start the rt container for deployment
-    
+
     Args:
-        args: the arguments passed to the script
-        image_tag: the tag of the image
-        logger: the logger to log the output
-    Returns:
-        None
+        args ([dict]): the arguments passed to the script
+        image_tag ([str]): the tag of the image
+        logger ([logging], optional): the logger to log the output. Defaults to main_logger.
+
+    Raises:
+        Exception: exception raised when spinning up runtime container
     """
+
     try:
         rt_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-rt:{image_tag}-weblogic"
         logger.info(f"#### STARTING DB2 CONTAINER: {RT_SCAN} - {rt_image_repo} ####")
@@ -194,20 +198,18 @@ def start_rt_container(args, image_tag, logger=main_logger):
 def prep_containers(args, image_tag):
     """
     Prepare the rt and db2 container. This function will do the followings:
-    - login to the registry 
-    - start db2 and rt containers 
-    - build the ear for deployment 
-    - start weblogic server 
-    - wait for the server to be ready
-    - logout of the registry
+        - login to the registry 
+        - start db2 and rt containers 
+        - build the ear for deployment 
+        - start weblogic server 
+        - wait for the server to be ready
+        - logout of the registry
 
     Args:
-        args: the arguments passed to the script
-        image_tag: the tag of the image
-    Returns:
-        None
-
+        args ([dict]): the arguments passed to the script
+        image_tag ([str]): the tag of the image
     """
+
     # clean up
     cleanup(args)
 
