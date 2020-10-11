@@ -14,6 +14,14 @@ main_logger = logging.getLogger(__name__)
 @timer
 @logger
 def get_bearer_token():
+    """
+    Get the bearer token for ASoC API requests.
+    
+    Args:
+        None 
+    Returns:
+        the bearer token
+    """
     res = requests.post(
         f"{ASOC_API_ENDPOINT}/Account/ApiKeyLogin",
         json={"KeyId": KEY_ID, "KeySecret": KEY_SECRET},
@@ -22,6 +30,7 @@ def get_bearer_token():
     return res.json()["Token"]
 
 
+# headers for API requests
 headers = {
     "Content-Type": "application/json",
     "Accept": "application/json",
@@ -32,7 +41,14 @@ headers = {
 @timer
 @logger
 def get_download_config(name):
-    """Get the report download configurations"""
+    """
+    Get the report download configurations
+    
+    Args:
+        name: the name of the scan 
+    Returns:
+        the configurations of the scan
+    """
     return {
         "Configuration": {
             "Summary": "true",
@@ -56,7 +72,15 @@ def get_download_config(name):
 @timer
 @logger
 def download_report(args, report):
-    """Download the generated report"""
+    """
+    Download the generated report.
+    
+    Args:
+        args: the arguments passed to the script
+        report: the report to download
+    Returns:
+        None
+    """
     res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/Download/{report['Id']}", headers=headers)
     if res.status_code == 200:
         reports_dir_path = f"reports/{args.type}/{get_date_str()}"
@@ -68,7 +92,14 @@ def download_report(args, report):
 @timer
 @logger
 def get_scans(app_id):
-    """Get the list of scans for the application"""
+    """
+    Get the list of scans for the application.
+    
+    Args: 
+        app_id: the application id that the scans belong to
+    Returns:
+        the list of scans belong to the application
+    """
     res = requests.get(f"{ASOC_API_ENDPOINT}/Apps/{app_id}/Scans", headers=headers)
     if res.status_code == 200:
         return res.json()
@@ -77,6 +108,14 @@ def get_scans(app_id):
 @timer
 @logger
 def remove_old_scans(app_id):
+    """
+    Remove old scan by calling the ASoC API 
+    
+    Args: 
+        app_id: the application id that the scans belong to
+    Returns:
+        scan_status_dict: the scans with their statuses
+    """
     # read the old scan ids
     old_scans = get_scans(app_id)
     scan_status_dict = {}
@@ -110,7 +149,14 @@ def remove_old_scans(app_id):
 @timer
 @logger
 def wait_for_report(report):
-    """Wait for the generated report to be ready"""
+    """
+    Wait for the generated report to be ready.
+    
+    Args:
+        report: the report to download
+    Returns:
+        None
+    """
     while True:
         res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/{report['Id']}", headers=headers)
         if res.status_code != 200:
