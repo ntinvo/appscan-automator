@@ -52,7 +52,7 @@ def get_remove_image_list(args):
     Returns:
         [list]: list of images to remove
     """
-    containers = client.containers.list()
+    containers = client.containers.list(all=True)
     return [
         image
         for con in containers
