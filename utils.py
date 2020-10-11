@@ -36,11 +36,12 @@ main_logger = logging.getLogger(__name__)
 def logger(func):
     """
     Print the function signature and return value.
-    
+
     Args:
-        func: the function to be wrapped
+        func ([func]): the function to be wrapped
+
     Returns:
-        wrapper: return the logger wrapper for the passed in function
+        [func]: the logger wrapper for the passed in function
     """
 
     @functools.wraps(func)
@@ -68,13 +69,12 @@ def logger(func):
 def get_run_duration(run_time):
     """
     Convert seconds to hours/minutes/seconds.
-    
+
     Args:
-        run_time: the time to convert to hours/minutes/seconds
+        run_time ([str]): the time to convert to hours/minutes/seconds
+
     Returns:
-        hours: converted hours
-        minutes: converted minutes
-        seconds: converted seconds
+        [tuple]: converted time
     """
     seconds = run_time % (24 * 3600)
     hours = run_time // 3600
@@ -91,11 +91,12 @@ def get_run_duration(run_time):
 def timer(func):
     """
     Print the runtime of the decorated function.
-    
+
     Args:
-        func: the function to be wrapped
+        func ([func]): the function to be wrapped
+
     Returns:
-        wrapper: return the timer wrapper for the passed in function
+        [func]: return the timer wrapper for the passed in function
     """
 
     @functools.wraps(func)
@@ -112,7 +113,20 @@ def timer(func):
 
 
 def run_subprocess(command, timeout=None, logger=main_logger):
-    """Run the subprocess."""
+    """
+    Run the subprocess.
+
+    Args:
+        command ([str]): the command to run subprocess
+        timeout ([integer], optional): timeout when running subprocess. Defaults to None.
+        logger ([logging], optional): logger to use. Defaults to main_logger.
+
+    Raises:
+        Exception: exception raised when running subprocess
+
+    Returns:
+        [tuple]: the return value and output of the subprocess
+    """
     popen = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     lines_iterator = iter(popen.stdout.readline, b"")
     output = ""
@@ -141,14 +155,11 @@ def run_subprocess(command, timeout=None, logger=main_logger):
 
 
 def setup_main_logging(verbose=logging.INFO):
-    """Set the logging level for the script that the user passes in. Default is WARNING
-    
+    """
+    Set the logging level for the script that the user passes in.
+
     Args:
-        verbose: the log level ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
-    Returns:
-        None
-    Raises:
-        None
+        verbose ([str], optional): the log level ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"). Defaults to logging.INFO.
     """
     coloredlogs.install(
         level=verbose, logger=main_logger, fmt="%(asctime)s %(levelname)s %(message)s",
@@ -156,14 +167,12 @@ def setup_main_logging(verbose=logging.INFO):
 
 
 def parse_arguments():
-    """Set up the arguments parser for the script
+    """
+    Set up the arguments parser for the script
     Retrieves the arguments passed in by the user, parse them, and return.
-    Args:
-        None
+
     Returns:
-        The argument parser
-    Raises:
-        None
+        [dict]: the argument dict 
     """
     parser = argparse.ArgumentParser(
         description="This will run the scans preps.", epilog="Have a nice day! :)"
@@ -214,6 +223,15 @@ def parse_arguments():
 @timer
 @logger
 def validate_args(args):
+    """
+    Validate arguments.
+
+    Args:
+        args ([dict]): the arguments passed to the script
+
+    Raises:
+        ValueError: exception raised when validate the arguments
+    """
     if (args.type == STATIC and args.mode == SCAN) and not args.source:
         raise ValueError(
             f"Param: source is required when running type {STATIC} and mode {SCAN} . Args: {args.source}"
@@ -225,11 +243,12 @@ def validate_args(args):
 def fetch_available_build_urls(url):
     """
     Fetch all of the stable build urls from Jenkins server.
-    
+
     Args:
-        url: the build job url 
+        url ([str]): the build job url 
+
     Returns:
-        build_urls: the available stable urls
+        [list]: the list of available stable urls
     """
     res = requests.get(url)
     build_urls = []
@@ -250,11 +269,9 @@ def fetch_available_build_urls(url):
 def get_latest_stable_image_tag():
     """
     Get latest stable image tag.
-    
-    Args:
-        None 
+
     Returns:
-        The latest available stable url
+        [str]: the latest available stable url
     """
     latest_stable_build_url = fetch_available_build_urls(SINGLE_STREAM_RSS_URL)[0]
     res = requests.get(latest_stable_build_url)
@@ -267,6 +284,12 @@ def get_latest_stable_image_tag():
 @timer
 @logger
 def create_dir(path):
+    """
+    Create the directory if not exist
+
+    Args:
+        path ([str]): the path to create the directory
+    """
     if not os.path.exists(path):
         try:
             os.makedirs(path)
@@ -278,4 +301,10 @@ def create_dir(path):
 @timer
 @logger
 def get_date_str():
+    """
+    Get today date string
+
+    Returns:
+        [str]: the date string to return in yyyy-mm-dd format
+    """
     return datetime.today().strftime("%Y_%m_%d")
