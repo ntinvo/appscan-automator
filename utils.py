@@ -203,7 +203,6 @@ def parse_arguments():
     parser.add_argument(
         "-ver",
         "--version",
-        required=True,
         choices=[SINGLE, COCDEV, COC, V95, V10],
         help=f"the version to run the scan on.",
         default=SINGLE,
