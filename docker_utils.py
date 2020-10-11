@@ -93,6 +93,8 @@ def cleanup(args):
 
     # clean up before creating new containers
     remove_images = get_remove_image_list(args)
+    if len(remove_images) == 0:
+        return
 
     # disconnect the containers and network
     main_logger.info(f"Disconnecting runtime container {RT_SCAN} from network {NETWORK_SCAN}...")
