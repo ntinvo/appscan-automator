@@ -187,9 +187,8 @@ def dynamic_scan(args):
         args ([dict]): the arguments passed to the script
     """
 
-    # # get the image tag
-    # image_tag = get_latest_stable_image_tag()
-    image_tag = "20201006-0735"
+    # get the image tag
+    image_tag = get_latest_stable_image_tag()
 
     # remove the old scans
     old_scan_status_dict = remove_old_scans(SINGLE_DYNAMIC)
