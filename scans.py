@@ -187,52 +187,53 @@ def dynamic_scan(args):
         args ([dict]): the arguments passed to the script
     """
 
-    # get the image tag
-    image_tag = get_latest_stable_image_tag()
+    # # get the image tag
+    # image_tag = get_latest_stable_image_tag()
+    image_tag = "20201006-0735"
 
-    # remove the old scans
-    old_scan_status_dict = remove_old_scans(SINGLE_DYNAMIC)
+    # # remove the old scans
+    # old_scan_status_dict = remove_old_scans(SINGLE_DYNAMIC)
 
-    # spin up the containers (rt and db2), if
-    # there is no scan in pending statuses
-    for status in old_scan_status_dict.values():
-        if status in PENDING_STATUSES:
-            return
+    # # spin up the containers (rt and db2), if
+    # # there is no scan in pending statuses
+    # for status in old_scan_status_dict.values():
+    #     if status in PENDING_STATUSES:
+    #         return
 
     # prep containers for the scans
     prep_containers(args, image_tag)
 
-    # create the new scans
-    for app, url in APP_URL_DICT.items():
-        user = "admin" if app != "WSC" else "csmith"
-        passwd = "password" if app != "WSC" else "csmith"
+    # # create the new scans
+    # for app, url in APP_URL_DICT.items():
+    #     user = "admin" if app != "WSC" else "csmith"
+    #     passwd = "password" if app != "WSC" else "csmith"
 
-        # scan data
-        create_scan_data = {
-            "StartingUrl": url,
-            "LoginUser": user,
-            "LoginPassword": passwd,
-            "ScanType": "Production",
-            "PresenceId": PRESENCE_ID,
-            "IncludeVerifiedDomains": "true",
-            "HttpAuthUserName": "string",
-            "HttpAuthPassword": "string",
-            "HttpAuthDomain": "string",
-            "OnlyFullResults": "true",
-            "TestOptimizationLevel": "NoOptimization",
-            "ScanName": f"{app} Scan",
-            "EnableMailNotification": "false",
-            "Locale": "en-US",
-            "AppId": SINGLE_DYNAMIC,
-            "Execute": "true",
-            "Personal": "false",
-        }
+    #     # scan data
+    #     create_scan_data = {
+    #         "StartingUrl": url,
+    #         "LoginUser": user,
+    #         "LoginPassword": passwd,
+    #         "ScanType": "Production",
+    #         "PresenceId": PRESENCE_ID,
+    #         "IncludeVerifiedDomains": "true",
+    #         "HttpAuthUserName": "string",
+    #         "HttpAuthPassword": "string",
+    #         "HttpAuthDomain": "string",
+    #         "OnlyFullResults": "true",
+    #         "TestOptimizationLevel": "NoOptimization",
+    #         "ScanName": f"{app} Scan",
+    #         "EnableMailNotification": "false",
+    #         "Locale": "en-US",
+    #         "AppId": SINGLE_DYNAMIC,
+    #         "Execute": "true",
+    #         "Personal": "false",
+    #     }
 
-        # creating a new scan
-        main_logger.info(f"Creating a new scan for {app}...")
-        _ = requests.post(
-            f"{ASOC_API_ENDPOINT}/Scans/DynamicAnalyzer", json=create_scan_data, headers=headers
-        )
+    #     # creating a new scan
+    #     main_logger.info(f"Creating a new scan for {app}...")
+    #     _ = requests.post(
+    #         f"{ASOC_API_ENDPOINT}/Scans/DynamicAnalyzer", json=create_scan_data, headers=headers
+    #     )
 
 
 @timer

@@ -6,7 +6,15 @@ import traceback
 import docker
 import requests
 
-from constants import DB2_SCAN, JFROG_REGISTRY, JFROG_USER, NETWORK_SCAN, RT_SCAN, VOL_SCAN
+from constants import (
+    DB2_SCAN,
+    DEPLOY_SERVER,
+    JFROG_REGISTRY,
+    JFROG_USER,
+    NETWORK_SCAN,
+    RT_SCAN,
+    VOL_SCAN,
+)
 from settings import JFROG_APIKEY
 from utils import logger, run_subprocess, timer
 
@@ -117,10 +125,10 @@ def cleanup(args):
     # removing runtime container
     run_subprocess(f"docker network rm {NETWORK_SCAN}")
 
-    # removing images
-    for image in remove_images:
-        main_logger.info(f"Removing image {image}...")
-        cleanup_helper(f"docker rmi {image}")
+    # # removing images
+    # for image in remove_images:
+    #     main_logger.info(f"Removing image {image}...")
+    #     cleanup_helper(f"docker rmi {image}")
 
 
 @timer
@@ -181,7 +189,7 @@ def start_rt_container(args, image_tag, logger=main_logger):
     """
 
     try:
-        rt_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-rt:{image_tag}-weblogic"
+        rt_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-rt:{image_tag}-liberty"
         logger.info(f"#### STARTING DB2 CONTAINER: {RT_SCAN} - {rt_image_repo} ####")
         run_subprocess(
             f" \
@@ -191,7 +199,7 @@ def start_rt_container(args, image_tag, logger=main_logger):
             -e DB_PORT=50000 \
             -e DB_VENDOR=db2 \
             -e DB_NAME=OMDB \
-            -p 7001:7001 \
+            -p 9080:9080 \
             {rt_image_repo}",
             logger=logger,
         )
@@ -203,13 +211,35 @@ def start_rt_container(args, image_tag, logger=main_logger):
 
 @timer
 @logger
+def wait_for_deployment():
+    """
+    docstring
+    """
+    while True:
+        try:
+            res = requests.get(f"{DEPLOY_SERVER}/smcfs/console/login.jsp", timeout=20)
+            if res.status_code == 200:
+                break
+        except Exception as _e:
+            time.sleep(10)
+
+
+@timer
+@logger
+def needs_server_restart():
+    res = requests.get(f"{DEPLOY_SERVER}/sbc/sbc/login.do")
+    return "b_SignInHeader" in res.text
+
+
+@timer
+@logger
 def prep_containers(args, image_tag):
     """
     Prepare the rt and db2 container. This function will do the followings:
         - login to the registry 
         - start db2 and rt containers 
         - build the ear for deployment 
-        - start weblogic server 
+        - start liberty server 
         - wait for the server to be ready
         - logout of the registry
 
@@ -233,23 +263,25 @@ def prep_containers(args, image_tag):
     main_logger.info("Building ear file...")
     run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs,wsc"')
 
-    # start weblogic server
-    main_logger.info("Starting weblogic server...")
-    run_subprocess(f'docker exec {RT_SCAN} bash -lc "__wlstart -autodeploy=true"')
+    # start liberty server
+    main_logger.info("Starting liberty server...")
+    run_subprocess(f'docker exec {RT_SCAN} bash -lc "__lbstart"')
 
-    # check to make sure the apps are run and running
-    main_logger.info(
-        "Checking deployment @ http://single1.fyre.ibm.com:7001/smcfs/console/login.jsp..."
-    )
-    while True:
-        try:
-            res = requests.get(
-                "http://single1.fyre.ibm.com:7001/smcfs/console/login.jsp", timeout=20
-            )
-            if res.status_code == 200:
-                break
-        except Exception as _e:
-            time.sleep(10)
+    # wait for deployment to be ready
+    main_logger.info("Wait for deployment to be ready...")
+    main_logger.info(f"Checking deployment @ {DEPLOY_SERVER}/smcfs/console/login.jsp...")
+    wait_for_deployment()
+
+    # check to see if we need to restart the server
+    if needs_server_restart():
+        # restart the server
+        main_logger.info("Restarting liberty server...")
+        run_subprocess(f'docker exec {RT_SCAN} bash -lc "__lbstop && __lbstart"')
+
+        # wait again for deployment to be ready after restarting
+        main_logger.info("Waiting again for deployment to be ready after restarting...")
+        main_logger.info(f"Checking deployment @ {DEPLOY_SERVER}/smcfs/console/login.jsp...")
+        wait_for_deployment()
 
     main_logger.info("The db2 and rt containers are up and running...")
 
