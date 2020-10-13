@@ -284,7 +284,7 @@ def dynamic_reports(args):
         wait_for_report(report)
 
         # download the report
-        download_report(args, report)
+        download_report("dynamic", report)
 
 
 @timer
@@ -323,7 +323,7 @@ def static_reports(args):
         wait_for_report(report)
 
         # download the report
-        download_report(args, report)
+        download_report("static", report)
 
 
 @timer

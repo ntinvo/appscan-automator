@@ -71,7 +71,7 @@ def get_download_config(name):
 
 @timer
 @logger
-def download_report(args, report):
+def download_report(type, report):
     """
     Download the generated report.
 
@@ -81,7 +81,7 @@ def download_report(args, report):
     """
     res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/Download/{report['Id']}", headers=headers)
     if res.status_code == 200:
-        reports_dir_path = f"reports/{args.type}/{get_date_str()}"
+        reports_dir_path = f"reports/{type}/{get_date_str()}"
         create_dir(reports_dir_path)
         with open(f"{reports_dir_path}/{report['Name']}.html", "wb") as f:
             f.write(res.content)
