@@ -14,6 +14,20 @@ V10 = "10.0"
 V95 = "9.5"
 
 
+def add_optionals_args(parser):
+    """
+    docstring
+    """
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        dest="verbose",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="logging level",
+        default=logging.WARNING,
+    )
+
+
 def init_argparse():
     try:
         parser = argparse.ArgumentParser(
@@ -36,7 +50,7 @@ def init_argparse():
         # create subparsers
         for mode in [SCAN, REPORTS]:
             mode_parser = subparsers.add_parser(mode)
-
+            add_optionals_args(mode_parser)
             mode_subparser = mode_parser.add_subparsers(dest="type")
             for type in [ALL, STATIC, DYNAMIC]:
                 type_parser = mode_subparser.add_parser(type)
@@ -67,6 +81,7 @@ def init_argparse():
                         dest="output",
                         help=f"path to store the reports.",
                     )
+                add_optionals_args(type_parser)
         arguments = parser.parse_args()
     except argparse.ArgumentError as e:
         print("Error parsing arguments")

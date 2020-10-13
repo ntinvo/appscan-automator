@@ -342,6 +342,9 @@ def get_reports(args):
     else:
         dynamic_reports(args)
 
+    # copy reports to output directory
+    run_subprocess(f"rsync -a -v --ignore-existing {os.getcwd()}/reports {args.output}")
+
 
 # ********************************* #
 # *             MAIN              * #
