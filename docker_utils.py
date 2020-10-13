@@ -125,10 +125,10 @@ def cleanup(args):
     # removing runtime container
     run_subprocess(f"docker network rm {NETWORK_SCAN}")
 
-    # # removing images
-    # for image in remove_images:
-    #     main_logger.info(f"Removing image {image}...")
-    #     cleanup_helper(f"docker rmi {image}")
+    # removing images
+    for image in remove_images:
+        main_logger.info(f"Removing image {image}...")
+        cleanup_helper(f"docker rmi {image}")
 
 
 @timer
@@ -213,7 +213,7 @@ def start_rt_container(args, image_tag, logger=main_logger):
 @logger
 def wait_for_deployment():
     """
-    docstring
+    Waiting for the deployment to be ready.
     """
     while True:
         try:
@@ -227,6 +227,12 @@ def wait_for_deployment():
 @timer
 @logger
 def needs_server_restart():
+    """
+    Check if we need to restart the application server or not
+
+    Returns:
+        [bool]: True if we need to restart, False otherwise
+    """
     res = requests.get(f"{DEPLOY_SERVER}/sbc/sbc/login.do")
     return "b_SignInHeader" in res.text
 
