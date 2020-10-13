@@ -212,6 +212,13 @@ def parse_arguments():
         "--source",
         help=f"the path to source code. When running type {STATIC} and mode {SCAN}, this is required.",
     )
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest="output",
+        help=f"path to store the reports.",
+        default=f"{os.getcwd()}/reports",
+    )
 
     args = parser.parse_args()
     setup_main_logging(args.verbose)
