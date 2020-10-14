@@ -13,5 +13,5 @@ git clone git@github.com:ntinvo/appscan-automator.git
 ## Usage
 
 ```bash
-python3 scans -v INFO -m {MODE} -t {TYPE} -o {OUTPUT} -ver {VERSION}
+python3 automator.py {MODE} {TYPE} -o {OUTPUT} -ver {VERSION} -v {VERBOSE LEVEL}
 ```
