@@ -5,6 +5,7 @@ JFROG_API_ENDPOINT = "https://na.artifactory.swg-devops.com/artifactory/api/dock
 SINGLE_STREAM_RSS_URL = (
     "http://9.121.242.67:9080/jenkins/view/L3%20Builds/job/Single_Stream_Project/rssAll"
 )
+DEPCHECK_REPO = "https://api.github.com/repos/jeremylong/DependencyCheck/releases/latest"
 DEPLOY_SERVER = "http://single1.fyre.ibm.com:9080"
 # DEPLOY_SERVER = "http://localhost:9080"
 SMCFS_URL = f"{DEPLOY_SERVER}/smcfs/console/login.jsp"

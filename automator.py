@@ -1,7 +1,10 @@
+import io
 import logging
 import os
 import tempfile
+import time
 import traceback
+import zipfile
 
 import requests
 
@@ -21,19 +24,29 @@ from constants import (
     APPSCAN_CONFIG_TMP,
     ASOC_API_ENDPOINT,
     DEPCHECK,
+    DEPCHECK_REPO,
     DYNAMIC,
     JAZZ_SINGLE_WS_ID,
     PENDING_STATUSES,
     PRESENCE_ID,
     REPORTS,
+    RT_SCAN,
     SCAN,
     SINGLE_DYNAMIC,
     SINGLE_STATIC,
     STATIC,
 )
-from docker_utils import prep_containers
+from docker_utils import prep_containers, start_rt_container
 from settings import JAZZ_PASS, JAZZ_REPO, JAZZ_USER, KEY_ID, KEY_SECRET
-from utils import get_latest_stable_image_tag, logger, parse_arguments, run_subprocess, timer
+from utils import (
+    create_dir,
+    get_date_str,
+    get_latest_stable_image_tag,
+    logger,
+    parse_arguments,
+    run_subprocess,
+    timer,
+)
 
 # main logger
 main_logger = logging.getLogger(__name__)
@@ -353,19 +366,96 @@ def get_reports(args):
 
 
 # ********************************* #
+# *           DEPCHECK            * #
+# ********************************* #
+@timer
+@logger
+def download_depcheck_tool(download_dir):
+    """
+    [summary]
+
+    Args:
+        download_dir ([type]): [description]
+    """
+    main_logger.info("Downloading updated dependency check tool...")
+    res = requests.get(DEPCHECK_REPO)
+    tag_name = res.json()["tag_name"].replace("v", "")
+    download_url = f"https://github.com/jeremylong/DependencyCheck/releases/download/v{tag_name}/dependency-check-{tag_name}-release.zip"
+    res = requests.get(download_url, allow_redirects=True)
+    zip = zipfile.ZipFile(io.BytesIO(res.content))
+    zip.extractall(f"{download_dir}")
+    run_subprocess(f"chmod +x {download_dir}/dependency-check/bin/dependency-check.sh")
+
+
+@timer
+@logger
+def depcheck(args):
+    """
+    docstring
+    """
+    # # get the image tag
+    # image_tag = get_latest_stable_image_tag()
+
+    # # start runtime container
+    # start_rt_container(args, image_tag)
+
+    RT_SCAN = "test"
+
+    # # build the ear
+    # main_logger.info("Building ear file...")
+    # run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs,wsc"')
+
+    # creating the source dir
+    with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdir:
+
+        # copy the ear to tempdir
+        main_logger.info("Copying the ear to tempdir...")
+        run_subprocess(
+            f"docker cp {RT_SCAN}:/opt/ssfs/runtime/external_deployments/smcfs.ear {tmpdir}"
+        )
+
+        # extract war files from the ear
+        run_subprocess(f"cd {tmpdir} && unzip smcfs.ear *.war")
+
+        # extract jars
+        apps = ["smcfs", "sma", "sbc", "isccs", "wsc"]
+
+        create_dir(f"{tmpdir}/3rdpartyship")
+        for app in apps:
+            if app == "smcfs":
+                run_subprocess(
+                    f"cd {tmpdir} && mkdir {app}jarsfolder && unzip -o -j smcfs.war yfscommon/* -d {app}jarsfolder/ -x  yfscommon/platform* -x yfscommon/smcfs* -x yfscommon/*.properties -x yfscommon/*ui.jar -x yfscommon/yantra* -x yfscommon/scecore* -x yfscommon/yc*"
+                )
+            else:
+                run_subprocess(
+                    f"cd {tmpdir} && mkdir {app}jarsfolder && unzip -o -j sma.war WEB-INF/lib/* -d {app}jarsfolder/ -x  WEB-INF/lib/platform*"
+                )
+            run_subprocess(f"cp -R {tmpdir}/{app}jarsfolder/* {tmpdir}/3rdpartyship")
+
+        # download the latest depcheck
+        download_depcheck_tool(tmpdir)
+
+        # run dependency check
+        reports_dir_path = f"reports/{args.mode}/{get_date_str()}"
+        create_dir(reports_dir_path)
+        run_subprocess(
+            f"{tmpdir}/dependency-check/bin/dependency-check.sh -s {tmpdir}/3rdpartyship -o {reports_dir_path}/dependency_report.html --suppression {os.getcwd()}/suppressions.xml"
+        )
+
+
+# ********************************* #
 # *             MAIN              * #
 # ********************************* #
 @timer
 @logger
 def main():
     args = parse_arguments()
-    print(args)
-    # if args.mode == SCAN:
-    #     run_scan(args)
-    # elif args.mode == REPORTS:
-    #     get_reports(args)
-    # elif args.mode == DEPCHECK:
-    #     pass
+    if args.mode == SCAN:
+        run_scan(args)
+    elif args.mode == REPORTS:
+        get_reports(args)
+    elif args.mode == DEPCHECK:
+        depcheck(args)
 
 
 if __name__ == "__main__":

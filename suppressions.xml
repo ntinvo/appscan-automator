@@ -1,0 +1,467 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+	<suppress>
+		<notes><![CDATA[
+	  file name: commons-fileupload-1.3.2.jar
+	  The issue Apache Commons FileUpload DiskFileItem File Manipulation Remote Code Execution is published on NVD site on 10/25/2016 and revised multiple times, last one being on 12/29/2016. This site also says the said vulnerability has been modified since it was last analyzed by the NVD. It is awaiting reanalysis which may result in further changes to the information provided.
+
+	  As Per Apache: "Having reviewed your report we have concluded that it does not represent a valid vulnerability in Apache Commons File Upload. If an application deserializes data from an untrusted source without filtering and/or validation that is an application vulnerability not a vulnerability in the library a potential attacker might leverage."
+
+	  Sterling OM neither use the library DiskFileItem.class explicitly nor provide any utility methods to expose the underlying DiskFileItem.class. So it is NOT affecting us.
+		]]>
+		</notes>
+	  <gav regex="true">^commons-fileupload:commons-fileupload:.*$</gav>
+	  <cve>CVE-2016-1000031</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: icu4j-55_1.jar
+	   The vulnerability reported here are on c/c++ variant of ICU. Sterling OM uses the java libraries of ICU and hence this shouldn't be affecting the OM product.
+	   ]]>
+	   </notes>
+	   <gav regex="true">^com\.ibm\.icu:icu4j:.*$</gav>
+	   <cve>CVE-2017-7868</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: icu4j-55_1.jar
+	   The vulnerability reported here are on c/c++ variant of ICU. Sterling OM uses the java libraries of ICU and hence this shouldn't be affecting the OM product.
+	   ]]></notes>
+	   <gav regex="true">^com\.ibm\.icu:icu4j:.*$</gav>
+	   <cve>CVE-2017-7867</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: icu4j-55_1.jar
+	   The vulnerability reported here are on c/c++ variant of ICU. Sterling OM uses the java libraries of ICU and hence this shouldn't be affecting the OM product.
+	   ]]></notes>
+	   <gav regex="true">^com\.ibm\.icu:icu4j:.*$</gav>
+	   <cve>CVE-2016-7415</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: icu4j-55_1.jar
+	   The vulnerability reported here are on c/c++ variant of ICU. Sterling OM uses the java libraries of ICU and hence this shouldn't be affecting the OM product.
+	   ]]></notes>
+	   <gav regex="true">^com\.ibm\.icu:icu4j:.*$</gav>
+	   <cve>CVE-2016-6293</cve>
+	</suppress>
+	
+	<suppress>
+	   <notes><![CDATA[
+	   file name: jackson-core-2.8.0.jar
+	   The vulnerability is found in the jackson-dataformat-xml library, which we are not shipping or using. The vulnerability found in the XmlMapper used as part of the jackson-dataformat-xml-<version>.jar to create POJOs out of XML (and vice versa). We're not using jackson for XML purposes and nor are we using the -dataformat-xml library.
+	   ]]></notes>
+	   <gav regex="true">^com\.fasterxml\.jackson\.core:jackson-core:.*$</gav>
+	   <cve>CVE-2016-7051</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: jackson-databind-2.7.0.jar
+	   The vulnerability is found in the jackson-dataformat-xml library, which we are not shipping or using. The vulnerability found in the XmlMapper used as part of the jackson-dataformat-xml-<version>.jar to create POJOs out of XML (and vice versa). We're not using jackson for XML purposes and nor are we using the -dataformat-xml library.
+	   ]]></notes>
+	   <gav regex="true">^com\.fasterxml\.jackson\.core:jackson-databind:.*$</gav>
+	   <cve>CVE-2016-7051</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: jest-0.1.7.jar
+	   Here the issue reported is relevant only if the Apache HttpComponents HttpClient used in conjunction with jest is of version 4.3.5 or older. In OM 9.5.1 we are shipping Apache HttpComponents HttpClient v4.5 and hence we can ignore it.
+	   ]]></notes>
+	   <gav regex="true">^io\.searchbox:jest:.*$</gav>
+	   <cve>CVE-2015-5262</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: jest-0.1.7.jar
+	   Here the issue reported is relevant only if the Apache HttpComponents HttpClient and HttpAsyncClient versions used in conjunction with jest are prior to 4.3.5 and 4.0.2 respectively. In OM 9.5.1 we are shipping Apache HttpComponents HttpClient v4.5 and HttpComponents HttpAsyncClient v4.1 respectively and hence we can ignore it.  
+	   ]]></notes>
+	   <gav regex="true">^io\.searchbox:jest:.*$</gav>
+	   <cve>CVE-2014-3577</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: jest-common-0.1.7.jar
+	   Here the issue is relevant only if the Elasticsearch used in conjunction with jest-common is of version prior to 1.6.1. We are shipping Elasticsearch 1.7.1 in OM 9.5.1 and hence we can ignore it.
+	   ]]></notes>
+	   <gav regex="true">^io\.searchbox:jest-common:.*$</gav>
+	   <cve>CVE-2015-5531</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: jest-common-0.1.7.jar
+	   Here the issue is relevant only if the Elasticsearch used in conjunction with jest-common is of version prior to 1.5.2. We are shipping Elasticsearch 1.7.1 in OM 9.5.1 and hence we can ignore it.
+	   ]]></notes>
+	   <gav regex="true">^io\.searchbox:jest-common:.*$</gav>
+	   <cve>CVE-2015-3337</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: jest-common-0.1.7.jar
+	   Here the issue is relevant only if the Elasticsearch used in conjunction with jest-common is of version prior to 1.4.3. We are shipping Elasticsearch 1.7.1 in OM 9.5.1 and hence we can ignore it.
+	   ]]></notes>
+	   <gav regex="true">^io\.searchbox:jest-common:.*$</gav>
+	   <cve>CVE-2015-1427</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: jest-common-0.1.7.jar
+	   Here the issue is relevant only if the Elasticsearch used in conjunction with jest-common is of version prior to 1.4.0 Beta1. We are shipping Elasticsearch 1.7.1 in OM 9.5.1 and hence we can ignore it.
+	   ]]></notes>
+	   <gav regex="true">^io\.searchbox:jest-common:.*$</gav>
+	   <cve>CVE-2014-6439</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: jest-common-0.1.7.jar
+	   Here the issue is relevant only if the Elasticsearch used in conjunction with jest-common is of version prior to 1.2. We are shipping Elasticsearch 1.7.1 in OM 9.5.1 and hence we can ignore it.
+	   ]]></notes>
+	   <gav regex="true">^io\.searchbox:jest-common:.*$</gav>
+	   <cve>CVE-2014-3120</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: fop.jar
+	   Sterling OM doesn't consume Apache Batik.
+	   The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distribution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+	   ]]></notes>
+	   <gav regex="true">^org\.apache\.xmlgraphics:fop:.*$</gav>
+	   <cve>CVE-2017-5661</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: xmlgraphics-commons-1.4.jar
+	   Apache XML Graphics Commons is a library that consists of several reusable components used by Apache Batik.	The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distribution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+	   ]]></notes>
+	   <gav regex="true">^org\.apache\.xmlgraphics:xmlgraphics-commons:.*$</gav>
+	   <cve>CVE-2017-5662</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: xmlgraphics-commons-1.4.jar
+	   Apache XML Graphics Commons is a library that consists of several reusable components used by Apache Batik. The batik jars are solely used for the graphical representation of pricing data on Order Management Channel Applications UI. We neither use the SVG to PNG and JPG conversion utilities nor expose these capabilities from the Applications UI. So the notified vulnerability, CVE-2015-0250 has no impact on these products.
+	   ]]></notes>
+	   <gav regex="true">^org\.apache\.xmlgraphics:xmlgraphics-commons:.*$</gav>
+	   <cve>CVE-2015-0250</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: netty-all-4.0.33.Final.jar
+	   Here the denial of service is occurring from io.netty.handler.ssl.OpenSslEngine.class. The netty is used in conjuction with Cassandra in OM (which is not offered on cloud). Most importantly Sterling OM neither consume io.netty.handler.ssl.OpenSslEngine.class nor provide any methods to get the above the object. So the denial of service issue notified by the CVE is not relevant to Sterling OM. We can ignore this. We will try to upgrade this in the next version so that we don't need to justify it again and again.
+	   ]]></notes>
+	   <gav regex="true">^io\.netty:netty-all:.*$</gav>
+	   <cve>CVE-2016-4970</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: struts2-core-2.3.32.jar
+	   The vulnerable Struts 1 plugin is not in use in any of our OMS applications and neither do we reommend or document its use in any of our products. We can thus ignore this as a not applicable vulnerability.
+	   ]]></notes>
+	   <gav regex="true">^org\.apache\.struts:struts2-core:.*$</gav>
+	   <cve>CVE-2017-9791</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: struts2-core-2.3.32.jar
+	   We are not using a Spring AOP functionality in any OMS applications. This vulnerability is applicable only when Spring AOP is used to secure struts. Thus, can ignore this as not applicable.
+	   ]]></notes>
+	   <gav regex="true">^org\.apache\.struts:struts2-core:.*$</gav>
+	   <cve>CVE-2017-9787</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: xwork-core-2.3.32.jar
+	   The vulnerable Struts 1 plugin is not in use in any of our OMS applications and neither do we reommend or document its use in any of our products. We can thus ignore this as a not applicable vulnerability.
+	   ]]></notes>
+	   <gav regex="true">^org\.apache\.struts\.xwork:xwork-core:.*$</gav>
+	   <cve>CVE-2017-9791</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: xwork-core-2.3.32.jar
+	   We are not using a Spring AOP functionality in any OMS applications. This vulnerability is applicable only when Spring AOP is used to secure struts. Thus, can ignore this as not applicable.
+	   ]]></notes>
+	   <gav regex="true">^org\.apache\.struts\.xwork:xwork-core:.*$</gav>
+	   <cve>CVE-2017-9787</cve>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: batik-css-1.6.jar
+		Sterling OM doesn't consume Apache Batik.
+		The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distrobution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+		]]></notes>
+		<gav regex="true">^john-test:batik-css:.*$</gav>
+		<cpe>cpe:/a:apache:batik</cpe>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: batik-dom-1.6.jar
+		Sterling OM doesn't consume Apache Batik.
+		The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distrobution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+		]]></notes>
+		<sha1>27983405f0871f28d3b9ab35b44e62610a60564a</sha1>
+		<cpe>cpe:/a:apache:batik</cpe>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: batik-gvt-1.6.jar
+		Sterling OM doesn't consume Apache Batik.
+		The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distrobution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+		]]></notes>
+		<sha1>c70cd8ffb8f88862e5d7dc39692b6f65f5258956</sha1>
+		<cpe>cpe:/a:apache:batik</cpe>
+	</suppress>
+	
+	<suppress>
+	<notes><![CDATA[
+   file name: batik-xml-1.6.jar
+   Sterling OM doesn't consume Apache Batik.
+		The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distrobution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+   ]]></notes>
+   <sha1>4f2c18a0d41b8804e6fd24f183a567b41c928ed0</sha1>
+   <cpe>cpe:/a:apache:batik</cpe>
+</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: batik-util-1.6.jar
+		Sterling OM doesn't consume Apache Batik.
+		The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distrobution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+		]]></notes>
+		<sha1>7bea0185bb630bca235ffa904b1a03e8a4786a45</sha1>
+		<cpe>cpe:/a:apache:batik</cpe>
+	</suppress>
+	
+	<suppress>
+		<notes><![CDATA[
+		file name: batik-bridge-1.6.jar
+		Sterling OM doesn't consume Apache Batik.
+		The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distrobution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+		]]></notes>
+		<sha1>d03af50f4387453b9f89f4acfe45314bb200a3fe</sha1>
+		<cpe>cpe:/a:apache:batik</cpe>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: batik-parser-1.6.jar
+		Sterling OM doesn't consume Apache Batik.
+		The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distrobution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+		]]></notes>
+		<sha1>c1c2441c96f28f95f920173f13b547e0fd745810</sha1>
+		<cpe>cpe:/a:apache:batik</cpe>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: batik-script-1.6.jar
+		Sterling OM doesn't consume Apache Batik.
+		The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distrobution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+		]]></notes>
+		<sha1>9d33b244d93374ed0fce7fb53fe44aae13f8676f</sha1>
+		<cpe>cpe:/a:apache:batik</cpe>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: batik-svg-dom-1.6.jar
+		Sterling OM doesn't consume Apache Batik.
+		The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distrobution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+		]]></notes>
+		<sha1>99c4c49c1852b62396fc0c9777d48c0e03f1dc74</sha1>
+		<cpe>cpe:/a:apache:batik</cpe>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: batik-awt-util-1.6.jar
+		Sterling OM doesn't consume Apache Batik.
+		The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distrobution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+		]]></notes>
+		<sha1>590750cc8d6a1ba0189b437172b6444578d79c99</sha1>
+		<cpe>cpe:/a:apache:batik</cpe>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: batik-rasterizer-1.6.jar
+		Sterling OM doesn't consume Apache Batik.
+		The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distrobution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+		]]></notes>
+		<sha1>1ac6b05f8b7b92a26f3ca6430cba646fc522f625</sha1>
+		<cpe>cpe:/a:apache:batik</cpe>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: batik-transcoder-1.6.jar
+		Sterling OM doesn't consume Apache Batik.
+		The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distrobution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+		]]></notes>
+		<sha1>81b243ba7091c186c4454728d356493ddf69ad96</sha1>
+		<cpe>cpe:/a:apache:batik</cpe>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: batik-css-1.6.jar
+	   Sterling OM doesn't consume Apache Batik.
+	   The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distrobution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+	   ]]></notes>
+	   <sha1>9433ba160f0b7ca6640f750decebd99fe98dacd3</sha1>
+	   <cve>CVE-2017-5662</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: batik-css-1.6.jar
+	   Sterling OM doesn't consume Apache Batik.
+	   The Old Store Order Management Application (Rich Client Platform) consumes Apache FOP. Basically the fop.jar from Apache FOP distrobution was packaged in Sterling OM to support printing from this application. The web based Store and Call Center do not use this. We can ignore this because none of our web applications on OM use batik, fop or xmlgraphics-commons.
+	   ]]></notes>
+	   <sha1>9433ba160f0b7ca6640f750decebd99fe98dacd3</sha1>
+	   <cve>CVE-2015-0250</cve>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: struts2-core-2.3.32.jar
+		We do not use or ship the Struts REST plugin. It is a separate jar that is required to be present in addition to struts and xworks. Hence, it is not valid for us.
+		]]></notes>
+		<gav regex="true">^org\.apache\.struts:struts2-core:.*$</gav>
+		<cve>CVE-2017-9805</cve>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: struts2-core-2.3.32.jar
+		OMS and associated applications do not use struts url validator feature. Hence, it is not valid for us.
+		]]></notes>
+		<gav regex="true">^org\.apache\.struts:struts2-core:.*$</gav>
+		<cve>CVE-2017-9804</cve>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: struts2-core-2.3.32.jar
+		We do not use or ship the Struts REST plugin. It is a separate jar that is required to be present in addition to struts and xworks.
+		]]></notes>
+		<gav regex="true">^org\.apache\.struts:struts2-core:.*$</gav>
+		<cve>CVE-2017-9793</cve>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: struts2-core-2.3.32.jar
+		We use freemarker templates in CUF for code generation from xml files. This is a build time process. It is exposed to customer only in a development WAR when they use the extensibility workbench. This feature is unavailable in production WAR/EAR. Additionally, for this vulnerability, the affected systems use freemarker templates as an alternative to jsp to handle struts actions. We use only jsps for this purpose. Since our usage and topology is completely different and freemarker templates are only in use in a dev WAR, we are not affected by this vulnerability.
+		]]></notes>
+		<gav regex="true">^org\.apache\.struts:struts2-core:.*$</gav>
+		<cve>CVE-2017-12611</cve>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: xwork-core-2.3.32.jar
+		We do not use or ship the Struts REST plugin. It is a separate jar that is required to be present in addition to struts and xworks. Hence, it is not valid for us.
+		]]></notes>
+		<gav regex="true">^org\.apache\.struts\.xwork:xwork-core:.*$</gav>
+		<cve>CVE-2017-9805</cve>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: xwork-core-2.3.32.jar
+		OMS and associated applications do not use struts url validator feature. Hence, it is not valid for us.
+		]]></notes>
+		<gav regex="true">^org\.apache\.struts\.xwork:xwork-core:.*$</gav>
+		<cve>CVE-2017-9804</cve>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: xwork-core-2.3.32.jar
+		We do not use or ship the Struts REST plugin. It is a separate jar that is required to be present in addition to struts and xworks.
+		]]></notes>
+		<gav regex="true">^org\.apache\.struts\.xwork:xwork-core:.*$</gav>
+		<cve>CVE-2017-9793</cve>
+	</suppress>
+	<suppress>
+		<notes><![CDATA[
+		file name: xwork-core-2.3.32.jar
+		We use freemarker templates in CUF for code generation from xml files. This is a build time process. It is exposed to customer only in a development WAR when they use the extensibility workbench. This feature is unavailable in production WAR/EAR. Additionally, for this vulnerability, the affected systems use freemarker templates as an alternative to jsp to handle struts actions. We use only jsps for this purpose. Since our usage and topology is completely different and freemarker templates are only in use in a dev WAR, we are not affected by this vulnerability.
+		]]></notes>
+		<gav regex="true">^org\.apache\.struts\.xwork:xwork-core:.*$</gav>
+		<cve>CVE-2017-12611</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: dom4j.jar 
+	   Referenced Element class is not used. Hence not impacted.
+	   ]]></notes>
+	   <packageUrl regex="true">^pkg:maven/dom4j/dom4j@.*$</packageUrl>
+	   <cve>CVE-2018-1000632</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: guava-17.0.jar
+	   AtomicDoubleArray is not used. Further this library seems to be used only in entity transaction cache feature and in a very limited way. Can be ignored.
+	   ]]></notes>
+	   <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
+	   <cve>CVE-2018-10237</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: struts2-core-2.3.35.jar
+	   Rest Plugin is not used, hence can be ignored.
+	   ]]></notes>
+	   <packageUrl regex="true">^pkg:maven/org\.apache\.struts/struts2\-core@.*$</packageUrl>
+	   <cve>CVE-2018-1327</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: quartz-2.2.3.jar
+	   Referenced class "XMLSchedulingDataProcessor" not found to be used. Not impacted
+	   ]]></notes>
+	   <packageUrl regex="true">^pkg:maven/org\.quartz\-scheduler/quartz@.*$</packageUrl>
+	   <vulnerabilityName>CVE-2019-13990</vulnerabilityName>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: elasticsearch-1.7.1.zip: elasticsearch-1.7.1.jar 
+	    We don't use Elasticsearch on OMoC. In case of OnPrem we don't use any of the security features of ES. Our solution to secure ES is to secure it behind a firewall and white list only OMS app/agent/integration server IPs.  Besides that we don use the said endpoints where the vulnerability is reported. We neither expose ES to end users nor send the response too.
+	   ]]></notes>
+	   <packageUrl regex="true">^pkg:maven/org\.elasticsearch/elasticsearch@.*$</packageUrl>
+	   <vulnerabilityName>CVE-2019-7611</vulnerabilityName>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: elasticsearch-1.7.1.zip: elasticsearch-1.7.1.jar
+	   We don't use Elasticsearch on OMoC. In case of OnPrem we don't use any of the security features of ES. Our solution to secure ES is to secure it behind a firewall and white list only OMS app/agent/integration server IPs.  Besides that we don use the said endpoints where the vulnerability is reported. We neither expose ES to end users nor send the response too.
+	   ]]></notes>
+	   <packageUrl regex="true">^pkg:maven/org\.elasticsearch/elasticsearch@.*$</packageUrl>
+	   <vulnerabilityName>CVE-2019-7614</vulnerabilityName>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: elasticsearch-1.7.1.zip: groovy-all-2.4.4.jar
+	   We don't use Elasticsearch on OMoC. In case of OnPrem we don't use any of the security features of ES. Our solution to secure ES is to secure it behind a firewall and white list only OMS app/agent/integration server IPs.  Besides that we don use the said endpoints where the vulnerability is reported. We neither expose ES to end users nor send the response too.
+	   ]]></notes>
+	   <packageUrl regex="true">^pkg:maven/org\.codehaus\.groovy/groovy\-all@.*$</packageUrl>
+	   <cve>CVE-2016-6814</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: elasticsearch-1.7.1.zip: elasticsearch-1.7.1.jar
+	   We don't use Elasticsearch on OMoC. In case of OnPrem we don't use any of the security features of ES. Our solution to secure ES is to secure it behind a firewall and white list only OMS app/agent/integration server IPs.  Besides that we don use the said endpoints where the vulnerability is reported. We neither expose ES to end users nor send the response too.
+	   ]]></notes>
+	   <packageUrl regex="true">^pkg:maven/org\.elasticsearch/elasticsearch@.*$</packageUrl>
+	   <vulnerabilityName>Disable CORS by default</vulnerabilityName>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: netty-all-4.0.33.Final.jar
+	   Not vulnerable because we only use netty for Cassandra exception handling. Cassandra is not offered on cloud.
+	   ]]></notes>
+	   <packageUrl regex="true">^pkg:maven/io\.netty/netty\-all@.*$</packageUrl>
+	   <cve>CVE-2019-16869</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: netty-all-4.0.33.Final.jar 
+	   Not vulnerable because we only use netty for Cassandra exception handling. Cassandra is not offered on cloud.
+	   ]]></notes>
+	   <packageUrl regex="true">^pkg:maven/io\.netty/netty\-all@.*$</packageUrl>
+	   <cve>CVE-2019-20444</cve>
+	</suppress>
+	<suppress>
+	   <notes><![CDATA[
+	   file name: netty-all-4.0.33.Final.jar 
+	   Not vulnerable because we only use netty for Cassandra exception handling. Cassandra is not offered on cloud.
+	   ]]></notes>
+	   <packageUrl regex="true">^pkg:maven/io\.netty/netty\-all@.*$</packageUrl>
+	   <cve>CVE-2019-20445</cve>
+	</suppress>
+</suppressions>

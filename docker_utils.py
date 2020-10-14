@@ -8,6 +8,7 @@ import requests
 
 from constants import (
     DB2_SCAN,
+    DEPCHECK,
     DEPLOY_SERVER,
     JFROG_REGISTRY,
     JFROG_USER,
@@ -188,13 +189,15 @@ def start_rt_container(args, image_tag, logger=main_logger):
         Exception: exception raised when spinning up runtime container
     """
 
+    network = "" if args.mode == DEPCHECK else f"--network={NETWORK_SCAN}"
+
     try:
         rt_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-rt:{image_tag}-liberty"
-        logger.info(f"#### STARTING DB2 CONTAINER: {RT_SCAN} - {rt_image_repo} ####")
+        logger.info(f"#### STARTING RT CONTAINER: {RT_SCAN} - {rt_image_repo} ####")
         run_subprocess(
             f" \
             docker run -di --name {RT_SCAN} --privileged \
-            --network={NETWORK_SCAN} \
+            {network} \
             -e DB_HOST={DB2_SCAN} \
             -e DB_PORT=50000 \
             -e DB_VENDOR=db2 \
