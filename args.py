@@ -72,7 +72,7 @@ def init_argparse():
         )
 
         subparsers = parser.add_subparsers(
-            title="mode", dest="mode", description="automator mode to run", required=True
+            title="mode", dest="mode", description="automator mode to run"
         )
 
         # create subparsers
