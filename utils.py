@@ -14,6 +14,7 @@ import coloredlogs
 import requests
 from bs4 import BeautifulSoup
 
+from args import init_argparse
 from constants import (
     ALL,
     COC,
@@ -174,74 +175,9 @@ def parse_arguments():
     Returns:
         [dict]: the argument dict 
     """
-    parser = argparse.ArgumentParser(
-        description="This will run the scans preps.", epilog="Have a nice day! :)"
-    )
-
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        dest="verbose",
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        help="the verbose level of the script",
-        default=logging.WARNING,
-    )
-    parser.add_argument(
-        "-t",
-        "--type",
-        choices=[ALL, DYNAMIC, STATIC],
-        help=f"the type of scan to run. With mode {ALL}, it will run both {DYNAMIC} and {STATIC} preps.",
-        default=ALL,
-    )
-    parser.add_argument(
-        "-m",
-        "--mode",
-        required=True,
-        choices=[SCAN, REPORTS],
-        help=f"the mode to run the scan; {SCAN} will create the scan, and {REPORTS} will generate and download the reports for the scans.",
-    )
-    parser.add_argument(
-        "-ver",
-        "--version",
-        choices=[SINGLE, COCDEV, COC, V95, V10],
-        help=f"the version to run the scan on.",
-        default=SINGLE,
-    )
-    parser.add_argument(
-        "-s",
-        "--source",
-        help=f"the path to source code. When running type {STATIC} and mode {SCAN}, this is required.",
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        dest="output",
-        help=f"path to store the reports.",
-        default=f"{os.getcwd()}/reports",
-    )
-
-    args = parser.parse_args()
+    args = init_argparse()
     setup_main_logging(args.verbose)
-    validate_args(args)
     return args
-
-
-@timer
-@logger
-def validate_args(args):
-    """
-    Validate arguments.
-
-    Args:
-        args ([dict]): the arguments passed to the script
-
-    Raises:
-        ValueError: exception raised when validate the arguments
-    """
-    if (args.type == STATIC and args.mode == SCAN) and not args.source:
-        raise ValueError(
-            f"Param: source is required when running type {STATIC} and mode {SCAN} . Args: {args.source}"
-        )
 
 
 @timer

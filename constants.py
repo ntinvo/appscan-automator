@@ -22,6 +22,7 @@ APP_URL_DICT = {
 NS = {"W3": "http://www.w3.org/2005/Atom"}
 DYNAMIC = "dynamic"
 STATIC = "static"
+DEPCHECK = "depcheck"
 ALL = "all"
 SCAN = "scan"
 REPORTS = "reports"
