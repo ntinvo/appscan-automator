@@ -71,6 +71,18 @@ def get_projects():
     return projects
 
 
+@timer
+@logger
+def build_source_code(args):
+    """
+    Build the source code to prep for the scans.
+    
+    Args:
+        args ([dict]): the arguments passed to the script
+    """
+    run_subprocess(f"cd {args.source} && Build/gradlew all")
+
+
 def generate_appscan_config_file(args, project):
     """
     Generate appscan config file.
@@ -100,6 +112,10 @@ def static_scan(args):
 
     # remove the old scans
     old_scan_status_dict = remove_old_scans(SINGLE_STATIC)
+
+    # build source code
+    main_logger.info(f"Building source code...")
+    build_source_code(args)
 
     # read the list of projects to scan
     main_logger.info(f"Getting the projects...")
