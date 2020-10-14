@@ -19,6 +19,7 @@ from constants import (
     APPSCAN_CONFIG,
     APPSCAN_CONFIG_TMP,
     ASOC_API_ENDPOINT,
+    DEPCHECK,
     DYNAMIC,
     JAZZ_SINGLE_WS_ID,
     PENDING_STATUSES,
@@ -354,11 +355,12 @@ def get_reports(args):
 @logger
 def main():
     args = parse_arguments()
-    print(args)
-    # if args.mode == SCAN:
-    #     run_scan(args)
-    # elif args.mode == REPORTS:
-    #     get_reports(args)
+    if args.mode == SCAN:
+        run_scan(args)
+    elif args.mode == REPORTS:
+        get_reports(args)
+    elif args.mode == DEPCHECK:
+        pass
 
 
 if __name__ == "__main__":

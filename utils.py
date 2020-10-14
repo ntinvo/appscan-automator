@@ -15,20 +15,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from args import init_argparse
-from constants import (
-    ALL,
-    COC,
-    COCDEV,
-    DYNAMIC,
-    NS,
-    REPORTS,
-    SCAN,
-    SINGLE,
-    SINGLE_STREAM_RSS_URL,
-    STATIC,
-    V10,
-    V95,
-)
+from constants import NS, SINGLE_STREAM_RSS_URL
 
 # logging
 main_logger = logging.getLogger(__name__)
