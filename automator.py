@@ -25,6 +25,7 @@ from constants import (
     ASOC_API_ENDPOINT,
     DEPCHECK,
     DEPCHECK_REPO,
+    DEPCHECK_SCAN,
     DYNAMIC,
     JAZZ_SINGLE_WS_ID,
     PENDING_STATUSES,
@@ -397,7 +398,7 @@ def depcheck(args):
     image_tag = get_latest_stable_image_tag()
 
     # start runtime container
-    start_rt_container(args, image_tag)
+    start_rt_container(args, image_tag, rt_name=DEPCHECK_SCAN)
 
     RT_SCAN = "test"
 

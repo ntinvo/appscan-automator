@@ -43,6 +43,7 @@ DB2_SCAN = "db2_scan"
 RT_SCAN = "rt_scan"
 VOL_SCAN = "vol_scan"
 NETWORK_SCAN = "network_scan"
+DEPCHECK_SCAN = "depcheck_scan"
 
 # ASoC consts
 OMS_APP_ID = "87af65be-ef31-4aa7-871f-8354e19d6328"
