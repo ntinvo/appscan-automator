@@ -190,6 +190,7 @@ def start_rt_container(args, image_tag, rt_name={RT_SCAN}, logger=main_logger):
     """
 
     network = "" if args.mode == DEPCHECK else f"--network={NETWORK_SCAN}"
+    port = "" if args.mode == DEPCHECK else "-p 9080:9080"
 
     try:
         rt_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-rt:{image_tag}-liberty"
@@ -202,7 +203,7 @@ def start_rt_container(args, image_tag, rt_name={RT_SCAN}, logger=main_logger):
             -e DB_PORT=50000 \
             -e DB_VENDOR=db2 \
             -e DB_NAME=OMDB \
-            -p 9080:9080 \
+            {port} \
             {rt_image_repo}",
             logger=logger,
         )
