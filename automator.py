@@ -394,57 +394,65 @@ def depcheck(args):
     """
     docstring
     """
-    # get the image tag
-    image_tag = get_latest_stable_image_tag()
+    try:
+        # get the image tag
+        image_tag = get_latest_stable_image_tag()
 
-    # start runtime container
-    start_rt_container(args, image_tag, rt_name=DEPCHECK_SCAN)
+        # start runtime container
+        start_rt_container(args, image_tag, rt_name=DEPCHECK_SCAN)
 
-    RT_SCAN = "test"
-
-    # build the ear
-    main_logger.info("Building ear file...")
-    run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs,wsc"')
-
-    # creating the source dir
-    with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdir:
-
-        # copy the ear to tempdir
-        main_logger.info("Copying the ear to tempdir...")
+        # build the ear
+        main_logger.info("Building ear file...")
         run_subprocess(
-            f"docker cp {RT_SCAN}:/opt/ssfs/runtime/external_deployments/smcfs.ear {tmpdir}"
+            f'docker exec {DEPCHECK_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs,wsc"'
         )
 
-        # extract war files from the ear
-        run_subprocess(f"cd {tmpdir} && unzip smcfs.ear *.war")
+        # creating the source dir
+        with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdir:
 
-        # extract jars
-        apps = ["smcfs", "sma", "sbc", "isccs", "wsc"]
+            # copy the ear to tempdir
+            main_logger.info("Copying the ear to tempdir...")
+            run_subprocess(
+                f"docker cp {DEPCHECK_SCAN}:/opt/ssfs/runtime/external_deployments/smcfs.ear {tmpdir}"
+            )
 
-        create_dir(f"{tmpdir}/3rdpartyship")
-        for app in apps:
-            if app == "smcfs":
-                run_subprocess(
-                    f"cd {tmpdir} && mkdir {app}jarsfolder && unzip -o -j smcfs.war yfscommon/* -d {app}jarsfolder/ -x  yfscommon/platform* -x yfscommon/smcfs* -x yfscommon/*.properties -x yfscommon/*ui.jar -x yfscommon/yantra* -x yfscommon/scecore* -x yfscommon/yc*"
-                )
-            else:
-                run_subprocess(
-                    f"cd {tmpdir} && mkdir {app}jarsfolder && unzip -o -j sma.war WEB-INF/lib/* -d {app}jarsfolder/ -x  WEB-INF/lib/platform*"
-                )
-            run_subprocess(f"cp -R {tmpdir}/{app}jarsfolder/* {tmpdir}/3rdpartyship")
+            # extract war files from the ear
+            run_subprocess(f"cd {tmpdir} && unzip smcfs.ear *.war")
 
-        # download the latest depcheck
-        download_depcheck_tool(tmpdir)
+            # extract jars
+            apps = ["smcfs", "sma", "sbc", "isccs", "wsc"]
 
-        # run dependency check
-        reports_dir_path = f"reports/{args.mode}/{get_date_str()}"
-        create_dir(reports_dir_path)
-        run_subprocess(
-            f"{tmpdir}/dependency-check/bin/dependency-check.sh -s {tmpdir}/3rdpartyship -o {reports_dir_path}/dependency_report.html --suppression {os.getcwd()}/suppressions.xml"
-        )
+            create_dir(f"{tmpdir}/3rdpartyship")
+            for app in apps:
+                if app == "smcfs":
+                    run_subprocess(
+                        f"cd {tmpdir} && mkdir {app}jarsfolder && unzip -o -j smcfs.war yfscommon/* -d {app}jarsfolder/ -x  yfscommon/platform* -x yfscommon/smcfs* -x yfscommon/*.properties -x yfscommon/*ui.jar -x yfscommon/yantra* -x yfscommon/scecore* -x yfscommon/yc*"
+                    )
+                else:
+                    run_subprocess(
+                        f"cd {tmpdir} && mkdir {app}jarsfolder && unzip -o -j sma.war WEB-INF/lib/* -d {app}jarsfolder/ -x  WEB-INF/lib/platform*"
+                    )
+                run_subprocess(f"cp -R {tmpdir}/{app}jarsfolder/* {tmpdir}/3rdpartyship")
 
-        # copy reports to output directory
-        run_subprocess(f"rsync -a -v --ignore-existing {os.getcwd()}/reports {args.output}")
+            # download the latest depcheck
+            download_depcheck_tool(tmpdir)
+
+            # run dependency check
+            reports_dir_path = f"reports/{args.mode}/{get_date_str()}"
+            create_dir(reports_dir_path)
+            run_subprocess(
+                f"{tmpdir}/dependency-check/bin/dependency-check.sh -s {tmpdir}/3rdpartyship -o {reports_dir_path}/dependency_report.html --suppression {os.getcwd()}/suppressions.xml"
+            )
+
+            # copy reports to output directory
+            run_subprocess(f"rsync -a -v --ignore-existing {os.getcwd()}/reports {args.output}")
+
+    except Exception as e:
+        main_logger.warning(traceback.format_exc())
+        main_logger.warning(e)
+        run_subprocess(f"docker rm -f {DEPCHECK_SCAN}")
+    finally:
+        run_subprocess(f"docker rm -f {DEPCHECK_SCAN}")
 
 
 # ********************************* #
