@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 from argparse import ArgumentDefaultsHelpFormatter
 
 ALL = "all"
@@ -29,12 +30,16 @@ def add_optionals_args(parser):
     )
 
 
-def add_output_arg(parser, required=False):
+def add_output_arg(parser):
     """
     docstring
     """
     parser.add_argument(
-        "-o", "--output", required=required, dest="output", help=f"path to store the reports",
+        "-o",
+        "--output",
+        dest="output",
+        help=f"path to store the reports",
+        default=f"{os.getcwd()}/reports",
     )
 
 
@@ -81,7 +86,7 @@ def init_argparse():
             add_optionals_args(mode_parser)
             if mode == DEPCHECK:
                 add_version_arg(mode_parser)
-                add_output_arg(mode_parser, required=True)
+                add_output_arg(mode_parser)
             else:
                 mode_subparser = mode_parser.add_subparsers(dest="type")
                 for type in [ALL, STATIC, DYNAMIC]:
@@ -93,7 +98,7 @@ def init_argparse():
                         if type == ALL or type == DYNAMIC:
                             add_version_arg(type_parser)
                     if mode == REPORTS:
-                        add_output_arg(type_parser, required=True)
+                        add_output_arg(type_parser)
         arguments = parser.parse_args()
     except argparse.ArgumentError as e:
         print("Error parsing arguments")
