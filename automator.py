@@ -38,7 +38,6 @@ from constants import (
     STATIC,
 )
 from docker_utils import prep_containers, start_rt_container
-from settings import JAZZ_PASS, JAZZ_REPO, JAZZ_USER, KEY_ID, KEY_SECRET
 from utils import (
     create_dir,
     get_date_str,
