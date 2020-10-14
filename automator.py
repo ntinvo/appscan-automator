@@ -71,37 +71,6 @@ def get_projects():
     return projects
 
 
-@timer
-@logger
-def accept_changes(args):
-    """
-    Accepting the changes from the stream.
-    
-    Args:
-        args ([dict]): the arguments passed to the script
-    """
-    try:
-        run_subprocess(
-            f"source ~/.bashrc && cd {args.source} && lscm accept --verbose -r {JAZZ_REPO} -u {JAZZ_USER} -P {JAZZ_PASS} -i -s {JAZZ_SINGLE_WS_ID}"
-        )
-    except Exception as _:
-        main_logger.warning(
-            "Attempt to accept the changes. The return code is not 0, this can be ignored. Continue..."
-        )
-
-
-@timer
-@logger
-def build_source_code(args):
-    """
-    Build the source code to prep for the scans.
-    
-    Args:
-        args ([dict]): the arguments passed to the script
-    """
-    run_subprocess(f"cd {args.source} && Build/gradlew all")
-
-
 def generate_appscan_config_file(args, project):
     """
     Generate appscan config file.
@@ -131,14 +100,6 @@ def static_scan(args):
 
     # remove the old scans
     old_scan_status_dict = remove_old_scans(SINGLE_STATIC)
-
-    # accept the changes
-    main_logger.info(f"Accepting changes...")
-    accept_changes(args)
-
-    # build source code
-    main_logger.info(f"Building source code...")
-    build_source_code(args)
 
     # read the list of projects to scan
     main_logger.info(f"Getting the projects...")
