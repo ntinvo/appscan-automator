@@ -84,7 +84,7 @@ def init_argparse():
                 add_output_arg(mode_parser)
             else:
                 mode_subparser = mode_parser.add_subparsers(
-                    title="type", dest="type", description="type of scan to run", required=True
+                    title="type", dest="type", description="type of scan to run"
                 )
                 for type in [ALL, STATIC, DYNAMIC]:
                     type_parser = mode_subparser.add_parser(type)
