@@ -1,5 +1,6 @@
 import logging
 import os
+import tempfile
 import traceback
 
 import requests
@@ -130,50 +131,53 @@ def static_scan(args):
     projects = get_projects()
 
     # the below block of code would do:
-    # - remove the old irx files in configs dir
+    # - create tempdir to store the config files
     # - go through the list of projects
     # - generate the irx file for each project
     # - upload the generated irx file to ASoC
     # - create and execute the static scan
-    run_subprocess(f"rm -rf {os.getcwd()}/configs")
-    for project in projects:
-        project = project.strip()
-        project_file_name = project.strip().replace("/", "_")
+    with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdir:
+        for project in projects:
+            project = project.strip()
+            project_file_name = project.strip().replace("/", "_")
 
-        # if the old scan still pending, skip
-        if project in old_scan_status_dict and old_scan_status_dict[project] in PENDING_STATUSES:
-            continue
+            # if the old scan still pending, skip
+            if (
+                project in old_scan_status_dict
+                and old_scan_status_dict[project] in PENDING_STATUSES
+            ):
+                continue
 
-        # generate config file for appscan
-        generate_appscan_config_file(args, project)
-        main_logger.info(f"Generating {project_file_name}.irx file...")
-        run_subprocess(
-            f"source ~/.bashrc && appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_file_name}.irx -d {os.getcwd()}/configs -v -sp"
-        )
+            # generate config file for appscan
+            generate_appscan_config_file(args, project)
+            main_logger.info(f"Generating {project_file_name}.irx file...")
+            run_subprocess(
+                f"source ~/.bashrc && appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_file_name}.irx -d {tmpdir} -v -sp"
+            )
 
-        # call ASoC API to create the static scan
-        try:
-            with open(f"{os.getcwd()}/configs/{project_file_name}.irx", "rb") as irx_file:
-                file_data = {"fileToUpload": irx_file}
+            # call ASoC API to create the static scan
+            try:
+                with open(f"{tmpdir}/{project_file_name}.irx", "rb") as irx_file:
+                    file_data = {"fileToUpload": irx_file}
 
-                res = requests.post(
-                    f"{ASOC_API_ENDPOINT}/FileUpload", files=file_data, headers=file_req_header
-                )
-                if res.status_code == 201:
-                    data = {
-                        "ARSAFileId": res.json()["FileId"],
-                        "ScanName": project,
-                        "AppId": SINGLE_STATIC,
-                        "Locale": "en-US",
-                        "Execute": "true",
-                        "Personal": "false",
-                    }
-                    _ = requests.post(
-                        f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers
+                    res = requests.post(
+                        f"{ASOC_API_ENDPOINT}/FileUpload", files=file_data, headers=file_req_header
                     )
-        except Exception as e:
-            main_logger.warning(traceback.format_exc())
-            main_logger.warning(e)
+                    if res.status_code == 201:
+                        data = {
+                            "ARSAFileId": res.json()["FileId"],
+                            "ScanName": project,
+                            "AppId": SINGLE_STATIC,
+                            "Locale": "en-US",
+                            "Execute": "true",
+                            "Personal": "false",
+                        }
+                        _ = requests.post(
+                            f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers
+                        )
+            except Exception as e:
+                main_logger.warning(traceback.format_exc())
+                main_logger.warning(e)
 
 
 # ********************************* #
