@@ -19,6 +19,7 @@ from constants import (
     APPSCAN_CONFIG,
     APPSCAN_CONFIG_TMP,
     ASOC_API_ENDPOINT,
+    DYNAMIC,
     JAZZ_SINGLE_WS_ID,
     PENDING_STATUSES,
     PRESENCE_ID,
@@ -284,7 +285,7 @@ def dynamic_reports(args):
         wait_for_report(report)
 
         # download the report
-        download_report("dynamic", report)
+        download_report(DYNAMIC, report)
 
 
 @timer
@@ -323,7 +324,7 @@ def static_reports(args):
         wait_for_report(report)
 
         # download the report
-        download_report("static", report)
+        download_report(STATIC, report)
 
 
 @timer
@@ -339,7 +340,7 @@ def get_reports(args):
         dynamic_reports(args)
     elif args.type == STATIC:
         static_reports(args)
-    else:
+    elif args.type == DYNAMIC:
         dynamic_reports(args)
 
     # copy reports to output directory
