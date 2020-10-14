@@ -11,7 +11,10 @@ main_logger = logging.getLogger(__name__)
 
 def add_optionals_args(parser):
     """
-    docstring
+    Add optional arguments to the passed in argument parser.
+
+    Args:
+        parser ([ArgumentParser]): the argument parser
     """
     parser.add_argument(
         "-v",
@@ -25,7 +28,11 @@ def add_optionals_args(parser):
 
 def add_output_arg(parser):
     """
-    docstring
+    Add output argument to the passed in argument parser.
+
+    Args:
+        parser ([ArgumentParser]): the argument parser
+        required (bool, optional): required or not. Defaults to False.
     """
     parser.add_argument(
         "-o",
@@ -38,7 +45,11 @@ def add_output_arg(parser):
 
 def add_version_arg(parser, required=False):
     """
-    docstring
+    Add version argument to the passed in argument parser.
+
+    Args:
+        parser ([ArgumentParser]): the argument parser
+        required (bool, optional): required or not. Defaults to False.
     """
     parser.add_argument(
         "-ver",
@@ -52,7 +63,11 @@ def add_version_arg(parser, required=False):
 
 def add_source_arg(parser, required=False):
     """
-    docstring
+    Add source argument to the passed in argument parser.
+
+    Args:
+        parser ([ArgumentParser]): the argument parser
+        required (bool, optional): required or not. Defaults to False.
     """
     parser.add_argument(
         "-s",
@@ -64,6 +79,15 @@ def add_source_arg(parser, required=False):
 
 
 def init_argparse():
+    """
+    Init arguments for the script
+
+    Raises:
+        e: error thrown when init the arguments
+
+    Returns:
+        [dict]: dict of arguments 
+    """
     try:
         parser = argparse.ArgumentParser(
             description="Automator for static, dynamic scan, and dependency check.",

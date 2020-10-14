@@ -334,10 +334,10 @@ def get_reports(args):
 @logger
 def download_depcheck_tool(download_dir):
     """
-    [summary]
+    Download depcheck tool.
 
     Args:
-        download_dir ([type]): [description]
+        download_dir ([str]): the directory to download the depcheck tool to
     """
     main_logger.info("Downloading updated dependency check tool...")
     res = requests.get(DEPCHECK_REPO)
@@ -353,7 +353,10 @@ def download_depcheck_tool(download_dir):
 @logger
 def depcheck(args):
     """
-    docstring
+    Run and export report for the dependency check.
+
+    Args:
+        args ([dict]): the arguments passed to the script
     """
     try:
         # get the image tag
