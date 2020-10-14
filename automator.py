@@ -438,7 +438,7 @@ def depcheck(args):
             download_depcheck_tool(tmpdir)
 
             # run dependency check
-            reports_dir_path = f"reports/{args.mode}/{get_date_str()}"
+            reports_dir_path = f"reports/{get_date_str()}/{args.mode}"
             create_dir(reports_dir_path)
             run_subprocess(
                 f"{tmpdir}/dependency-check/bin/dependency-check.sh -s {tmpdir}/3rdpartyship -o {reports_dir_path}/dependency_report.html --suppression {os.getcwd()}/suppressions.xml"
