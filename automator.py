@@ -359,12 +359,13 @@ def get_reports(args):
 @logger
 def main():
     args = parse_arguments()
-    if args.mode == SCAN:
-        run_scan(args)
-    elif args.mode == REPORTS:
-        get_reports(args)
-    elif args.mode == DEPCHECK:
-        pass
+    print(args)
+    # if args.mode == SCAN:
+    #     run_scan(args)
+    # elif args.mode == REPORTS:
+    #     get_reports(args)
+    # elif args.mode == DEPCHECK:
+    #     pass
 
 
 if __name__ == "__main__":
