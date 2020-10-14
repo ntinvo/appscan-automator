@@ -393,17 +393,17 @@ def depcheck(args):
     """
     docstring
     """
-    # # get the image tag
-    # image_tag = get_latest_stable_image_tag()
+    # get the image tag
+    image_tag = get_latest_stable_image_tag()
 
-    # # start runtime container
-    # start_rt_container(args, image_tag)
+    # start runtime container
+    start_rt_container(args, image_tag)
 
     RT_SCAN = "test"
 
-    # # build the ear
-    # main_logger.info("Building ear file...")
-    # run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs,wsc"')
+    # build the ear
+    main_logger.info("Building ear file...")
+    run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs,wsc"')
 
     # creating the source dir
     with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdir:
@@ -441,6 +441,9 @@ def depcheck(args):
         run_subprocess(
             f"{tmpdir}/dependency-check/bin/dependency-check.sh -s {tmpdir}/3rdpartyship -o {reports_dir_path}/dependency_report.html --suppression {os.getcwd()}/suppressions.xml"
         )
+
+        # copy reports to output directory
+        run_subprocess(f"rsync -a -v --ignore-existing {os.getcwd()}/reports {args.output}")
 
 
 # ********************************* #

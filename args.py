@@ -32,7 +32,7 @@ def add_output_arg(parser):
         "--output",
         dest="output",
         help=f"path to store the reports",
-        default=f"{os.getcwd()}/reports",
+        default=f"{os.getcwd()}",
     )
 
 
