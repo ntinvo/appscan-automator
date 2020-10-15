@@ -441,7 +441,7 @@ def depcheck(args):
 @logger
 def main():
     args = parse_arguments()
-    print(args)
+    main_logger.info(args)
     if args.mode == SCAN:
         run_scan(args)
     elif args.mode == REPORTS:
