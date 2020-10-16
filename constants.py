@@ -7,7 +7,6 @@ SINGLE_STREAM_RSS_URL = (
 )
 DEPCHECK_REPO = "https://api.github.com/repos/jeremylong/DependencyCheck/releases/latest"
 DEPLOY_SERVER = "http://single1.fyre.ibm.com:9080"
-# DEPLOY_SERVER = "http://localhost:9080"
 SMCFS_URL = f"{DEPLOY_SERVER}/smcfs/console/login.jsp"
 SBC_URL = f"{DEPLOY_SERVER}/sbc/sbc/login.do"
 SMA_URL = f"{DEPLOY_SERVER}/sma/sma/container/home.do"
