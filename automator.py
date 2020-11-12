@@ -77,6 +77,7 @@ def build_source_code(args):
     Args:
         args ([dict]): the arguments passed to the script
     """
+    run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle unpack3p")
     run_subprocess(f"cd {args.source} && Build/gradlew all")
 
 
