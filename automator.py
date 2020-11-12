@@ -8,43 +8,15 @@ import zipfile
 
 import requests
 
-from asoc_utils import (
-    download_report,
-    get_bearer_token,
-    get_download_config,
-    get_scans,
-    headers,
-    remove_old_scans,
-    wait_for_report,
-)
-from constants import (
-    ALL,
-    APP_URL_DICT,
-    APPSCAN_CONFIG,
-    APPSCAN_CONFIG_TMP,
-    ASOC_API_ENDPOINT,
-    DEPCHECK,
-    DEPCHECK_REPO,
-    DEPCHECK_SCAN,
-    DYNAMIC,
-    PENDING_STATUSES,
-    PRESENCE_ID,
-    REPORTS,
-    SCAN,
-    SINGLE_DYNAMIC,
-    SINGLE_STATIC,
-    STATIC,
-)
+from asoc_utils import (download_report, get_bearer_token, get_download_config,
+                        get_scans, headers, remove_old_scans, wait_for_report)
+from constants import (ALL, APP_URL_DICT, APPSCAN_CONFIG, APPSCAN_CONFIG_TMP,
+                       ASOC_API_ENDPOINT, DEPCHECK, DEPCHECK_REPO,
+                       DEPCHECK_SCAN, DYNAMIC, PENDING_STATUSES, PRESENCE_ID,
+                       REPORTS, SCAN, SINGLE_DYNAMIC, SINGLE_STATIC, STATIC)
 from docker_utils import prep_containers, start_rt_container
-from utils import (
-    create_dir,
-    get_date_str,
-    get_latest_stable_image_tag,
-    logger,
-    parse_arguments,
-    run_subprocess,
-    timer,
-)
+from utils import (create_dir, get_date_str, get_latest_stable_image_tag,
+                   logger, parse_arguments, run_subprocess, timer)
 
 # main logger
 main_logger = logging.getLogger(__name__)
@@ -129,6 +101,7 @@ def static_scan(args):
         for project in projects:
             project = project.strip()
             project_file_name = project.strip().replace("/", "_")
+            main_logger.info(f"Processing project: {project} - {project_file_name}")
 
             # if the old scan still pending, skip
             if (
@@ -161,9 +134,13 @@ def static_scan(args):
                             "Execute": "true",
                             "Personal": "false",
                         }
-                        _ = requests.post(
+                        res = requests.post(
                             f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers
                         )
+                    main_logger.info(
+                        f"Project: {project} - {project_file_name} was processed successfully."
+                    )
+                    main_logger.info(f"Response: {res.json()}")
             except Exception as e:
                 main_logger.warning(traceback.format_exc())
                 main_logger.warning(e)
