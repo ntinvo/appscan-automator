@@ -188,6 +188,8 @@ def start_rt_container(args, image_tag, rt_name=RT_SCAN, logger=main_logger):
     Raises:
         Exception: exception raised when spinning up runtime container
     """
+    # login to registry
+    docker_login()
 
     network = "" if args.mode == DEPCHECK else f"--network={NETWORK_SCAN}"
     port = "" if args.mode == DEPCHECK else "-p 9080:9080"
@@ -211,6 +213,9 @@ def start_rt_container(args, image_tag, rt_name=RT_SCAN, logger=main_logger):
         logger.error(traceback.format_exc())
         logger.error(e)
         raise Exception
+
+    # logout of registry
+    docker_logout()
 
 
 @timer
