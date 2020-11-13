@@ -129,9 +129,9 @@ def static_scan(args):
         for project in projects:
             project = project.strip()
             project_file_name = project.strip().replace("/", "_")
-            main_logger.info("####################################################")
-            main_logger.info(f"PROCESSING PROJECT: {project} - {project_file_name}")
-            main_logger.info("####################################################")
+            print("####################################################")
+            print(f"PROCESSING PROJECT: {project} - {project_file_name}")
+            print("####################################################")
 
             # if the old scan still pending, skip
             if (
@@ -142,7 +142,7 @@ def static_scan(args):
 
             # generate config file for appscan
             generate_appscan_config_file(args, project)
-            main_logger.info(f"Generating {project_file_name}.irx file...")
+            print(f"Generating {project_file_name}.irx file...")
             run_subprocess(
                 f"source ~/.bashrc && appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_file_name}.irx -d {tmpdir} -v -sp"
             )
@@ -167,12 +167,10 @@ def static_scan(args):
                         res = requests.post(
                             f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers
                         )
-                    main_logger.info("####################################################")
-                    main_logger.info(
-                        f"Project: {project} - {project_file_name} was processed successfully."
-                    )
-                    main_logger.info(f"Response: {res.json()}")
-                    main_logger.info("####################################################")
+                    print("####################################################")
+                    print(f"Project: {project} - {project_file_name} was processed successfully.")
+                    print(f"Response: {res.json()}")
+                    print("####################################################")
             except Exception as e:
                 main_logger.warning(traceback.format_exc())
                 main_logger.warning(e)
