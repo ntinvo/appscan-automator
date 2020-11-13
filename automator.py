@@ -126,12 +126,12 @@ def static_scan(args):
     # - upload the generated irx file to ASoC
     # - create and execute the static scan
     with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdir:
+        main_logger.info(f"PROJECTS TO SCAN: {projects}")
         for project in projects:
             project = project.strip()
             project_file_name = project.strip().replace("/", "_")
-            print("####################################################")
-            print(f"PROCESSING PROJECT: {project} - {project_file_name}")
-            print("####################################################")
+            main_logger.info("####################################################")
+            main_logger.info(f"PROCESSING PROJECT: {project} - {project_file_name}")
 
             # if the old scan still pending, skip
             if (
@@ -142,13 +142,14 @@ def static_scan(args):
 
             # generate config file for appscan
             generate_appscan_config_file(args, project)
-            print(f"Generating {project_file_name}.irx file...")
+            main_logger.info(f"Generating {project_file_name}.irx file...")
             run_subprocess(
                 f"source ~/.bashrc && appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_file_name}.irx -d {tmpdir} -v -sp"
             )
 
             # call ASoC API to create the static scan
             try:
+                main_logger.info(f"Calling ASoC API to create the static scan...")
                 with open(f"{tmpdir}/{project_file_name}.irx", "rb") as irx_file:
                     file_data = {"fileToUpload": irx_file}
 
@@ -167,10 +168,11 @@ def static_scan(args):
                         res = requests.post(
                             f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers
                         )
-                    print("####################################################")
-                    print(f"Project: {project} - {project_file_name} was processed successfully.")
-                    print(f"Response: {res.json()}")
-                    print("####################################################")
+                    main_logger.info(
+                        f"Project: {project} - {project_file_name} was processed successfully."
+                    )
+                    main_logger.info(f"Response: {res.json()}")
+                    main_logger.info("####################################################")
             except Exception as e:
                 main_logger.warning(traceback.format_exc())
                 main_logger.warning(e)
