@@ -129,7 +129,9 @@ def static_scan(args):
         for project in projects:
             project = project.strip()
             project_file_name = project.strip().replace("/", "_")
-            main_logger.info(f"Processing project: {project} - {project_file_name}")
+            main_logger.info("####################################################")
+            main_logger.info(f"PROCESSING PROJECT: {project} - {project_file_name}")
+            main_logger.info("####################################################")
 
             # if the old scan still pending, skip
             if (
@@ -165,10 +167,12 @@ def static_scan(args):
                         res = requests.post(
                             f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers
                         )
+                    main_logger.info("####################################################")
                     main_logger.info(
                         f"Project: {project} - {project_file_name} was processed successfully."
                     )
                     main_logger.info(f"Response: {res.json()}")
+                    main_logger.info("####################################################")
             except Exception as e:
                 main_logger.warning(traceback.format_exc())
                 main_logger.warning(e)
