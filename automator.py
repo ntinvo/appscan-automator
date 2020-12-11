@@ -238,12 +238,11 @@ def dynamic_scan(args):
 
         # creating a new scan
         main_logger.info(f"Creating a new scan for {app}...")
-        print(f"Creating a new scan for {app}...")
+        print(create_scan_data)
+        print(headers)
         res = requests.post(
             f"{ASOC_API_ENDPOINT}/Scans/DynamicAnalyzer", json=create_scan_data, headers=headers
         )
-        print(res.status_code)
-        print(res.headers["content-type"])
         print(res.text)
         main_logger.debug(res)
 
