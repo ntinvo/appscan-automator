@@ -2,3 +2,4 @@ requests
 python-dotenv
 coloredlogs
 bs4
+docker
