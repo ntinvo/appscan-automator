@@ -207,7 +207,7 @@ def dynamic_scan(args):
     # prep_containers(args, image_tag)
 
     # create the new scans
-    main.info(f"Create new scan for: {APP_URL_DICT}")
+    main_logger.info(f"Create new scan for: {APP_URL_DICT}")
     for app, url in APP_URL_DICT.items():
         user = "admin" if app != "WSC" else "csmith"
         passwd = "password" if app != "WSC" else "csmith"
