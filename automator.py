@@ -191,23 +191,20 @@ def dynamic_scan(args):
         args ([dict]): the arguments passed to the script
     """
 
-    # # get the image tag
-    # image_tag = get_latest_stable_image_tag()
+    # get the image tag
+    image_tag = get_latest_stable_image_tag()
 
-    # # remove the old scans
-    # old_scan_status_dict = remove_old_scans(SINGLE_DYNAMIC)
+    # remove the old scans
+    old_scan_status_dict = remove_old_scans(SINGLE_DYNAMIC)
 
-    # # spin up the containers (rt and db2), if
-    # # there is no scan in pending statuses
-    # for status in old_scan_status_dict.values():
-    #     if status in PENDING_STATUSES:
-    #         return
+    # spin up the containers (rt and db2), if
+    # there is no scan in pending statuses
+    for status in old_scan_status_dict.values():
+        if status in PENDING_STATUSES:
+            return
 
-    # # prep containers for the scans
-    # prep_containers(args, image_tag)
-
-    print(APP_URL_DICT)
-    print(headers)
+    # prep containers for the scans
+    prep_containers(args, image_tag)
 
     # create the new scans
     main_logger.info(f"Create new scan for: {APP_URL_DICT}")
@@ -238,12 +235,9 @@ def dynamic_scan(args):
 
         # creating a new scan
         main_logger.info(f"Creating a new scan for {app}...")
-        print(create_scan_data)
-        print(headers)
         res = requests.post(
             f"{ASOC_API_ENDPOINT}/Scans/DynamicAnalyzer", json=create_scan_data, headers=headers
         )
-        print(res.text)
         main_logger.debug(res)
 
 
