@@ -77,7 +77,13 @@ def build_source_code(args):
     Args:
         args ([dict]): the arguments passed to the script
     """
+    main_logger.info("Setting up environment...")
+    run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle setupEnvironment")
+
+    main_logger.info("Setting 3rd party libs...")
     run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle unpack3p")
+
+    main_logger.info("Building projects...")
     run_subprocess(f"cd {args.source} && Build/gradlew all")
 
 
