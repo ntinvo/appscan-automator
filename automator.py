@@ -242,7 +242,7 @@ def dynamic_scan(args):
         res = requests.post(
             f"{ASOC_API_ENDPOINT}/Scans/DynamicAnalyzer", json=create_scan_data, headers=headers
         )
-        print(res)
+        print(res.json())
         main_logger.debug(res)
 
 
