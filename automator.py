@@ -204,9 +204,10 @@ def dynamic_scan(args):
             return
 
     # prep containers for the scans
-    prep_containers(args, image_tag)
+    # prep_containers(args, image_tag)
 
     # create the new scans
+    main.info(f"Create new scan for: {APP_URL_DICT}")
     for app, url in APP_URL_DICT.items():
         user = "admin" if app != "WSC" else "csmith"
         passwd = "password" if app != "WSC" else "csmith"
@@ -234,9 +235,10 @@ def dynamic_scan(args):
 
         # creating a new scan
         main_logger.info(f"Creating a new scan for {app}...")
-        _ = requests.post(
+        res = requests.post(
             f"{ASOC_API_ENDPOINT}/Scans/DynamicAnalyzer", json=create_scan_data, headers=headers
         )
+        main_logger.debug(res)
 
 
 @timer
