@@ -191,19 +191,19 @@ def dynamic_scan(args):
         args ([dict]): the arguments passed to the script
     """
 
-    # get the image tag
-    image_tag = get_latest_stable_image_tag()
+    # # get the image tag
+    # image_tag = get_latest_stable_image_tag()
 
-    # remove the old scans
-    old_scan_status_dict = remove_old_scans(SINGLE_DYNAMIC)
+    # # remove the old scans
+    # old_scan_status_dict = remove_old_scans(SINGLE_DYNAMIC)
 
-    # spin up the containers (rt and db2), if
-    # there is no scan in pending statuses
-    for status in old_scan_status_dict.values():
-        if status in PENDING_STATUSES:
-            return
+    # # spin up the containers (rt and db2), if
+    # # there is no scan in pending statuses
+    # for status in old_scan_status_dict.values():
+    #     if status in PENDING_STATUSES:
+    #         return
 
-    # prep containers for the scans
+    # # prep containers for the scans
     # prep_containers(args, image_tag)
 
     # create the new scans
