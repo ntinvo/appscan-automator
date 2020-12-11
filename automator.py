@@ -207,6 +207,7 @@ def dynamic_scan(args):
     # prep_containers(args, image_tag)
 
     print(APP_URL_DICT)
+    print(headers)
 
     # create the new scans
     main_logger.info(f"Create new scan for: {APP_URL_DICT}")
