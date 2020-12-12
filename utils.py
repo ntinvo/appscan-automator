@@ -14,11 +14,9 @@ import coloredlogs
 import requests
 from bs4 import BeautifulSoup
 
+import common_args as comm
 from args import init_argparse
 from constants import NS, SINGLE_STREAM_RSS_URL
-
-# logging
-main_logger = logging.getLogger(__name__)
 
 
 def logger(func):
@@ -38,17 +36,17 @@ def logger(func):
             args_repr = [repr(a) for a in args]
             kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]
             signature = ", ".join(args_repr + kwargs_repr)
-            main_logger.info(f"START - {func.__name__}")
-            main_logger.debug(f"{func.__name__}({signature})")
+            comm.args.logger.info(f"START - {func.__name__}")
+            comm.args.logger.debug(f"{func.__name__}({signature})")
             value = func(*args, **kwargs)
-            main_logger.debug(f"{func.__name__!r} returned {value!r}")
+            comm.args.logger.debug(f"{func.__name__!r} returned {value!r}")
             return value
         except Exception as e:
-            main_logger.error(traceback.format_exc())
-            main_logger.error(f"ERROR - {func.__name__} : {e}")
+            comm.args.logger.error(traceback.format_exc())
+            comm.args.logger.error(f"ERROR - {func.__name__} : {e}")
             raise
         finally:
-            main_logger.info(f"END - {func.__name__}")
+            comm.args.logger.info(f"END - {func.__name__}")
             sys.stdout.flush()
 
     return wrapper
@@ -94,20 +92,20 @@ def timer(func):
         end_time = time.time()
         run_time = end_time - start_time
         hours, minutes, seconds = get_run_duration(run_time)
-        main_logger.info(f"{func.__name__}() completed in: {hours}h {minutes}m {seconds}s")
+        comm.args.logger.info(f"{func.__name__}() completed in: {hours}h {minutes}m {seconds}s")
         return value
 
     return wrapper
 
 
-def run_subprocess(command, timeout=None, logger=main_logger):
+def run_subprocess(command, timeout=None, logger=comm.args.logger):
     """
     Run the subprocess.
 
     Args:
         command ([str]): the command to run subprocess
         timeout ([integer], optional): timeout when running subprocess. Defaults to None.
-        logger ([logging], optional): logger to use. Defaults to main_logger.
+        logger ([logging], optional): logger to use. Defaults to comm.args.logger.
 
     Raises:
         Exception: exception raised when running subprocess
@@ -128,7 +126,7 @@ def run_subprocess(command, timeout=None, logger=main_logger):
             output += nline + "\n"
             if logger:
                 logger.info(nline)
-            if main_logger.level <= logging.INFO:
+            if comm.args.logger.level <= logging.INFO:
                 if not logger:
                     print(nline, end="\r\n", flush=True)
     if logger:
@@ -150,7 +148,7 @@ def setup_main_logging(verbose=logging.INFO):
         verbose ([str], optional): the log level ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"). Defaults to logging.INFO.
     """
     coloredlogs.install(
-        level=verbose, logger=main_logger, fmt="%(asctime)s %(levelname)s %(message)s",
+        level=verbose, logger=comm.args.logger, fmt="%(asctime)s %(levelname)s %(message)s",
     )
 
 

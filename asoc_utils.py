@@ -3,12 +3,10 @@ import time
 
 import requests
 
+import common_args as comm
 from constants import ASOC_API_ENDPOINT, PENDING_STATUSES, TIME_TO_SLEEP
 from settings import KEY_ID, KEY_SECRET
 from utils import create_dir, get_date_str, logger, timer
-
-# logging
-main_logger = logging.getLogger(__name__)
 
 
 @timer
@@ -130,18 +128,18 @@ def remove_old_scans(app_id):
         if old_scan["LatestExecution"]["Status"] in PENDING_STATUSES:
             scans_pending = True
     if scans_pending:
-        main_logger.warning("Scan(s) pending. Returning...")
+        comm.args.logger.warning("Scan(s) pending. Returning...")
         return scan_status_dict
 
     # remove the old scans from the app before creating new ones
     for old_scan in old_scans:
-        main_logger.info(f"Removing {old_scan['Name']} - {old_scan['Id']}... ")
+        comm.args.logger.info(f"Removing {old_scan['Name']} - {old_scan['Id']}... ")
         try:
             _ = requests.delete(
                 f"{ASOC_API_ENDPOINT}/Scans/{old_scan['Id']}?deleteIssues=true", headers=headers,
             )
         except Exception as e:
-            main_logger.warning(e)
+            comm.args.logger.warning(e)
 
     return scan_status_dict
 
@@ -163,5 +161,5 @@ def wait_for_report(report):
         if res.status_code == 200 and res.json()["Status"] == "Ready":
             break
 
-        main_logger.info(f"Report for {report['Name']} is not ready. Waiting...")
+        comm.args.logger.info(f"Report for {report['Name']} is not ready. Waiting...")
         time.sleep(TIME_TO_SLEEP)

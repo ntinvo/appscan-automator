@@ -3,10 +3,8 @@ import logging
 import os
 from argparse import ArgumentDefaultsHelpFormatter
 
+import common_args as comm
 from constants import ALL, COC, COCDEV, DEPCHECK, DYNAMIC, REPORTS, SCAN, SINGLE, STATIC, V10, V95
-
-# logging
-main_logger = logging.getLogger(__name__)
 
 
 def add_optionals_args(parser):
@@ -122,9 +120,9 @@ def init_argparse():
                         add_output_arg(type_parser)
         arguments = parser.parse_args()
     except argparse.ArgumentError as e:
-        main_logger.error("Error parsing arguments")
+        comm.args.logger.error("Error parsing arguments")
         raise e
     else:
-        main_logger.info(f"Arguments have been parsed: {arguments}")
+        comm.args.logger.info(f"Arguments have been parsed: {arguments}")
         return arguments
 
