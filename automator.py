@@ -8,7 +8,6 @@ import zipfile
 
 import requests
 
-import common_args as comm
 from asoc_utils import (
     download_report,
     get_bearer_token,
@@ -458,8 +457,6 @@ def depcheck(args):
 @logger
 def main():
     args = parse_arguments()
-    args["logger"] = main_logger
-    comm.init(args)
     main_logger.info(args)
     if args.mode == SCAN:
         run_scan(args)

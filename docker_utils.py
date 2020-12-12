@@ -6,7 +6,6 @@ import traceback
 import docker
 import requests
 
-import common_args as comm
 from constants import (
     DB2_SCAN,
     DEPCHECK,
@@ -20,6 +19,9 @@ from constants import (
 from settings import JFROG_APIKEY
 from utils import logger, run_subprocess, timer
 
+# logging
+main_logger = logging.getLogger(__name__)
+
 client = docker.from_env()
 
 
@@ -29,9 +31,9 @@ def docker_login():
     """
     Login to the registry.
     """
-    comm.args.logger.info(f"#### Login to {JFROG_REGISTRY} ####")
+    main_logger.info(f"#### Login to {JFROG_REGISTRY} ####")
     run_subprocess(
-        f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}", logger=comm.args.logger,
+        f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}", logger=main_logger,
     )
 
 
@@ -41,9 +43,9 @@ def docker_logout():
     """
     Logout of the registry.
     """
-    comm.args.logger.info(f"#### Logout of {JFROG_REGISTRY} ####")
+    main_logger.info(f"#### Logout of {JFROG_REGISTRY} ####")
     run_subprocess(
-        f"docker logout {JFROG_REGISTRY}", logger=comm.args.logger,
+        f"docker logout {JFROG_REGISTRY}", logger=main_logger,
     )
 
 
@@ -80,7 +82,7 @@ def cleanup_helper(cmd):
     try:
         run_subprocess(cmd)
     except Exception as e:
-        comm.args.logger.warning(e)
+        main_logger.warning(e)
 
 
 @timer
@@ -104,23 +106,21 @@ def cleanup(args):
         return
 
     # disconnect the containers and network
-    comm.args.logger.info(
-        f"Disconnecting runtime container {RT_SCAN} from network {NETWORK_SCAN}..."
-    )
+    main_logger.info(f"Disconnecting runtime container {RT_SCAN} from network {NETWORK_SCAN}...")
     cleanup_helper(f"docker network disconnect -f {NETWORK_SCAN} {RT_SCAN}")
-    comm.args.logger.info(f"Disconnecting db2 container {DB2_SCAN} from network {NETWORK_SCAN}...")
+    main_logger.info(f"Disconnecting db2 container {DB2_SCAN} from network {NETWORK_SCAN}...")
     cleanup_helper(f"docker network disconnect -f {NETWORK_SCAN} {DB2_SCAN}")
 
     # removing runtime container
-    comm.args.logger.info(f"Removing runtime container {RT_SCAN}...")
+    main_logger.info(f"Removing runtime container {RT_SCAN}...")
     cleanup_helper(f"docker rm -f {RT_SCAN}")
 
     # removing runtime container
-    comm.args.logger.info(f"Removing db2 container {DB2_SCAN}...")
+    main_logger.info(f"Removing db2 container {DB2_SCAN}...")
     cleanup_helper(f"docker rm -f {DB2_SCAN}")
 
     # removing runtime container
-    comm.args.logger.info(f"Removing volume {VOL_SCAN}...")
+    main_logger.info(f"Removing volume {VOL_SCAN}...")
     cleanup_helper(f"docker volume rm -f {VOL_SCAN}")
 
     # removing runtime container
@@ -128,20 +128,20 @@ def cleanup(args):
 
     # removing images
     for image in remove_images:
-        comm.args.logger.info(f"Removing image {image}...")
+        main_logger.info(f"Removing image {image}...")
         cleanup_helper(f"docker rmi {image}")
 
 
 @timer
 @logger
-def start_db2_container(args, image_tag, logger=comm.args.logger):
+def start_db2_container(args, image_tag, logger=main_logger):
     """
     Start the db2 container for deployment.
 
     Args:
         args ([str]): the arguments passed to the script
         image_tag ([str]): the tag of the image
-        logger ([logging], optional): the logger to log the output. Defaults to comm.args.logger.
+        logger ([logging], optional): the logger to log the output. Defaults to main_logger.
 
     Raises:
         Exception: exception raised when running subprocess
@@ -176,14 +176,14 @@ def start_db2_container(args, image_tag, logger=comm.args.logger):
 
 @timer
 @logger
-def start_rt_container(args, image_tag, rt_name=RT_SCAN, logger=comm.args.logger):
+def start_rt_container(args, image_tag, rt_name=RT_SCAN, logger=main_logger):
     """
     Start the rt container for deployment
 
     Args:
         args ([dict]): the arguments passed to the script
         image_tag ([str]): the tag of the image
-        logger ([logging], optional): the logger to log the output. Defaults to comm.args.logger.
+        logger ([logging], optional): the logger to log the output. Defaults to main_logger.
 
     Raises:
         Exception: exception raised when spinning up runtime container
@@ -270,35 +270,35 @@ def prep_containers(args, image_tag):
     docker_login()
 
     # starting db2 and rt containers
-    comm.args.logger.info("Starting db2 and rt containers...")
+    main_logger.info("Starting db2 and rt containers...")
     start_db2_container(args, image_tag)
     start_rt_container(args, image_tag)
 
     # build the ear
-    comm.args.logger.info("Building ear file...")
+    main_logger.info("Building ear file...")
     run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs,wsc"')
 
     # start liberty server
-    comm.args.logger.info("Starting liberty server...")
+    main_logger.info("Starting liberty server...")
     run_subprocess(f'docker exec {RT_SCAN} bash -lc "__lbstart"')
 
     # wait for deployment to be ready
-    comm.args.logger.info("Wait for deployment to be ready...")
-    comm.args.logger.info(f"Checking deployment @ {DEPLOY_SERVER}/smcfs/console/login.jsp...")
+    main_logger.info("Wait for deployment to be ready...")
+    main_logger.info(f"Checking deployment @ {DEPLOY_SERVER}/smcfs/console/login.jsp...")
     wait_for_deployment()
 
     # check to see if we need to restart the server
     if needs_server_restart():
         # restart the server
-        comm.args.logger.info("Restarting liberty server...")
+        main_logger.info("Restarting liberty server...")
         run_subprocess(f'docker exec {RT_SCAN} bash -lc "__lbstop && __lbstart"')
 
         # wait again for deployment to be ready after restarting
-        comm.args.logger.info("Waiting again for deployment to be ready after restarting...")
-        comm.args.logger.info(f"Checking deployment @ {DEPLOY_SERVER}/smcfs/console/login.jsp...")
+        main_logger.info("Waiting again for deployment to be ready after restarting...")
+        main_logger.info(f"Checking deployment @ {DEPLOY_SERVER}/smcfs/console/login.jsp...")
         wait_for_deployment()
 
-    comm.args.logger.info("The db2 and rt containers are up and running...")
+    main_logger.info("The db2 and rt containers are up and running...")
 
     # logout of registry
     docker_logout()
