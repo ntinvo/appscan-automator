@@ -16,9 +16,7 @@ from bs4 import BeautifulSoup
 
 from args import init_argparse
 from constants import NS, SINGLE_STREAM_RSS_URL
-
-# logging
-main_logger = logging.getLogger(__name__)
+from main_logger import main_logger
 
 
 def logger(func):

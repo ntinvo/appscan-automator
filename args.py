@@ -4,9 +4,7 @@ import os
 from argparse import ArgumentDefaultsHelpFormatter
 
 from constants import ALL, COC, COCDEV, DEPCHECK, DYNAMIC, REPORTS, SCAN, SINGLE, STATIC, V10, V95
-
-# logging
-main_logger = logging.getLogger(__name__)
+from main_logger import main_logger
 
 
 def add_optionals_args(parser):

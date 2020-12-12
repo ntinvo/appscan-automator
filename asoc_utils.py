@@ -4,11 +4,9 @@ import time
 import requests
 
 from constants import ASOC_API_ENDPOINT, PENDING_STATUSES, TIME_TO_SLEEP
+from main_logger import main_logger
 from settings import KEY_ID, KEY_SECRET
 from utils import create_dir, get_date_str, logger, timer
-
-# logging
-main_logger = logging.getLogger(__name__)
 
 
 @timer

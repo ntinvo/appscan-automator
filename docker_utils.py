@@ -16,11 +16,9 @@ from constants import (
     RT_SCAN,
     VOL_SCAN,
 )
+from main_logger import main_logger
 from settings import JFROG_APIKEY
 from utils import logger, run_subprocess, timer
-
-# logging
-main_logger = logging.getLogger(__name__)
 
 client = docker.from_env()
 

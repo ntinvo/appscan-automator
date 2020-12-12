@@ -36,6 +36,7 @@ from constants import (
     STATIC,
 )
 from docker_utils import prep_containers, start_rt_container
+from main_logger import main_logger
 from utils import (
     create_dir,
     get_date_str,
@@ -45,9 +46,6 @@ from utils import (
     run_subprocess,
     timer,
 )
-
-# main logger
-main_logger = logging.getLogger(__name__)
 
 
 # ********************************* #
