@@ -2,6 +2,7 @@
   <Targets>
     <Target path="/Users/tinnvo/Documents/Sources/Release/App_Enterprise_Admin">
       <Include>*.class</Include>
+      <Exclude>*.jsp/</Exclude>
       <Exclude>bin/</Exclude>
       <Exclude>NotShipped/</Exclude>
     </Target>
