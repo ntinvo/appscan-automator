@@ -130,12 +130,13 @@ def static_scan(args):
     # - upload the generated irx file to ASoC
     # - create and execute the static scan
     with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdir:
-        main_logger.info(f"PROJECTS TO SCAN: {projects}")
+        main_logger.debug(f"PROJECTS TO SCAN: {projects}")
         for project in projects:
             project = project.strip()
             project_file_name = project.strip().replace("/", "_")
             main_logger.info("####################################################")
             main_logger.info(f"PROCESSING PROJECT: {project} - {project_file_name}")
+            main_logger.info("####################################################")
 
             # if the old scan still pending, skip
             if (
