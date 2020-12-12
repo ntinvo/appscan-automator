@@ -150,7 +150,7 @@ def static_scan(args):
             generate_appscan_config_file(args, project)
             main_logger.info(f"Generating {project_file_name}.irx file...")
             run_subprocess(
-                f"source ~/.bashrc && appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_file_name}.irx -d {tmpdir} -v -sp"
+                f"source ~/.bashrc && appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_file_name}.irx -d {tmpdir}"
             )
 
             # call ASoC API to create the static scan
