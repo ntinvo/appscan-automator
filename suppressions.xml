@@ -464,4 +464,11 @@
 	   <packageUrl regex="true">^pkg:maven/io\.netty/netty\-all@.*$</packageUrl>
 	   <cve>CVE-2019-20445</cve>
 	</suppress>
+	<suppress>
+   	  <notes><![CDATA[
+   	  Suppresses old 9.3 vulnerability that has been patched
+   	  ]]></notes>
+   	  <sha1>b9e828ba284238818e4685ce2ff4a8c51758a3da</sha1>
+   	  <cve>CVE-2014-4807</cve>
+	</suppress>
 </suppressions>
