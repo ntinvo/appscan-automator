@@ -234,4 +234,4 @@ def get_date_str():
     Returns:
         [str]: the date string to return in yyyy-mm-dd format
     """
-    return datetime.today().strftime("%Y_%m_%d")
+    return datetime.today().strftime("%Y_%m")
