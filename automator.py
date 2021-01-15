@@ -317,7 +317,7 @@ def static_reports(args):
         if scan["LatestExecution"]["Status"] != "Ready":
             return
 
-    # cinfig data for the reports
+    # config data for the reports
     config_data = get_download_config(app_name)
 
     # generate the reports for the application
