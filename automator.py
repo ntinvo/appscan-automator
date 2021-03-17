@@ -56,7 +56,7 @@ def build_source_code(args):
     main_logger.info("Cleaning projects...")
     run_subprocess(f"cd {args.source} && Build/gradlew clean")
 
-    main.logger.info("Removing irx files...")
+    main_logger.info("Removing irx files...")
     run_subprocess(f'cd {args.source} && find . -name "*.irx" -type f -delete')
 
     main_logger.info("Building projects...")
