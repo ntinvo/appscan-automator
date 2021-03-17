@@ -48,10 +48,10 @@ def build_source_code(args):
         args ([dict]): the arguments passed to the script
     """
     main_logger.info("Setting up environment...")
-    run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle setupEnvironment")
+    run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle setupEnvironment --stacktrace")
 
-    main_logger.info("Setting 3rd party libs...")
-    run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle unpack3p")
+    # main_logger.info("Setting 3rd party libs...")
+    # run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle unpack3p")
 
     # main_logger.info("Cleaning projects...")
     # run_subprocess(f"cd {args.source} && Build/gradlew clean")
@@ -60,7 +60,7 @@ def build_source_code(args):
     run_subprocess(f'cd {args.source} && find . -name "*.irx" -type f -delete')
 
     main_logger.info("Building projects...")
-    run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle all --stacktrace")
+    run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle fullbuild --stacktrace")
 
 
 def generate_appscan_config_file(args, project):
