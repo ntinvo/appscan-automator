@@ -8,44 +8,16 @@ import zipfile
 
 import requests
 
-from asoc_utils import (
-    download_report,
-    get_bearer_token,
-    get_download_config,
-    get_scans,
-    headers,
-    remove_old_scans,
-    wait_for_report,
-)
-from constants import (
-    ALL,
-    APP_URL_DICT,
-    APPSCAN_CONFIG,
-    APPSCAN_CONFIG_TMP,
-    ASOC_API_ENDPOINT,
-    DEPCHECK,
-    DEPCHECK_REPO,
-    DEPCHECK_SCAN,
-    DYNAMIC,
-    PENDING_STATUSES,
-    PRESENCE_ID,
-    REPORTS,
-    SCAN,
-    SINGLE_DYNAMIC,
-    SINGLE_STATIC,
-    STATIC,
-)
+from asoc_utils import (download_report, get_bearer_token, get_download_config,
+                        get_scans, headers, remove_old_scans, wait_for_report)
+from constants import (ALL, APP_URL_DICT, APPSCAN_CONFIG, APPSCAN_CONFIG_TMP,
+                       ASOC_API_ENDPOINT, DEPCHECK, DEPCHECK_REPO,
+                       DEPCHECK_SCAN, DYNAMIC, PENDING_STATUSES, PRESENCE_ID,
+                       REPORTS, SCAN, SINGLE_DYNAMIC, SINGLE_STATIC, STATIC)
 from docker_utils import prep_containers, start_rt_container
 from main_logger import main_logger
-from utils import (
-    create_dir,
-    get_date_str,
-    get_latest_stable_image_tag,
-    logger,
-    parse_arguments,
-    run_subprocess,
-    timer,
-)
+from utils import (create_dir, get_date_str, get_latest_stable_image_tag,
+                   logger, parse_arguments, run_subprocess, timer)
 
 
 # ********************************* #
@@ -80,6 +52,12 @@ def build_source_code(args):
 
     main_logger.info("Setting 3rd party libs...")
     run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle unpack3p")
+
+    main_logger.info("Cleaning projects...")
+    run_subprocess(f"cd {args.source} && Build/gradlew clean")
+
+    main.logger.info("Removing irx files...")
+    run_subprocess(f'cd {args.source} && find . -name "*.irx" -type f -delete')
 
     main_logger.info("Building projects...")
     run_subprocess(f"cd {args.source} && Build/gradlew all")
