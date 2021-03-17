@@ -2,6 +2,7 @@ import logging
 import time
 
 import requests
+from requests.models import Response
 
 from constants import ASOC_API_ENDPOINT, PENDING_STATUSES, TIME_TO_SLEEP
 from main_logger import main_logger
@@ -141,6 +142,18 @@ def remove_old_scans(app_id):
             )
         except Exception as e:
             main_logger.warning(e)
+    
+    # reset the app
+    try:
+        main_logger.info(f"Resetting app {app_id}")
+        reset_app_config_data = {
+            "DeleteIssues": "true"
+        }
+        _ = requests.delete(
+            f"{ASOC_API_ENDPOINT}/Apps/{app_id}/Reset", json=reset_app_config_data, headers=headers,
+        )
+    except Exception as e:
+        main_logger.warning(e)
 
     return scan_status_dict
 
