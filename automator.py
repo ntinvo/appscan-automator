@@ -60,7 +60,7 @@ def build_source_code(args):
     run_subprocess(f'cd {args.source} && find . -name "*.irx" -type f -delete')
 
     main_logger.info("Building projects...")
-    run_subprocess(f"cd {args.source} && Build/gradlew all")
+    run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle all --stacktrace")
 
 
 def generate_appscan_config_file(args, project):
