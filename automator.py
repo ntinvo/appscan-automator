@@ -476,11 +476,11 @@ def main():
     except Exception as e:
         main_logger.info(e)
         try:
-            run_subprocess(f"docker network rm -f {NETWORK_SCAN}")
+            run_subprocess(f"docker network rm {NETWORK_SCAN}")
         except Exception as _:
             main_logger.error(f"Error removing {NETWORK_SCAN}")
         try:
-            run_subprocess(f"docker volume rm -f {VOL_SCAN}")
+            run_subprocess(f"docker volume rm {VOL_SCAN}")
         except Exception as _:
             main_logger.error(f"Error removing {VOL_SCAN}")
 
