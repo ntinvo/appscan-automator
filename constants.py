@@ -3,7 +3,7 @@ JFROG_REGISTRY = "wce-oms-onprem-dev-imgs-docker-local.artifactory.swg-devops.co
 JFROG_USER = "tin.vo@ibm.com"
 JFROG_API_ENDPOINT = "https://na.artifactory.swg-devops.com/artifactory/api/docker/wce-oms-onprem-dev-imgs-docker-local/v2"
 SINGLE_STREAM_RSS_URL = (
-    "http://9.121.242.67:9080/jenkins/view/L3%20Builds/job/Single_Stream_Project/rssAll"
+    "https://wce-sterling-team-oms-jenkins.swg-devops.com/job/COC_OMS_Dev.Build/rssAll"
 )
 DEPCHECK_REPO = "https://api.github.com/repos/jeremylong/DependencyCheck/releases/latest"
 DEPLOY_SERVER = "http://9.42.105.123:9080"
