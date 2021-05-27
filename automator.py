@@ -34,6 +34,8 @@ from constants import (
     SINGLE_DYNAMIC,
     SINGLE_STATIC,
     STATIC,
+    NETWORK_SCAN,
+    VOL_SCAN,
 )
 from settings import JFROG_APIKEY
 from docker_utils import prep_containers, start_rt_container
@@ -462,14 +464,25 @@ def depcheck(args):
 @timer
 @logger
 def main():
-    args = parse_arguments()
-    main_logger.info(args)
-    if args.mode == SCAN:
-        run_scan(args)
-    elif args.mode == REPORTS:
-        get_reports(args)
-    elif args.mode == DEPCHECK:
-        depcheck(args)
+    try:
+        args = parse_arguments()
+        main_logger.info(args)
+        if args.mode == SCAN:
+            run_scan(args)
+        elif args.mode == REPORTS:
+            get_reports(args)
+        elif args.mode == DEPCHECK:
+            depcheck(args)
+    except Exception as e:
+        main_logger.info(e)
+        try:
+            run_subprocess(f"docker network rm -f {NETWORK_SCAN}")
+        except Exception as _:
+            main_logger.error(f"Error removing {NETWORK_SCAN}")
+        try:
+            run_subprocess(f"docker volume rm -f {VOL_SCAN}")
+        except Exception as _:
+            main_logger.error(f"Error removing {VOL_SCAN}")
 
 
 if __name__ == "__main__":
