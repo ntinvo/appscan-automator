@@ -150,6 +150,11 @@ def start_db2_container(args, image_tag, logger=main_logger):
     try:
         db_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-db:{image_tag}-refs"
         logger.info(f"#### STARTING DB2 CONTAINER: {DB2_SCAN} - {db_image_repo} ####")
+        try:
+            run_subprocess(f"docker network rm -f {NETWORK_SCAN}")
+        except Exception as e:
+            logger.warning(e)
+
         run_subprocess(
             f" \
             docker volume create {VOL_SCAN} && \
