@@ -41,7 +41,7 @@ from main_logger import main_logger
 from utils import (
     create_dir,
     get_date_str,
-    get_latest_stable_image_tag,
+    get_latest_stable_image_tags,
     logger,
     parse_arguments,
     run_subprocess,
@@ -204,7 +204,7 @@ def dynamic_scan(args):
     """
 
     # get the image tag
-    image_tag = get_latest_stable_image_tag()
+    image_tags = get_latest_stable_image_tags()
 
     # remove the old scans
     old_scan_status_dict = remove_old_scans(SINGLE_DYNAMIC)
@@ -216,7 +216,7 @@ def dynamic_scan(args):
             return
 
     # prep containers for the scans
-    prep_containers(args, image_tag)
+    prep_containers(args, image_tags)
 
     # create the new scans
     main_logger.info(f"Create new scan for: {APP_URL_DICT}")
@@ -397,10 +397,10 @@ def depcheck(args):
     """
     try:
         # get the image tag
-        image_tag = get_latest_stable_image_tag()
+        image_tags = get_latest_stable_image_tags()
 
         # start runtime container
-        start_rt_container(args, image_tag, rt_name=DEPCHECK_SCAN)
+        start_rt_container(args, image_tags, rt_name=DEPCHECK_SCAN)
 
         # build the ear
         main_logger.info("Building ear file...")

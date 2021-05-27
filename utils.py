@@ -196,19 +196,23 @@ def fetch_available_build_urls(url):
 
 @timer
 @logger
-def get_latest_stable_image_tag():
+def get_latest_stable_image_tags():
     """
     Get latest stable image tag.
 
     Returns:
-        [str]: the latest available stable url
+        [str]: the latest available stable urls
     """
-    latest_stable_build_url = fetch_available_build_urls(SINGLE_STREAM_RSS_URL)[0]
-    res = requests.get(latest_stable_build_url, auth=get_auth(latest_stable_build_url))
-    soup = BeautifulSoup(res.text, "html.parser")
-    title_soup = soup.find("title")
-    title = title_soup.text
-    return title.split(" ")[1]
+    image_tags = []
+    stable_build_urls = fetch_available_build_urls(SINGLE_STREAM_RSS_URL)
+    for build_url in stable_build_urls:
+        res = requests.get(build_url, auth=get_auth(build_url))
+        soup = BeautifulSoup(res.text, "html.parser")
+        title_soup = soup.find("title")
+        title = title_soup.text
+        image_tags.append(title.split(" ")[1])
+    main_logger.info(f"Latest image tags: {image_tags}")
+    return image_tags
 
 
 @timer
