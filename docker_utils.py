@@ -30,8 +30,10 @@ def docker_login():
     Login to the registry.
     """
     main_logger.info(f"#### Login to {JFROG_REGISTRY} ####")
+    main_logger.info(f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}")
     run_subprocess(
-        f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}", logger=main_logger,
+        f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}",
+        logger=main_logger,
     )
 
 
@@ -43,7 +45,8 @@ def docker_logout():
     """
     main_logger.info(f"#### Logout of {JFROG_REGISTRY} ####")
     run_subprocess(
-        f"docker logout {JFROG_REGISTRY}", logger=main_logger,
+        f"docker logout {JFROG_REGISTRY}",
+        logger=main_logger,
     )
 
 
@@ -89,9 +92,9 @@ def cleanup(args):
     """
     Cleaning up the resources before creating new containers.
     The will do the followings:
-        - get the image list to remove 
-        - remove rt and db2 containers 
-        - remove volume and network 
+        - get the image list to remove
+        - remove rt and db2 containers
+        - remove volume and network
         - remove images
 
     Args:
@@ -249,10 +252,10 @@ def needs_server_restart():
 def prep_containers(args, image_tag):
     """
     Prepare the rt and db2 container. This function will do the followings:
-        - login to the registry 
-        - start db2 and rt containers 
-        - build the ear for deployment 
-        - start liberty server 
+        - login to the registry
+        - start db2 and rt containers
+        - build the ear for deployment
+        - start liberty server
         - wait for the server to be ready
         - logout of the registry
 
