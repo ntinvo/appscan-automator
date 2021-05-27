@@ -210,7 +210,7 @@ def get_latest_stable_image_tags():
         soup = BeautifulSoup(res.text, "html.parser")
         title_soup = soup.find("title")
         title = title_soup.text
-        image_tags.append(title.split(" ")[1])
+        image_tags.append(title.split(" ")[1].lower())
     main_logger.info(f"Latest image tags: {image_tags}")
     return image_tags
 
