@@ -197,20 +197,24 @@ def start_rt_container(args, image_tags, rt_name=RT_SCAN, logger=main_logger):
 
     try:
         for image_tag in image_tags:
-            rt_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-rt:{image_tag}-liberty"
-            logger.info(f"#### STARTING RT CONTAINER: {rt_name} - {rt_image_repo} ####")
-            run_subprocess(
-                f" \
-                docker run -di --name {rt_name} --privileged \
-                {network} \
-                -e DB_HOST={DB2_SCAN} \
-                -e DB_PORT=50000 \
-                -e DB_VENDOR=db2 \
-                -e DB_NAME=OMDB \
-                {port} \
-                {rt_image_repo}",
-                logger=logger,
-            )
+            try:
+                logger.info(f"Trying {image_tag}")
+                rt_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-rt:{image_tag}-liberty"
+                logger.info(f"#### STARTING RT CONTAINER: {rt_name} - {rt_image_repo} ####")
+                run_subprocess(
+                    f" \
+                    docker run -di --name {rt_name} --privileged \
+                    {network} \
+                    -e DB_HOST={DB2_SCAN} \
+                    -e DB_PORT=50000 \
+                    -e DB_VENDOR=db2 \
+                    -e DB_NAME=OMDB \
+                    {port} \
+                    {rt_image_repo}",
+                    logger=logger,
+                )
+            except Exception as e:
+                logger.warning(e)
     except Exception as e:
         logger.error(traceback.format_exc())
         logger.error(e)
@@ -274,9 +278,13 @@ def prep_containers(args, image_tags):
     # starting db2 and rt containers
     main_logger.info("Starting db2 and rt containers...")
     for image_tag in image_tags:
-        main_logger.info("Building ear file...")
-        start_db2_container(args, image_tag)
-        start_rt_container(args, image_tag)
+        try:
+            main_logger.info(f"Trying {image_tag}")
+            main_logger.info("Building ear file...")
+            start_db2_container(args, image_tag)
+            start_rt_container(args, image_tag)
+        except Exception as e:
+            main_logger.warning(e)
 
     # build the ear
     main_logger.info("Building ear file...")
