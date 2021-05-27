@@ -15,8 +15,9 @@ import requests
 from bs4 import BeautifulSoup
 
 from args import init_argparse
-from constants import NS, SINGLE_STREAM_RSS_URL
+from constants import NS, SINGLE_STREAM_RSS_URL, JFROG_USER
 from main_logger import main_logger
+from settings import JFROG_APIKEY, JENKINS_TAAS_TOKEN
 
 
 def logger(func):
@@ -148,7 +149,9 @@ def setup_main_logging(verbose=logging.INFO):
         verbose ([str], optional): the log level ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"). Defaults to logging.INFO.
     """
     coloredlogs.install(
-        level=verbose, logger=main_logger, fmt="%(asctime)s %(levelname)s %(message)s",
+        level=verbose,
+        logger=main_logger,
+        fmt="%(asctime)s %(levelname)s %(message)s",
     )
 
 
@@ -158,7 +161,7 @@ def parse_arguments():
     Retrieves the arguments passed in by the user, parse them, and return.
 
     Returns:
-        [dict]: the argument dict 
+        [dict]: the argument dict
     """
     args = init_argparse()
     setup_main_logging(args.verbose)
@@ -172,12 +175,12 @@ def fetch_available_build_urls(url):
     Fetch all of the stable build urls from Jenkins server.
 
     Args:
-        url ([str]): the build job url 
+        url ([str]): the build job url
 
     Returns:
         [list]: the list of available stable urls
     """
-    res = requests.get(url)
+    res = requests.get(url, auth=get_auth(url))
     build_urls = []
     if res.ok:
         root = ET.fromstring(res.text)
@@ -201,7 +204,7 @@ def get_latest_stable_image_tag():
         [str]: the latest available stable url
     """
     latest_stable_build_url = fetch_available_build_urls(SINGLE_STREAM_RSS_URL)[0]
-    res = requests.get(latest_stable_build_url)
+    res = requests.get(latest_stable_build_url, auth=get_auth(latest_stable_build_url))
     soup = BeautifulSoup(res.text, "html.parser")
     title_soup = soup.find("title")
     title = title_soup.text
@@ -235,3 +238,13 @@ def get_date_str():
         [str]: the date string to return in yyyy-mm-dd format
     """
     return datetime.today().strftime("%Y_%m")
+
+
+@timer
+@logger
+def get_auth(url):
+    if "wce-sterling-team-oms-jenkins.swg-devops.com" in url:
+        return (JFROG_USER, JENKINS_TAAS_TOKEN)
+    if "swg-devops.com" in url:
+        return (JFROG_USER, JFROG_APIKEY)
+    return None

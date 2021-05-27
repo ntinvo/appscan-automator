@@ -35,6 +35,7 @@ from constants import (
     SINGLE_STATIC,
     STATIC,
 )
+from settings import JFROG_APIKEY
 from docker_utils import prep_containers, start_rt_container
 from main_logger import main_logger
 from utils import (

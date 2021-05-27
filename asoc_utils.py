@@ -4,9 +4,9 @@ import time
 import requests
 from requests.models import Response
 
-from constants import ASOC_API_ENDPOINT, PENDING_STATUSES, TIME_TO_SLEEP
+from constants import ASOC_API_ENDPOINT, PENDING_STATUSES, TIME_TO_SLEEP, JFROG_USER
 from main_logger import main_logger
-from settings import KEY_ID, KEY_SECRET
+from settings import KEY_ID, KEY_SECRET, JFROG_APIKEY, JENKINS_TAAS_TOKEN
 from utils import create_dir, get_date_str, logger, timer
 
 
@@ -43,7 +43,7 @@ def get_download_config(name):
     Get the report download configurations
 
     Args:
-        name ([str]): the name of the scan 
+        name ([str]): the name of the scan
 
     Returns:
         [dict]: the configurations of the scan
@@ -65,7 +65,7 @@ def get_download_config(name):
             "Title": name.replace(" ", "_").lower(),
             "Locale": "en-US",
         },
-        "OdataFilter": "(Severity eq 'High' or Severity eq 'Critical' or Severity eq 'Medium' or Severity eq 'Low')"
+        "OdataFilter": "(Severity eq 'High' or Severity eq 'Critical' or Severity eq 'Medium' or Severity eq 'Low')",
     }
 
 
@@ -92,7 +92,7 @@ def download_report(type, report):
 def get_scans(app_id):
     """
         Get the list of scans for the application.
-    
+
     Args:
         app_id ([str]): the application id that the scans belong to
 
@@ -138,19 +138,20 @@ def remove_old_scans(app_id):
         main_logger.info(f"Removing {old_scan['Name']} - {old_scan['Id']}... ")
         try:
             _ = requests.delete(
-                f"{ASOC_API_ENDPOINT}/Scans/{old_scan['Id']}?deleteIssues=true", headers=headers,
+                f"{ASOC_API_ENDPOINT}/Scans/{old_scan['Id']}?deleteIssues=true",
+                headers=headers,
             )
         except Exception as e:
             main_logger.warning(e)
-    
+
     # reset the app
     try:
         main_logger.info(f"Resetting app {app_id}")
-        reset_app_config_data = {
-            "DeleteIssues": "true"
-        }
+        reset_app_config_data = {"DeleteIssues": "true"}
         _ = requests.delete(
-            f"{ASOC_API_ENDPOINT}/Apps/{app_id}/Reset", json=reset_app_config_data, headers=headers,
+            f"{ASOC_API_ENDPOINT}/Apps/{app_id}/Reset",
+            json=reset_app_config_data,
+            headers=headers,
         )
     except Exception as e:
         main_logger.warning(e)
