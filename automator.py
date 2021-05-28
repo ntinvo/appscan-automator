@@ -143,9 +143,13 @@ def static_scan(args):
         for project in projects:
             project = project.strip()
             project_file_name = project.strip().replace("/", "_")
-            main_logger.info("####################################################")
+            main_logger.info(
+                "#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + 4)
+            )
             main_logger.info(f"PROCESSING PROJECT: {project} - {project_file_name}")
-            main_logger.info("####################################################")
+            main_logger.info(
+                "#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + 4)
+            )
 
             # if the old scan still pending, skip
             if (

@@ -285,9 +285,9 @@ def prep_containers(args, image_tags):
     for image_tag in image_tags:
         try:
             print()
-            main_logger.info("#" * (len(f"Trying {image_tag}" + 4)))
+            main_logger.info("#" * (len(f"Trying {image_tag}") + 4))
             main_logger.info(f"Trying {image_tag}")
-            main_logger.info("#" * (len(f"Trying {image_tag}" + 4)))
+            main_logger.info("#" * (len(f"Trying {image_tag}") + 4))
             main_logger.info("Starting db2 and rt containers...")
             start_db2_container(args, image_tag)
             start_rt_container(args, image_tag)
