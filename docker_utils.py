@@ -284,6 +284,8 @@ def prep_containers(args, image_tags):
     # starting db2 and rt containers
     main_logger.info("Starting db2 and rt containers...")
     for image_tag in image_tags:
+        print(image_tag)
+        print(image_tags)
         try:
             main_logger.info(f"Trying {image_tag}")
             main_logger.info("Building ear file...")
