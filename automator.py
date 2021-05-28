@@ -405,10 +405,13 @@ def depcheck(args):
         # get the image tag
         image_tags = get_latest_stable_image_tags()
 
-        print(image_tags)
-
         # start runtime container
-        start_rt_container(args, image_tags, rt_name=DEPCHECK_SCAN)
+        try:
+            for image_tag in image_tags:
+                start_rt_container(args, image_tag, rt_name=DEPCHECK_SCAN)
+                break
+        except Exception as e:
+            main_logger.warning(e)
 
         # build the ear
         main_logger.info("Building ear file...")
