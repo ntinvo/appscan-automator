@@ -401,6 +401,8 @@ def depcheck(args):
         # get the image tag
         image_tags = get_latest_stable_image_tags()
 
+        print(image_tags)
+
         # start runtime container
         start_rt_container(args, image_tags, rt_name=DEPCHECK_SCAN)
 

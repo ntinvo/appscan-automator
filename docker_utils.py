@@ -175,7 +175,7 @@ def start_db2_container(args, image_tag, logger=main_logger):
             logger=logger,
         )
     except Exception as e:
-        logger.error(traceback.format_exc())
+        # logger.error(traceback.format_exc())
         logger.error(e)
         raise Exception
 
