@@ -150,10 +150,11 @@ def start_db2_container(args, image_tag, logger=main_logger):
     try:
         db_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-db:{image_tag}-refs"
         logger.info(f"#### STARTING DB2 CONTAINER: {DB2_SCAN} - {db_image_repo} ####")
+
         try:
             run_subprocess(f"docker network rm {NETWORK_SCAN}")
         except Exception as e:
-            logger.warning(e)
+            pass
 
         run_subprocess(
             f" \
@@ -282,11 +283,12 @@ def prep_containers(args, image_tags):
     # starting db2 and rt containers
     main_logger.info("Starting db2 and rt containers...")
     for image_tag in image_tags:
-        print(image_tag)
-        print(image_tags)
         try:
+            print()
+            main_logger.info("#" * (len(f"Trying {image_tag}" + 4)))
             main_logger.info(f"Trying {image_tag}")
-            main_logger.info("Building ear file...")
+            main_logger.info("#" * (len(f"Trying {image_tag}" + 4)))
+            main_logger.info("Starting db2 and rt containers...")
             start_db2_container(args, image_tag)
             start_rt_container(args, image_tag)
             break
