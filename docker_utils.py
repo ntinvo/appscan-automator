@@ -288,7 +288,7 @@ def prep_containers(args, image_tags):
             print()
             main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
             main_logger.info(
-                " " * int((PADDING / 2)), f"Trying {image_tag}", " " * int((PADDING / 2))
+                " " * int((PADDING / 2)) + f"Trying {image_tag}" + " " * int((PADDING / 2))
             )
             main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
             main_logger.info("Starting db2 and rt containers...")
