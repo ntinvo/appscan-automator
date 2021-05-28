@@ -2,11 +2,13 @@
   <Targets>
     <Target path="/Users/tinnvo/Documents/Sources/Release/App_Enterprise_Admin">
       <Include>*.class</Include>
-      <Include>*.class</Include>
       <Include>*.jar</Include>
       <Include>*.war</Include>
       <Include>*.ear</Include>
       <Include>*.jsp/</Include>
+      <Include>*.js/</Include>
+      <Include>*.htm/</Include>
+      <Include>*.html/</Include>
       <Exclude>bin/</Exclude>
       <Exclude>NotShipped/</Exclude>
     </Target>

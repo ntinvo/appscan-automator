@@ -6,6 +6,10 @@
       <Include>*.war</Include>
       <Include>*.ear</Include>
       <Include>*.jsp/</Include>
+      <Include>*.js/</Include>
+      <Include>*.htm/</Include>
+      <Include>*.html/</Include>
+      <Include>*.xhtml/</Include>
       <Exclude>bin/</Exclude>
       <Exclude>NotShipped/</Exclude>
     </Target>
