@@ -162,6 +162,7 @@ def static_scan(args):
                 project in old_scan_status_dict
                 and old_scan_status_dict[project] in PENDING_STATUSES
             ):
+                main_logger.info(f"{project} is PENDING/RUNNING")
                 continue
 
             # generate config file for appscan
@@ -192,11 +193,10 @@ def static_scan(args):
                         res = requests.post(
                             f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers
                         )
-                    main_logger.info(
-                        f"Project: {project} - {project_file_name} was processed successfully."
-                    )
                     main_logger.info(f"Response: {res.json()}")
-                    main_logger.info("")
+                    main_logger.info(
+                        f"PROJECT: {project} - {project_file_name} WAS PROCESSED SUCCESSFULLY."
+                    )
                     print()
             except Exception as e:
                 main_logger.warning(traceback.format_exc())
