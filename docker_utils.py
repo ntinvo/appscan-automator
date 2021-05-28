@@ -118,20 +118,33 @@ def cleanup(args):
     cleanup_helper(f"docker rm -f {RT_SCAN}")
 
     # removing runtime container
-    main_logger.info(f"Removing db2 container {DB2_SCAN}...")
-    cleanup_helper(f"docker rm -f {DB2_SCAN}")
+    try:
+        main_logger.info(f"Removing db2 container {DB2_SCAN}...")
+        cleanup_helper(f"docker rm -f {DB2_SCAN}")
+    except Exception as e:
+        main_logger.info(e)
 
     # removing runtime container
-    main_logger.info(f"Removing volume {VOL_SCAN}...")
-    cleanup_helper(f"docker volume rm -f {VOL_SCAN}")
+    try:
+        main_logger.info(f"Removing volume {VOL_SCAN}...")
+        cleanup_helper(f"docker volume rm -f {VOL_SCAN}")
+    except Exception as e:
+        main_logger.info(e)
 
-    # removing runtime container
-    run_subprocess(f"docker network rm {NETWORK_SCAN}")
+    # removing scan network
+    try:
+        main_logger.info(f"Removing network {NETWORK_SCAN}")
+        run_subprocess(f"docker network rm {NETWORK_SCAN}")
+    except Exception as e:
+        main_logger.info(e)
 
     # removing images
     for image in remove_images:
-        main_logger.info(f"Removing image {image}...")
-        cleanup_helper(f"docker rmi {image}")
+        try:
+            main_logger.info(f"Removing image {image}...")
+            cleanup_helper(f"docker rmi {image}")
+        except Exception as e:
+            main_logger.info(e)
 
 
 @timer
