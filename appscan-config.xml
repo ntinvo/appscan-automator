@@ -2,6 +2,10 @@
   <Targets>
     <Target path="PROJECT_PATH">
       <Include>*.class</Include>
+      <Include>*.jar</Include>
+      <Include>*.war</Include>
+      <Include>*.ear</Include>
+      <Include>*.jsp/</Include>
       <Exclude>bin/</Exclude>
       <Exclude>NotShipped/</Exclude>
     </Target>
