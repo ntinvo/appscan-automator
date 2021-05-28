@@ -1,7 +1,6 @@
 <Configuration>
   <Targets>
     <Target path="/Users/tinnvo/Documents/Sources/Release/App_Enterprise_Admin">
-      <Include>*</Include>
       <Exclude>bin/</Exclude>
       <Exclude>NotShipped/</Exclude>
     </Target>

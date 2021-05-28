@@ -1,7 +1,6 @@
 <Configuration>
   <Targets>
     <Target path="PROJECT_PATH">
-      <Include>*</Include>
       <Exclude>bin/</Exclude>
       <Exclude>NotShipped/</Exclude>
     </Target>
