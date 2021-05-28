@@ -149,9 +149,9 @@ def static_scan(args):
                 "#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING)
             )
             main_logger.info(
-                " " * (PADDING / 2),
+                " " * int((PADDING / 2)),
                 f"PROCESSING PROJECT: {project} - {project_file_name}",
-                " " * (PADDING / 2),
+                " " * int((PADDING / 2)),
             )
             main_logger.info(
                 "#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING)
@@ -417,7 +417,9 @@ def depcheck(args):
             for image_tag in image_tags:
                 print()
                 main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
-                main_logger.info(" " * (PADDING / 2), f"Trying {image_tag}", " " * (PADDING / 2))
+                main_logger.info(
+                    " " * int((PADDING / 2)), f"Trying {image_tag}", " " * int((PADDING / 2))
+                )
                 main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
                 start_rt_container(args, image_tag, rt_name=DEPCHECK_SCAN)
                 break
