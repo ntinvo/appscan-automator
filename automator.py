@@ -408,6 +408,10 @@ def depcheck(args):
         # start runtime container
         try:
             for image_tag in image_tags:
+                print()
+                main_logger.info("#" * (len(f"Trying {image_tag}") + 4))
+                main_logger.info(f"Trying {image_tag}")
+                main_logger.info("#" * (len(f"Trying {image_tag}") + 4))
                 start_rt_container(args, image_tag, rt_name=DEPCHECK_SCAN)
                 break
         except Exception as e:
