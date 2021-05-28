@@ -36,6 +36,7 @@ from constants import (
     STATIC,
     NETWORK_SCAN,
     VOL_SCAN,
+    PADDING,
 )
 from settings import JFROG_APIKEY
 from docker_utils import prep_containers, start_rt_container
@@ -143,12 +144,17 @@ def static_scan(args):
         for project in projects:
             project = project.strip()
             project_file_name = project.strip().replace("/", "_")
+            print()
             main_logger.info(
-                "#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + 4)
+                "#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING)
             )
-            main_logger.info(f"PROCESSING PROJECT: {project} - {project_file_name}")
             main_logger.info(
-                "#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + 4)
+                " " * (PADDING / 2),
+                f"PROCESSING PROJECT: {project} - {project_file_name}",
+                " " * (PADDING / 2),
+            )
+            main_logger.info(
+                "#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING)
             )
 
             # if the old scan still pending, skip
@@ -190,7 +196,8 @@ def static_scan(args):
                         f"Project: {project} - {project_file_name} was processed successfully."
                     )
                     main_logger.info(f"Response: {res.json()}")
-                    main_logger.info("####################################################")
+                    main_logger.info("")
+                    print()
             except Exception as e:
                 main_logger.warning(traceback.format_exc())
                 main_logger.warning(e)
@@ -409,9 +416,9 @@ def depcheck(args):
         try:
             for image_tag in image_tags:
                 print()
-                main_logger.info("#" * (len(f"Trying {image_tag}") + 4))
-                main_logger.info(f"Trying {image_tag}")
-                main_logger.info("#" * (len(f"Trying {image_tag}") + 4))
+                main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
+                main_logger.info(" " * (PADDING / 2), f"Trying {image_tag}", " " * (PADDING / 2))
+                main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
                 start_rt_container(args, image_tag, rt_name=DEPCHECK_SCAN)
                 break
         except Exception as e:

@@ -1,4 +1,5 @@
 # consts
+PADDING = 4
 JFROG_REGISTRY = "wce-oms-onprem-dev-imgs-docker-local.artifactory.swg-devops.com"
 JFROG_USER = "tin.vo@ibm.com"
 JFROG_API_ENDPOINT = "https://na.artifactory.swg-devops.com/artifactory/api/docker/wce-oms-onprem-dev-imgs-docker-local/v2"
