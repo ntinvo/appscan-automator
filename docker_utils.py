@@ -182,7 +182,7 @@ def start_db2_container(args, image_tag, logger=main_logger):
 
 @timer
 @logger
-def start_rt_container(args, image_tags, rt_name=RT_SCAN, logger=main_logger):
+def start_rt_container(args, image_tag, rt_name=RT_SCAN, logger=main_logger):
     """
     Start the rt container for deployment
 
@@ -201,26 +201,24 @@ def start_rt_container(args, image_tags, rt_name=RT_SCAN, logger=main_logger):
     port = "" if args.mode == DEPCHECK else "-p 9080:9080"
 
     try:
-        for image_tag in image_tags:
-            try:
-                logger.info(f"Trying {image_tag}")
-                rt_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-rt:{image_tag}-liberty"
-                logger.info(f"#### STARTING RT CONTAINER: {rt_name} - {rt_image_repo} ####")
-                run_subprocess(
-                    f" \
-                    docker run -di --name {rt_name} --privileged \
-                    {network} \
-                    -e DB_HOST={DB2_SCAN} \
-                    -e DB_PORT=50000 \
-                    -e DB_VENDOR=db2 \
-                    -e DB_NAME=OMDB \
-                    {port} \
-                    {rt_image_repo}",
-                    logger=logger,
-                )
-                break
-            except Exception as e:
-                logger.warning(e)
+        try:
+            logger.info(f"Trying {image_tag}")
+            rt_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-rt:{image_tag}-liberty"
+            logger.info(f"#### STARTING RT CONTAINER: {rt_name} - {rt_image_repo} ####")
+            run_subprocess(
+                f" \
+                docker run -di --name {rt_name} --privileged \
+                {network} \
+                -e DB_HOST={DB2_SCAN} \
+                -e DB_PORT=50000 \
+                -e DB_VENDOR=db2 \
+                -e DB_NAME=OMDB \
+                {port} \
+                {rt_image_repo}",
+                logger=logger,
+            )
+        except Exception as e:
+            logger.warning(e)
     except Exception as e:
         logger.error(traceback.format_exc())
         logger.error(e)
