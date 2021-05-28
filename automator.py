@@ -84,8 +84,8 @@ def build_source_code(args):
     # main_logger.info("Setting 3rd party libs...")
     # run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle unpack3p")
 
-    main_logger.info("Cleaning projects...")
-    run_subprocess(f"cd {args.source} && Build/gradlew clean")
+    # main_logger.info("Cleaning projects...")
+    # run_subprocess(f"cd {args.source} && Build/gradlew clean")
 
     main_logger.info("Removing irx files...")
     run_subprocess(f'cd {args.source} && find . -name "*.irx" -type f -delete')
