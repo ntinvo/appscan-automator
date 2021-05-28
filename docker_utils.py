@@ -218,6 +218,7 @@ def start_rt_container(args, image_tags, rt_name=RT_SCAN, logger=main_logger):
                     {rt_image_repo}",
                     logger=logger,
                 )
+                break
             except Exception as e:
                 logger.warning(e)
     except Exception as e:
@@ -288,6 +289,7 @@ def prep_containers(args, image_tags):
             main_logger.info("Building ear file...")
             start_db2_container(args, image_tag)
             start_rt_container(args, image_tag)
+            break
         except Exception as e:
             main_logger.warning(e)
 
