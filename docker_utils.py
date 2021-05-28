@@ -287,8 +287,8 @@ def prep_containers(args, image_tags):
         try:
             main_logger.info(f"Trying {image_tag}")
             main_logger.info("Building ear file...")
-            start_rt_container(args, image_tag)
             start_db2_container(args, image_tag)
+            start_rt_container(args, image_tag)
             break
         except Exception as e:
             main_logger.warning(e)
