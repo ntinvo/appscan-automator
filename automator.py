@@ -421,7 +421,11 @@ def depcheck(args):
                     " " * int((PADDING / 2)) + f"Trying {image_tag}" + " " * int((PADDING / 2))
                 )
                 main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
-                start_rt_container(args, image_tag, rt_name=DEPCHECK_SCAN)
+                try:
+                    start_rt_container(args, image_tag, rt_name=DEPCHECK_SCAN)
+                except Exception as e:
+                    main_logger.warning(e)
+                    continue
                 break
         except Exception as e:
             main_logger.warning(e)
