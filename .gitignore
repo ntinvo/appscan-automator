@@ -7,3 +7,4 @@ configs
 tmp
 tmp*
 dependency*
+appscan-config-tmp.xml
