@@ -53,3 +53,29 @@ PRESENCE_ID = "97687444-523b-eb11-b9ed-2818780a4fcb"
 ASOC_API_ENDPOINT = "https://cloud.appscan.com/api/v2"
 APPSCAN_CONFIG = "appscan-config.xml"
 APPSCAN_CONFIG_TMP = "appscan-config-tmp.xml"
+
+HEADER_FIELDS = [
+    "ScanName",
+    "DateCreated",
+    "DiscoveryMethod",
+    "Scanner",
+    "component",
+    "intext",
+    "ThreatClassId",
+    "Severity",
+    "asv",
+    "ase",
+    "asve",
+    "IssueType",
+    "SourceFile : Location",
+    "Line",
+    "dispo",
+    "expl",
+    "trgt",
+    "compen",
+    "Cve",
+    "psirt",
+    "Cvss",
+    "Status",
+    "Id",
+]

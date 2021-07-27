@@ -1,4 +1,6 @@
+import csv
 import io
+import json
 import logging
 import os
 import tempfile
@@ -6,6 +8,7 @@ import time
 import traceback
 import zipfile
 
+import pandas as pd
 import requests
 
 from asoc_utils import (
@@ -27,6 +30,9 @@ from constants import (
     DEPCHECK_REPO,
     DEPCHECK_SCAN,
     DYNAMIC,
+    HEADER_FIELDS,
+    NETWORK_SCAN,
+    PADDING,
     PENDING_STATUSES,
     PRESENCE_ID,
     REPORTS,
@@ -34,13 +40,11 @@ from constants import (
     SINGLE_DYNAMIC,
     SINGLE_STATIC,
     STATIC,
-    NETWORK_SCAN,
     VOL_SCAN,
-    PADDING,
 )
-from settings import JFROG_APIKEY
 from docker_utils import prep_containers, start_rt_container
 from main_logger import main_logger
+from settings import JFROG_APIKEY
 from utils import (
     create_dir,
     get_date_str,
@@ -359,6 +363,61 @@ def static_reports(args):
 
 @timer
 @logger
+def asocExport(app_type):
+    # filters
+    FILTER = "$filter=Status%20ne%20'Fixed'%20and%20Status%20ne%20'Noise'&$orderby=ScanName"
+
+    # prepare the header for requests
+    file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
+
+    # request the reports
+    app_id = SINGLE_STATIC if app_type == STATIC else SINGLE_DYNAMIC
+    res = requests.get(
+        f"{ASOC_API_ENDPOINT}/Issues/Application/{app_id}?{FILTER}", headers=file_req_header
+    )
+    if res.status_code == 200:
+        reports_dir_path = f"reports/{get_date_str()}/{app_type}"
+        create_dir(reports_dir_path)
+        with open(f"{reports_dir_path}/issues.json", "w") as f:
+            json.dump(res.json(), f)
+        with open(f"{reports_dir_path}/issues.csv", "w") as f:
+            csv_writer = csv.writer(f)
+            csv_writer.writerow(HEADER_FIELDS)
+            for item in res.json()["Items"]:
+                csv_writer.writerow(
+                    [
+                        item["ScanName"],
+                        item["DateCreated"],
+                        item["DiscoveryMethod"],
+                        item["Scanner"],
+                        "component",
+                        "intext",
+                        item["ThreatClassId"],
+                        item["Severity"],
+                        "asv",
+                        "ase",
+                        "asve",
+                        item["IssueType"],
+                        f"{item['SourceFile']} : {item['Location']}",
+                        item["Line"],
+                        "dispo",
+                        "expl",
+                        "trgt",
+                        "compen",
+                        item["Cve"],
+                        "psirt",
+                        item["Cvss"],
+                        item["Status"],
+                        item["Id"],
+                    ]
+                )
+
+        read_file = pd.read_csv(f"{reports_dir_path}/issues.csv")
+        read_file.to_excel(f"{reports_dir_path}/issues.xlsx", index=None, header=True)
+
+
+@timer
+@logger
 def get_reports(args):
     """Get the reports for the scans
 
@@ -368,10 +427,14 @@ def get_reports(args):
     if args.type == ALL:
         static_reports(args)
         dynamic_reports(args)
+        asocExport(DYNAMIC)
+        asocExport(STATIC)
     elif args.type == STATIC:
         static_reports(args)
+        asocExport(STATIC)
     elif args.type == DYNAMIC:
         dynamic_reports(args)
+        asocExport(DYNAMIC)
 
     # copy reports to output directory
     run_subprocess(f"rsync -a -v --ignore-existing {os.getcwd()}/reports {args.output}")

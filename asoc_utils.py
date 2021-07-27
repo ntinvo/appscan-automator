@@ -4,9 +4,10 @@ import time
 import requests
 from requests.models import Response
 
-from constants import ASOC_API_ENDPOINT, PENDING_STATUSES, TIME_TO_SLEEP, JFROG_USER
+from constants import (ASOC_API_ENDPOINT, JFROG_USER, PENDING_STATUSES,
+                       TIME_TO_SLEEP)
 from main_logger import main_logger
-from settings import KEY_ID, KEY_SECRET, JFROG_APIKEY, JENKINS_TAAS_TOKEN
+from settings import JENKINS_TAAS_TOKEN, JFROG_APIKEY, KEY_ID, KEY_SECRET
 from utils import create_dir, get_date_str, logger, timer
 
 
