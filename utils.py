@@ -9,15 +9,16 @@ import time
 import traceback
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from math import ceil
 
 import coloredlogs
 import requests
 from bs4 import BeautifulSoup
 
 from args import init_argparse
-from constants import NS, SINGLE_STREAM_RSS_URL, JFROG_USER
+from constants import JFROG_USER, NS, SINGLE_STREAM_RSS_URL
 from main_logger import main_logger
-from settings import JFROG_APIKEY, JENKINS_TAAS_TOKEN
+from settings import JENKINS_TAAS_TOKEN, JFROG_APIKEY
 
 
 def logger(func):
@@ -149,9 +150,7 @@ def setup_main_logging(verbose=logging.INFO):
         verbose ([str], optional): the log level ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"). Defaults to logging.INFO.
     """
     coloredlogs.install(
-        level=verbose,
-        logger=main_logger,
-        fmt="%(asctime)s %(levelname)s %(message)s",
+        level=verbose, logger=main_logger, fmt="%(asctime)s %(levelname)s %(message)s",
     )
 
 
@@ -234,6 +233,28 @@ def create_dir(path):
 
 @timer
 @logger
+def get_auth(url):
+    if "wce-sterling-team-oms-jenkins.swg-devops.com" in url:
+        return (JFROG_USER, JENKINS_TAAS_TOKEN)
+    if "swg-devops.com" in url:
+        return (JFROG_USER, JFROG_APIKEY)
+    return None
+
+
+@timer
+@logger
+def get_week_of_month(dt):
+    first_day = datetime.today().replace(day=1)
+    day_of_month = dt.day
+    if first_day.weekday() == 6:
+        adjusted_dom = (1 + first_day.weekday()) / 7
+    else:
+        adjusted_dom = day_of_month + first_day.weekday()
+    return int(ceil(adjusted_dom / 7.0))
+
+
+@timer
+@logger
 def get_date_str():
     """
     Get today date string
@@ -241,14 +262,7 @@ def get_date_str():
     Returns:
         [str]: the date string to return in yyyy-mm-dd format
     """
-    return datetime.today().strftime("%Y_%m")
-
-
-@timer
-@logger
-def get_auth(url):
-    if "wce-sterling-team-oms-jenkins.swg-devops.com" in url:
-        return (JFROG_USER, JENKINS_TAAS_TOKEN)
-    if "swg-devops.com" in url:
-        return (JFROG_USER, JFROG_APIKEY)
-    return None
+    dt = datetime.today()
+    year_month = dt.strftime("%Y_%m")
+    week_of_month = get_week_of_month(dt)
+    return f"{year_month}_week_{week_of_month}"
