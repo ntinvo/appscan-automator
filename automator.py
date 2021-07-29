@@ -167,7 +167,7 @@ def static_scan(args):
                 and old_scan_status_dict[project] in PENDING_STATUSES
             ):
                 main_logger.info(f"{project} is PENDING/RUNNING")
-                continue
+                return
 
             # generate config file for appscan
             generate_appscan_config_file(args, project)
