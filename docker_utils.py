@@ -13,9 +13,9 @@ from constants import (
     JFROG_REGISTRY,
     JFROG_USER,
     NETWORK_SCAN,
+    PADDING,
     RT_SCAN,
     VOL_SCAN,
-    PADDING,
 )
 from main_logger import main_logger
 from settings import JFROG_APIKEY
@@ -33,8 +33,7 @@ def docker_login():
     main_logger.info(f"#### Login to {JFROG_REGISTRY} ####")
     main_logger.info(f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}")
     run_subprocess(
-        f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}",
-        logger=main_logger,
+        f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}", logger=main_logger,
     )
 
 
@@ -46,8 +45,7 @@ def docker_logout():
     """
     main_logger.info(f"#### Logout of {JFROG_REGISTRY} ####")
     run_subprocess(
-        f"docker logout {JFROG_REGISTRY}",
-        logger=main_logger,
+        f"docker logout {JFROG_REGISTRY}", logger=main_logger,
     )
 
 
@@ -213,7 +211,7 @@ def start_rt_container(args, image_tag, rt_name=RT_SCAN, logger=main_logger):
     docker_login()
 
     network = "" if args.mode == DEPCHECK else f"--network={NETWORK_SCAN}"
-    port = "" if args.mode == DEPCHECK else "-p 9080:9080"
+    ports = "" if args.mode == DEPCHECK else "-p 9080:9080 -p 9443:9443"
 
     try:
         try:
@@ -228,7 +226,7 @@ def start_rt_container(args, image_tag, rt_name=RT_SCAN, logger=main_logger):
                 -e DB_PORT=50000 \
                 -e DB_VENDOR=db2 \
                 -e DB_NAME=OMDB \
-                {port} \
+                {ports} \
                 {rt_image_repo}",
                 logger=logger,
             )

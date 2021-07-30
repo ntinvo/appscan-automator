@@ -7,7 +7,7 @@ SINGLE_STREAM_RSS_URL = (
     "https://wce-sterling-team-oms-jenkins.swg-devops.com/job/COC_OMS_Dev.Build/rssAll"
 )
 DEPCHECK_REPO = "https://api.github.com/repos/jeremylong/DependencyCheck/releases/latest"
-DEPLOY_SERVER = "http://9.42.105.123:9080"
+DEPLOY_SERVER = "https://9.42.105.123:9443"
 SMCFS_URL = f"{DEPLOY_SERVER}/smcfs/console/login.jsp"
 SBC_URL = f"{DEPLOY_SERVER}/sbc/sbc/login.do"
 SMA_URL = f"{DEPLOY_SERVER}/sma/sma/container/home.do"
