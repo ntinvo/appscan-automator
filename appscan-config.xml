@@ -1,8 +1,17 @@
 <Configuration>
   <Targets>
-    <Target path="PROJECT_PATH">
+    <Target outputs-only="true" path="PROJECT_PATH">
+      <CustomBuildInfo jdk_path="/data/sterling/workspace/ibm_java" jsp_compiler="/data/sterling/apache-tomcat"/>
+      <Exclude>*.jsp</Exclude>
       <Exclude>bin/</Exclude>
+      <Exclude>build/</Exclude>
       <Exclude>NotShipped/</Exclude>
+      <Exclude>RMG_Scripts/</Exclude>
+      <Exclude>Install/</Exclude>
+      <Exclude>HFInstaller/</Exclude>
+      <Exclude>Documentation/</Exclude>
+      <Exclude>documentation/</Exclude>
+      <Exclude>template/</Exclude>
     </Target>
   </Targets>
 </Configuration>

@@ -197,6 +197,7 @@ def static_scan(args):
                         res = requests.post(
                             f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers
                         )
+                    main_logger.info(f"Response: {res}")
                     main_logger.info(f"Response: {res.json()}")
                     main_logger.info(
                         f"PROJECT: {project} - {project_file_name} WAS PROCESSED SUCCESSFULLY."
@@ -280,8 +281,8 @@ def run_scan(args):
         args ([dict]): the arguments passed to the script
     """
     if args.type == ALL:
-        static_scan(args)
         dynamic_scan(args)
+        static_scan(args)
     elif args.type == STATIC:
         static_scan(args)
     else:
