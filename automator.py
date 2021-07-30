@@ -1,10 +1,8 @@
 import csv
 import io
 import json
-import logging
 import os
 import tempfile
-import time
 import traceback
 import zipfile
 
@@ -44,7 +42,6 @@ from constants import (
 )
 from docker_utils import prep_containers, start_rt_container
 from main_logger import main_logger
-from settings import JFROG_APIKEY
 from utils import (
     create_dir,
     get_date_str,
@@ -130,11 +127,11 @@ def static_scan(args):
     old_scan_status_dict = remove_old_scans(SINGLE_STATIC)
 
     # build source code
-    main_logger.info(f"Building source code...")
+    main_logger.info("Building source code...")
     build_source_code(args)
 
     # read the list of projects to scan
-    main_logger.info(f"Getting the projects...")
+    main_logger.info("Getting the projects...")
     projects = get_projects()
 
     # the below block of code would do:
@@ -366,7 +363,7 @@ def static_reports(args):
 @logger
 def asocExport(app_type):
     # filters
-    FILTER = "$filter=Status%20ne%20'Fixed'%20and%20Status%20ne%20'Noise'&$orderby=ScanName"
+    filters = "$filter=Status%20ne%20'Fixed'%20and%20Status%20ne%20'Noise'&$orderby=ScanName"
 
     # prepare the header for requests
     file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
@@ -374,15 +371,15 @@ def asocExport(app_type):
     # request the reports
     app_id = SINGLE_STATIC if app_type == STATIC else SINGLE_DYNAMIC
     res = requests.get(
-        f"{ASOC_API_ENDPOINT}/Issues/Application/{app_id}?{FILTER}", headers=file_req_header
+        f"{ASOC_API_ENDPOINT}/Issues/Application/{app_id}?{filters}", headers=file_req_header
     )
     if res.status_code == 200:
         reports_dir_path = f"reports/{get_date_str()}/{app_type}"
         create_dir(reports_dir_path)
-        with open(f"{reports_dir_path}/issues.json", "w") as f:
-            json.dump(res.json(), f)
-        with open(f"{reports_dir_path}/issues.csv", "w") as f:
-            csv_writer = csv.writer(f)
+        with open(f"{reports_dir_path}/issues.json", "w") as file:
+            json.dump(res.json(), file)
+        with open(f"{reports_dir_path}/issues.csv", "w") as file:
+            csv_writer = csv.writer(file)
             csv_writer.writerow(HEADER_FIELDS)
             for item in res.json()["Items"]:
                 csv_writer.writerow(
@@ -458,8 +455,8 @@ def download_depcheck_tool(download_dir):
     tag_name = res.json()["tag_name"].replace("v", "")
     download_url = f"https://github.com/jeremylong/DependencyCheck/releases/download/v{tag_name}/dependency-check-{tag_name}-release.zip"
     res = requests.get(download_url, allow_redirects=True)
-    zip = zipfile.ZipFile(io.BytesIO(res.content))
-    zip.extractall(f"{download_dir}")
+    zip_file = zipfile.ZipFile(io.BytesIO(res.content))
+    zip_file.extractall(f"{download_dir}")
     run_subprocess(f"chmod +x {download_dir}/dependency-check/bin/dependency-check.sh")
 
 
