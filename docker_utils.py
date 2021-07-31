@@ -31,7 +31,7 @@ def docker_login():
     Login to the registry.
     """
     main_logger.info(f"#### Login to {JFROG_REGISTRY} ####")
-    main_logger.info(f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}")
+    # main_logger.info(f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}")
     run_subprocess(
         f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}", logger=main_logger,
     )
