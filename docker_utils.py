@@ -265,7 +265,7 @@ def needs_server_restart():
     Returns:
         [bool]: True if we need to restart, False otherwise
     """
-    res = requests.get(f"{DEPLOY_SERVER}/sbc/sbc/login.do")
+    res = requests.get(f"{DEPLOY_SERVER}/sbc/sbc/login.do", verify=False)
     return "b_SignInHeader" in res.text
 
 
