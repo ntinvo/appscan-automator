@@ -249,7 +249,7 @@ def wait_for_deployment():
     """
     while True:
         try:
-            res = requests.get(f"{DEPLOY_SERVER}/smcfs/console/login.jsp", timeout=20)
+            res = requests.get(f"{DEPLOY_SERVER}/smcfs/console/login.jsp", timeout=20, verify=False)
             if res.status_code == 200:
                 break
         except Exception as _e:
