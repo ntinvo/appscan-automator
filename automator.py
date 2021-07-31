@@ -176,24 +176,36 @@ def static_scan(args):
             # call ASoC API to create the static scan
             try:
                 main_logger.info(f"Calling ASoC API to create the static scan...")
+
                 with open(f"{tmpdir}/{project_file_name}.irx", "rb") as irx_file:
                     file_data = {"fileToUpload": irx_file}
-
-                    res = requests.post(
-                        f"{ASOC_API_ENDPOINT}/FileUpload", files=file_data, headers=file_req_header
-                    )
-                    if res.status_code == 201:
-                        data = {
-                            "ARSAFileId": res.json()["FileId"],
-                            "ScanName": project,
-                            "AppId": SINGLE_STATIC,
-                            "Locale": "en-US",
-                            "Execute": "true",
-                            "Personal": "false",
-                        }
+                    finished = False
+                    while not finished:
                         res = requests.post(
-                            f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers
+                            f"{ASOC_API_ENDPOINT}/FileUpload",
+                            files=file_data,
+                            headers=file_req_header,
                         )
+                        if res.status_code == 201:
+                            data = {
+                                "ARSAFileId": res.json()["FileId"],
+                                "ScanName": project,
+                                "AppId": SINGLE_STATIC,
+                                "Locale": "en-US",
+                                "Execute": "true",
+                                "Personal": "false",
+                            }
+                            res = requests.post(
+                                f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer",
+                                json=data,
+                                headers=headers,
+                            )
+                        if res.status_code == 401:
+                            main_logger.info(
+                                f"Token {file_req_header} expired. Generating a new one and retry..."
+                            )
+                            file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
+                        finished = True if res.status_code != 401 else False
                     main_logger.info(f"Response: {res}")
                     main_logger.info(f"Response: {res.json()}")
                     main_logger.info(

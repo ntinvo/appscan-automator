@@ -2,6 +2,15 @@
   <Targets>
     <Target outputs-only="true" path="PROJECT_PATH">
       <CustomBuildInfo jdk_path="/data/sterling/workspace/ibm_java" jsp_compiler="/data/sterling/apache-tomcat"/>
+      <Include>*.js</Include>
+      <Include>*.ts</Include>
+      <Include>*.war</Include>
+      <Include>*.ear</Include>
+      <Include>*.jar</Include>
+      <Include>*.class</Include>
+      <Include>*.sql</Include>
+      <Include>*.html</Include>
+
       <Exclude>*.jsp</Exclude>
       <Exclude>bin/</Exclude>
       <Exclude>build/</Exclude>
