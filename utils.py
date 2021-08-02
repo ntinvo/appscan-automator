@@ -312,10 +312,10 @@ def get_files_info_in_zip(zip_file):
 
 @timer
 @f_logger
-def download_appscan():
+def download_appscan(path):
     """
     Download latest appscan
     """
     res = requests.get(APPSCAN_ZIP_URL)
     appscan_zip = zipfile.ZipFile(BytesIO(res.content))
-    appscan_zip.extractall("./tmp", get_files_info_in_zip(appscan_zip))
+    appscan_zip.extractall(path, get_files_info_in_zip(appscan_zip))

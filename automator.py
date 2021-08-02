@@ -6,6 +6,7 @@ import os
 import tempfile
 import traceback
 import zipfile
+from distutils.dir_util import copy_tree
 
 import pandas as pd
 import requests
@@ -43,8 +44,10 @@ from constants import (
 )
 from docker_utils import prep_containers, start_rt_container
 from main_logger import main_logger
+from settings import APPSCAN_HOME
 from utils import (
     create_dir,
+    download_appscan,
     f_logger,
     get_date_str,
     get_latest_stable_image_tags,
@@ -142,6 +145,23 @@ def static_scan(args):
     # - upload the generated irx file to ASoC
     # - create and execute the static scan
     with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdir:
+        # get the latest appscan script
+        download_appscan(f"{tmpdir}/appscan/")
+
+        # update appscan
+        copy_tree(f"{tmpdir}/appscan/", APPSCAN_HOME)
+
+        # if any of the old scan still pending, return
+        for project in projects:
+            project = project.strip()
+            project_file_name = project.strip().replace("/", "_")
+            if (
+                project in old_scan_status_dict
+                and old_scan_status_dict[project] in PENDING_STATUSES
+            ):
+                main_logger.info(f"{project} is PENDING/RUNNING")
+                return
+
         main_logger.debug(f"PROJECTS TO SCAN: {projects}")
         for project in projects:
             project = project.strip()
@@ -159,13 +179,13 @@ def static_scan(args):
                 "#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING)
             )
 
-            # if the old scan still pending, skip
-            if (
-                project in old_scan_status_dict
-                and old_scan_status_dict[project] in PENDING_STATUSES
-            ):
-                main_logger.info(f"{project} is PENDING/RUNNING")
-                return
+            # # if the old scan still pending, skip
+            # if (
+            #     project in old_scan_status_dict
+            #     and old_scan_status_dict[project] in PENDING_STATUSES
+            # ):
+            #     main_logger.info(f"{project} is PENDING/RUNNING")
+            #     return
 
             # generate config file for appscan
             generate_appscan_config_file(args, project)
