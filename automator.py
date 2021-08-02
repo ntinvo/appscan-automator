@@ -240,12 +240,12 @@ def static_scan(args):
                                 json=data,
                                 headers=headers,
                             )
-                        if res.status_code == 401:
-                            main_logger.info(
-                                f"Token {file_req_header} expired. Generating a new one and retry..."
-                            )
-                            file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
-                            continue
+                            if res.status_code == 401:
+                                main_logger.info(
+                                    f"Token {file_req_header} expired. Generating a new one and retry..."
+                                )
+                                file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
+                                continue
                         finished = res.status_code == 201
                         main_logger.info(f"Response: {res.json()}")
                     main_logger.info(
