@@ -6,7 +6,6 @@ import os
 import tempfile
 import traceback
 import zipfile
-from distutils.dir_util import copy_tree
 
 import pandas as pd
 import requests
@@ -44,10 +43,10 @@ from constants import (
 )
 from docker_utils import prep_containers, start_rt_container
 from main_logger import main_logger
-from settings import APPSCAN_HOME
+
+# from settings import APPSCAN_HOME
 from utils import (
     create_dir,
-    download_and_extract_appscan,
     f_logger,
     get_date_str,
     get_latest_stable_image_tags,
@@ -55,6 +54,8 @@ from utils import (
     run_subprocess,
     timer,
 )
+
+# from distutils.dir_util import copy_tree
 
 
 # ********************************* #
