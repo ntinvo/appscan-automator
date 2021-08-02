@@ -3,10 +3,10 @@ import csv
 import io
 import json
 import os
-import shutil
 import tempfile
 import traceback
 import zipfile
+from distutils.dir_util import copy_tree
 
 import pandas as pd
 import requests
@@ -152,9 +152,10 @@ def static_scan(args):
         main_logger.info(
             f"Updating appscan! From {tmpdir}/appscan/{appcan_folder_name} to {APPSCAN_HOME}..."
         )
-        if os.path.exists(APPSCAN_HOME):
-            shutil.rmtree(APPSCAN_HOME)
-        shutil.copytree(f"{tmpdir}/appscan/{appcan_folder_name}/", APPSCAN_HOME)
+        copy_tree(f"{tmpdir}/appscan/{appcan_folder_name}/", APPSCAN_HOME)
+        # if os.path.exists(APPSCAN_HOME):
+        #     shutil.rmtree(APPSCAN_HOME)
+        # shutil.copytree(f"{tmpdir}/appscan/{appcan_folder_name}/", APPSCAN_HOME)
 
         # if any of the old scan still pending, return
         for project in projects:

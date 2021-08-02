@@ -349,8 +349,12 @@ def download_and_extract_appscan(path):
     """
     Download latest appscan
     """
-    download(APPSCAN_ZIP_URL, "appscan.zip", path)
-    appscan_zip = zipfile.ZipFile(f"{path}/appscan.zip")
-    appscan_zip.extractall(f"{path}/appscan/")
+    # download(APPSCAN_ZIP_URL, "appscan.zip", path)
+    # appscan_zip = zipfile.ZipFile(f"{path}/appscan.zip")
+    # appscan_zip.extractall(f"{path}/appscan/")
+    # appcan_folder_name = os.listdir(f"{path}/appscan/")[0]
+    # return appcan_folder_name
+    run_subprocess(f"wget -O {path}/appscan.zip {APPSCAN_ZIP_URL}")
+    run_subprocess(f"unzip -o {path}/appscan.zip -d {path}/appscan/")
     appcan_folder_name = os.listdir(f"{path}/appscan/")[0]
     return appcan_folder_name
