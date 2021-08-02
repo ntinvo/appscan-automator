@@ -149,7 +149,10 @@ def static_scan(args):
         appcan_folder_name = download_and_extract_appscan(f"{tmpdir}/")
 
         # update appscan
-        copy_tree(f"{tmpdir}/appscan/{appcan_folder_name}", APPSCAN_HOME)
+        main_logger.info(
+            f"Updating appscan! From {tmpdir}/appscan/{appcan_folder_name} to {APPSCAN_HOME}..."
+        )
+        copy_tree(f"{tmpdir}/appscan/{appcan_folder_name}/", APPSCAN_HOME)
 
         # if any of the old scan still pending, return
         for project in projects:
