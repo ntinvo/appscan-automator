@@ -17,6 +17,9 @@
 
 import io
 import os
+
+# download_appscan("./tmp")
+import shutil
 import sys
 import zipfile
 from io import BytesIO
@@ -27,7 +30,8 @@ import requests
 from clint.textui import progress
 
 from main_logger import main_logger
-from utils import download_appscan
+
+# from utils import download_appscan
 
 # # dt = datetime.today()
 # # week_of_month = get_week_of_month(dt)
@@ -141,5 +145,11 @@ from utils import download_appscan
 #     "/Users/tinnvo/Desktop/Dev/appscan_automator/appscansrc/",
 # )
 
+# if os.path.exists(to_path):
+#         shutil.rmtree(to_path)
+#     shutil.copytree(from_path, to_path)
 
-download_appscan("./tmp")
+# shutil.copytree(
+#     "/Users/tinnvo/Desktop/Dev/appscan_automator/tmp/appscan/SAClientUtil.8.0.1445",
+#     "/Users/tinnvo/Desktop/Dev/appscan_automator/tmp/tt",
+# )
