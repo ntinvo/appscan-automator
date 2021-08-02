@@ -30,6 +30,7 @@ from constants import (
     DEPCHECK_SCAN,
     DYNAMIC,
     HEADER_FIELDS,
+    MAX_TRIES,
     NETWORK_SCAN,
     PADDING,
     PENDING_STATUSES,
@@ -208,13 +209,23 @@ def static_scan(args):
                 with open(f"{tmpdir}/{project_file_name}.irx", "rb") as irx_file:
                     file_data = {"fileToUpload": irx_file}
                     finished = False
+                    try_count = 0
                     while not finished:
+                        if try_count >= MAX_TRIES:
+                            break
+                        try_count += 1
                         file_upload_res = requests.post(
                             f"{ASOC_API_ENDPOINT}/FileUpload",
                             files=file_data,
                             headers=file_req_header,
                         )
                         main_logger.info(f"File Upload Response: {file_upload_res.json()}")
+                        if file_upload_res.status_code == 401:
+                            main_logger.info(
+                                f"Token {file_req_header} expired. Generating a new one and retry..."
+                            )
+                            file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
+                            continue
                         if file_upload_res.status_code == 201:
                             data = {
                                 "ARSAFileId": file_upload_res.json()["FileId"],
@@ -234,7 +245,8 @@ def static_scan(args):
                                 f"Token {file_req_header} expired. Generating a new one and retry..."
                             )
                             file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
-                        finished = True if res.status_code != 401 else False
+                            continue
+                        finished = res.status_code == 201
                         main_logger.info(f"Response: {res.json()}")
                     main_logger.info(
                         f"PROJECT: {project} - {project_file_name} WAS PROCESSED SUCCESSFULLY."

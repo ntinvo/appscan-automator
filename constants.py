@@ -55,7 +55,7 @@ ASOC_API_ENDPOINT = "https://cloud.appscan.com/api/v2"
 APPSCAN_CONFIG = "appscan-config.xml"
 APPSCAN_CONFIG_TMP = "appscan-config-tmp.xml"
 APPSCAN_ZIP_URL = "https://cloud.appscan.com/api/SCX/StaticAnalyzer/SAClientUtil?os=linux"
-
+MAX_TRIES = 5
 HEADER_FIELDS = [
     "ScanName",
     "DateCreated",
