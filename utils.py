@@ -1,4 +1,3 @@
-import argparse
 import errno
 import functools
 import logging
@@ -8,7 +7,9 @@ import sys
 import time
 import traceback
 import xml.etree.ElementTree as ET
+import zipfile
 from datetime import datetime
+from io import BytesIO
 from math import ceil
 
 import coloredlogs
@@ -16,7 +17,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from args import init_argparse
-from constants import JFROG_USER, NS, SINGLE_STREAM_RSS_URL
+from constants import APPSCAN_ZIP_URL, JFROG_USER, NS, SINGLE_STREAM_RSS_URL
 from main_logger import main_logger
 from settings import JENKINS_TAAS_TOKEN, JFROG_APIKEY
 
@@ -266,3 +267,36 @@ def get_date_str():
     year_month = dt.strftime("%Y_%m")
     week_of_month = get_week_of_month(dt)
     return f"{year_month}_week_{week_of_month}"
+
+
+@timer
+@logger
+def get_files_info_in_zip(zip_file):
+    """
+    Generator to return the file info in the zipfile
+
+    Args:
+        zip_file ([type]): zip file
+
+    """
+    paths = []
+    for name in zip_file.namelist():
+        paths.append(name.split("/"))
+    top_level_dir = os.path.commonprefix(paths)
+    top_level_dir = "/".join(top_level_dir) + "/" if top_level_dir else top_level_dir
+    for zip_file_info in zip_file.infolist():
+        name = zip_file_info.filename
+        if len(name) > len(top_level_dir):
+            zip_file_info.filename = name[len(top_level_dir) :]
+            yield zip_file_info
+
+
+@timer
+@logger
+def download_appscan():
+    """
+    Download latest appscan
+    """
+    res = requests.get(APPSCAN_ZIP_URL)
+    appscan_zip = zipfile.ZipFile(BytesIO(res.content))
+    appscan_zip.extractall("./tmp", get_files_info_in_zip(appscan_zip))
