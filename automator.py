@@ -7,7 +7,6 @@ import shutil
 import tempfile
 import traceback
 import zipfile
-from distutils.dir_util import copy_tree
 
 import pandas as pd
 import requests
