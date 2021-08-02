@@ -1,18 +1,16 @@
-import logging
+""" Appscan Utils """
 import time
 
 import requests
-from requests.models import Response
 
-from constants import (ASOC_API_ENDPOINT, JFROG_USER, PENDING_STATUSES,
-                       TIME_TO_SLEEP)
+from constants import ASOC_API_ENDPOINT, PENDING_STATUSES, TIME_TO_SLEEP
 from main_logger import main_logger
-from settings import JENKINS_TAAS_TOKEN, JFROG_APIKEY, KEY_ID, KEY_SECRET
-from utils import create_dir, get_date_str, logger, timer
+from settings import KEY_ID, KEY_SECRET
+from utils import create_dir, f_logger, get_date_str, timer
 
 
 @timer
-@logger
+@f_logger
 def get_bearer_token():
     """
     Get the bearer token for ASoC API requests.
@@ -38,7 +36,7 @@ headers = {
 
 
 @timer
-@logger
+@f_logger
 def get_download_config(name):
     """
     Get the report download configurations
@@ -71,8 +69,8 @@ def get_download_config(name):
 
 
 @timer
-@logger
-def download_report(type, report):
+@f_logger
+def download_report(scan_type, report):
     """
     Download the generated report.
 
@@ -82,14 +80,14 @@ def download_report(type, report):
     """
     res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/Download/{report['Id']}", headers=headers)
     if res.status_code == 200:
-        reports_dir_path = f"reports/{get_date_str()}/{type}"
+        reports_dir_path = f"reports/{get_date_str()}/{scan_type}"
         create_dir(reports_dir_path)
-        with open(f"{reports_dir_path}/{report['Name']}.html", "wb") as f:
-            f.write(res.content)
+        with open(f"{reports_dir_path}/{report['Name']}.html", "wb") as file:
+            file.write(res.content)
 
 
 @timer
-@logger
+@f_logger
 def get_scans(app_id):
     """
         Get the list of scans for the application.
@@ -106,7 +104,7 @@ def get_scans(app_id):
 
 
 @timer
-@logger
+@f_logger
 def remove_old_scans(app_id):
     """
     Remove old scan by calling the ASoC API.
@@ -139,29 +137,26 @@ def remove_old_scans(app_id):
         main_logger.info(f"Removing {old_scan['Name']} - {old_scan['Id']}... ")
         try:
             _ = requests.delete(
-                f"{ASOC_API_ENDPOINT}/Scans/{old_scan['Id']}?deleteIssues=true",
-                headers=headers,
+                f"{ASOC_API_ENDPOINT}/Scans/{old_scan['Id']}?deleteIssues=true", headers=headers,
             )
-        except Exception as e:
-            main_logger.warning(e)
+        except Exception as error:
+            main_logger.warning(error)
 
     # reset the app
     try:
         main_logger.info(f"Resetting app {app_id}")
         reset_app_config_data = {"DeleteIssues": "true"}
         _ = requests.delete(
-            f"{ASOC_API_ENDPOINT}/Apps/{app_id}/Reset",
-            json=reset_app_config_data,
-            headers=headers,
+            f"{ASOC_API_ENDPOINT}/Apps/{app_id}/Reset", json=reset_app_config_data, headers=headers,
         )
-    except Exception as e:
-        main_logger.warning(e)
+    except Exception as error:
+        main_logger.warning(error)
 
     return scan_status_dict
 
 
 @timer
-@logger
+@f_logger
 def wait_for_report(report):
     """
     Wait for the generated report to be ready.

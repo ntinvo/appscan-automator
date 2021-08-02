@@ -1,3 +1,4 @@
+""" Constants """
 # consts
 PADDING = 4
 JFROG_REGISTRY = "wce-oms-onprem-dev-imgs-docker-local.artifactory.swg-devops.com"

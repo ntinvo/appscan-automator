@@ -1,3 +1,4 @@
+""" Utils """
 import errno
 import functools
 import logging
@@ -22,7 +23,7 @@ from main_logger import main_logger
 from settings import JENKINS_TAAS_TOKEN, JFROG_APIKEY
 
 
-def logger(func):
+def f_logger(func):
     """
     Print the function signature and return value.
 
@@ -44,9 +45,9 @@ def logger(func):
             value = func(*args, **kwargs)
             main_logger.debug(f"{func.__name__!r} returned {value!r}")
             return value
-        except Exception as e:
+        except Exception as error:
             main_logger.error(traceback.format_exc())
-            main_logger.error(f"ERROR - {func.__name__} : {e}")
+            main_logger.error(f"ERROR - {func.__name__} : {error}")
             raise
         finally:
             main_logger.info(f"END - {func.__name__}")
@@ -139,7 +140,7 @@ def run_subprocess(command, timeout=None, logger=main_logger):
             logger.error(f"ERROR: {err}")
             raise Exception(err)
     retval = popen.wait(timeout)
-    subprocess.run(["stty", "sane"])
+    subprocess.run(["stty", "sane"])  # pylint: disable=subprocess-run-check
     return retval, output
 
 
@@ -169,7 +170,7 @@ def parse_arguments():
 
 
 @timer
-@logger
+@f_logger
 def fetch_available_build_urls(url):
     """
     Fetch all of the stable build urls from Jenkins server.
@@ -195,7 +196,7 @@ def fetch_available_build_urls(url):
 
 
 @timer
-@logger
+@f_logger
 def get_latest_stable_image_tags():
     """
     Get latest stable image tag.
@@ -216,7 +217,7 @@ def get_latest_stable_image_tags():
 
 
 @timer
-@logger
+@f_logger
 def create_dir(path):
     """
     Create the directory if not exist
@@ -227,14 +228,23 @@ def create_dir(path):
     if not os.path.exists(path):
         try:
             os.makedirs(path)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
+        except OSError as error:
+            if error.errno != errno.EEXIST:
                 raise
 
 
 @timer
-@logger
+@f_logger
 def get_auth(url):
+    """
+    Get authentication tokens
+
+    Args:
+        url ([str]): request url
+
+    Returns:
+        [tuple]: user name and tokens
+    """
     if "wce-sterling-team-oms-jenkins.swg-devops.com" in url:
         return (JFROG_USER, JENKINS_TAAS_TOKEN)
     if "swg-devops.com" in url:
@@ -243,10 +253,19 @@ def get_auth(url):
 
 
 @timer
-@logger
-def get_week_of_month(dt):
+@f_logger
+def get_week_of_month(dt_obj):
+    """
+    Get the week number of the month
+
+    Args:
+        dt_obj ([datetime]): date time object
+
+    Returns:
+        [int]: week number
+    """
     first_day = datetime.today().replace(day=1)
-    day_of_month = dt.day
+    day_of_month = dt_obj.day
     if first_day.weekday() == 6:
         adjusted_dom = (1 + first_day.weekday()) / 7
     else:
@@ -255,7 +274,7 @@ def get_week_of_month(dt):
 
 
 @timer
-@logger
+@f_logger
 def get_date_str():
     """
     Get today date string
@@ -263,14 +282,14 @@ def get_date_str():
     Returns:
         [str]: the date string to return in yyyy-mm-dd format
     """
-    dt = datetime.today()
-    year_month = dt.strftime("%Y_%m")
-    week_of_month = get_week_of_month(dt)
+    dt_obj = datetime.today()
+    year_month = dt_obj.strftime("%Y_%m")
+    week_of_month = get_week_of_month(dt_obj)
     return f"{year_month}_week_{week_of_month}"
 
 
 @timer
-@logger
+@f_logger
 def get_files_info_in_zip(zip_file):
     """
     Generator to return the file info in the zipfile
@@ -292,7 +311,7 @@ def get_files_info_in_zip(zip_file):
 
 
 @timer
-@logger
+@f_logger
 def download_appscan():
     """
     Download latest appscan

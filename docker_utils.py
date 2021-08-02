@@ -1,4 +1,4 @@
-import logging
+""" Docker Utils """
 import os
 import time
 import traceback
@@ -19,13 +19,13 @@ from constants import (
 )
 from main_logger import main_logger
 from settings import JFROG_APIKEY
-from utils import logger, run_subprocess, timer
+from utils import f_logger, run_subprocess, timer
 
 client = docker.from_env()
 
 
 @timer
-@logger
+@f_logger
 def docker_login():
     """
     Login to the registry.
@@ -38,7 +38,7 @@ def docker_login():
 
 
 @timer
-@logger
+@f_logger
 def docker_logout():
     """
     Logout of the registry.
@@ -50,7 +50,7 @@ def docker_logout():
 
 
 @timer
-@logger
+@f_logger
 def get_remove_image_list(args):
     """
     Get the list of image to remove before spinning up new containers.
@@ -71,7 +71,7 @@ def get_remove_image_list(args):
 
 
 @timer
-@logger
+@f_logger
 def cleanup_helper(cmd):
     """
     Clean up helper to run the command passed by cleanup func
@@ -81,12 +81,12 @@ def cleanup_helper(cmd):
     """
     try:
         run_subprocess(cmd)
-    except Exception as e:
-        main_logger.warning(e)
+    except Exception as error:
+        main_logger.warning(error)
 
 
 @timer
-@logger
+@f_logger
 def cleanup(args):
     """
     Cleaning up the resources before creating new containers.
@@ -119,34 +119,34 @@ def cleanup(args):
     try:
         main_logger.info(f"Removing db2 container {DB2_SCAN}...")
         cleanup_helper(f"docker rm -f {DB2_SCAN}")
-    except Exception as e:
-        main_logger.info(e)
+    except Exception as error:
+        main_logger.info(error)
 
     # removing runtime container
     try:
         main_logger.info(f"Removing volume {VOL_SCAN}...")
         cleanup_helper(f"docker volume rm -f {VOL_SCAN}")
-    except Exception as e:
-        main_logger.info(e)
+    except Exception as error:
+        main_logger.info(error)
 
     # removing scan network
     try:
         main_logger.info(f"Removing network {NETWORK_SCAN}")
         run_subprocess(f"docker network rm {NETWORK_SCAN}")
-    except Exception as e:
-        main_logger.info(e)
+    except Exception as error:
+        main_logger.info(error)
 
     # removing images
     for image in remove_images:
         try:
             main_logger.info(f"Removing image {image}...")
             cleanup_helper(f"docker rmi {image}")
-        except Exception as e:
-            main_logger.info(e)
+        except Exception as error:
+            main_logger.info(error)
 
 
 @timer
-@logger
+@f_logger
 def start_db2_container(args, image_tag, logger=main_logger):
     """
     Start the db2 container for deployment.
@@ -165,7 +165,7 @@ def start_db2_container(args, image_tag, logger=main_logger):
 
         try:
             run_subprocess(f"docker network rm {NETWORK_SCAN}")
-        except Exception as e:
+        except Exception as error:
             pass
 
         run_subprocess(
@@ -187,14 +187,14 @@ def start_db2_container(args, image_tag, logger=main_logger):
             /bin/bash {os.getcwd()}/waitDB2.sh {DB2_SCAN}",
             logger=logger,
         )
-    except Exception as e:
+    except Exception as error:
         # logger.error(traceback.format_exc())
-        logger.warning(e)
-        raise Exception
+        logger.warning(error)
+        raise Exception  # pylint: disable=raise-missing-from
 
 
 @timer
-@logger
+@f_logger
 def start_rt_container(args, image_tag, rt_name=RT_SCAN, logger=main_logger):
     """
     Start the rt container for deployment
@@ -230,19 +230,19 @@ def start_rt_container(args, image_tag, rt_name=RT_SCAN, logger=main_logger):
                 {rt_image_repo}",
                 logger=logger,
             )
-        except Exception as e:
-            logger.warning(e)
-    except Exception as e:
+        except Exception as error:
+            logger.warning(error)
+    except Exception as error:
         logger.error(traceback.format_exc())
-        logger.error(e)
-        raise Exception
+        logger.error(error)
+        raise Exception  # pylint: disable=raise-missing-from
 
     # logout of registry
     docker_logout()
 
 
 @timer
-@logger
+@f_logger
 def wait_for_deployment():
     """
     Waiting for the deployment to be ready.
@@ -257,7 +257,7 @@ def wait_for_deployment():
 
 
 @timer
-@logger
+@f_logger
 def needs_server_restart():
     """
     Check if we need to restart the application server or not
@@ -270,7 +270,7 @@ def needs_server_restart():
 
 
 @timer
-@logger
+@f_logger
 def prep_containers(args, image_tags):
     """
     Prepare the rt and db2 container. This function will do the followings:
@@ -306,8 +306,8 @@ def prep_containers(args, image_tags):
             start_db2_container(args, image_tag)
             start_rt_container(args, image_tag)
             break
-        except Exception as e:
-            main_logger.warning(e)
+        except Exception as error:
+            main_logger.warning(error)
 
     # build the ear
     main_logger.info("Building ear file...")

@@ -1,0 +1,7 @@
+[FORMAT]
+
+# Maximum number of characters on a single line.
+max-line-length=300
+
+[LOGGING]
+disable=logging-fstring-interpolation, logging-not-lazy, broad-except, too-many-nested-blocks, no-name-in-module, duplicate-code, import-error

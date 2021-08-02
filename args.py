@@ -1,3 +1,4 @@
+""" Arguments """
 import argparse
 import logging
 import os
@@ -33,11 +34,7 @@ def add_output_arg(parser):
         required (bool, optional): required or not. Defaults to False.
     """
     parser.add_argument(
-        "-o",
-        "--output",
-        dest="output",
-        help=f"path to store the reports",
-        default=f"{os.getcwd()}",
+        "-o", "--output", dest="output", help="path to store the reports", default=f"{os.getcwd()}",
     )
 
 
@@ -54,7 +51,7 @@ def add_version_arg(parser, required=False):
         "--version",
         required=required,
         choices=[SINGLE, COCDEV, COC, V95, V10],
-        help=f"version to run the scan on",
+        help="version to run the scan on",
         default=SINGLE,
     )
 
@@ -84,7 +81,7 @@ def init_argparse():
         e: error thrown when init the arguments
 
     Returns:
-        [dict]: dict of arguments 
+        [dict]: dict of arguments
     """
     try:
         parser = argparse.ArgumentParser(
@@ -108,21 +105,20 @@ def init_argparse():
                 mode_subparser = mode_parser.add_subparsers(
                     title="type", dest="type", description="type of scan to run", required=True
                 )
-                for type in [ALL, STATIC, DYNAMIC]:
-                    type_parser = mode_subparser.add_parser(type)
+                for scan_type in [ALL, STATIC, DYNAMIC]:
+                    type_parser = mode_subparser.add_parser(scan_type)
                     add_optionals_args(type_parser)
                     if mode == SCAN:
-                        if type == ALL or type == STATIC:
+                        if scan_type in (ALL, STATIC):
                             add_source_arg(type_parser, required=True)
-                        if type == ALL or type == DYNAMIC:
+                        if scan_type in (ALL, DYNAMIC):
                             add_version_arg(type_parser)
                     if mode == REPORTS:
                         add_output_arg(type_parser)
         arguments = parser.parse_args()
-    except argparse.ArgumentError as e:
+    except argparse.ArgumentError as error:
         main_logger.error("Error parsing arguments")
-        raise e
+        raise error
     else:
         main_logger.info(f"Arguments have been parsed: {arguments}")
         return arguments
-

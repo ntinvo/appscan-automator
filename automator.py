@@ -1,3 +1,4 @@
+""" Automator """
 import csv
 import io
 import json
@@ -44,9 +45,9 @@ from docker_utils import prep_containers, start_rt_container
 from main_logger import main_logger
 from utils import (
     create_dir,
+    f_logger,
     get_date_str,
     get_latest_stable_image_tags,
-    logger,
     parse_arguments,
     run_subprocess,
     timer,
@@ -57,7 +58,7 @@ from utils import (
 # *        STATIC SCAN PREP       * #
 # ********************************* #
 @timer
-@logger
+@f_logger
 def get_projects():
     """
     Get the list of projects to scan.
@@ -66,13 +67,13 @@ def get_projects():
         [list]: list of the oms projects to scan
     """
     projects = []
-    with open("projects.list", "r") as f:
-        projects = f.readlines()
+    with open("projects.list", "r") as file:
+        projects = file.readlines()
     return projects
 
 
 @timer
-@logger
+@f_logger
 def build_source_code(args):
     """
     Build the source code to prep for the scans.
@@ -104,14 +105,14 @@ def generate_appscan_config_file(args, project):
         args ([dict]): the arguments passed to the script
         project ([str]): the project name
     """
-    with open(APPSCAN_CONFIG) as r:
-        text = r.read().replace("PROJECT_PATH", f"{args.source}/{project.strip()}")
-    with open(APPSCAN_CONFIG_TMP, "w") as w:
-        w.write(text)
+    with open(APPSCAN_CONFIG) as reader:
+        text = reader.read().replace("PROJECT_PATH", f"{args.source}/{project.strip()}")
+    with open(APPSCAN_CONFIG_TMP, "w") as writer:
+        writer.write(text)
 
 
 @timer
-@logger
+@f_logger
 def static_scan(args):
     """
     Prepare and run the static scan.
@@ -175,7 +176,7 @@ def static_scan(args):
 
             # call ASoC API to create the static scan
             try:
-                main_logger.info(f"Calling ASoC API to create the static scan...")
+                main_logger.info("Calling ASoC API to create the static scan...")
 
                 with open(f"{tmpdir}/{project_file_name}.irx", "rb") as irx_file:
                     file_data = {"fileToUpload": irx_file}
@@ -212,16 +213,16 @@ def static_scan(args):
                         f"PROJECT: {project} - {project_file_name} WAS PROCESSED SUCCESSFULLY."
                     )
                     print()
-            except Exception as e:
+            except Exception as error:
                 main_logger.warning(traceback.format_exc())
-                main_logger.warning(e)
+                main_logger.warning(error)
 
 
 # ********************************* #
 # *       DYNAMIC SCAN PREP       * #
 # ********************************* #
 @timer
-@logger
+@f_logger
 def dynamic_scan(args):
     """
     Prepare and run the dynamic scan.
@@ -281,7 +282,7 @@ def dynamic_scan(args):
 
 
 @timer
-@logger
+@f_logger
 def run_scan(args):
     """
     Run the scans. This can run either static or dynamic or both
@@ -302,8 +303,8 @@ def run_scan(args):
 # *            REPORTS            * #
 # ********************************* #
 @timer
-@logger
-def dynamic_reports(args):
+@f_logger
+def dynamic_reports():
     """
     Generate and download dynamic reports.
 
@@ -333,8 +334,8 @@ def dynamic_reports(args):
 
 
 @timer
-@logger
-def static_reports(args):
+@f_logger
+def static_reports():
     """
     Generate and download static reports.
 
@@ -372,8 +373,14 @@ def static_reports(args):
 
 
 @timer
-@logger
-def asocExport(app_type):
+@f_logger
+def asoc_export(app_type):
+    """
+    Generate/export scan results.
+
+    Args:
+        app_type ([str]): type of scan
+    """
     # filters
     filters = "$filter=Status%20ne%20'Fixed'%20and%20Status%20ne%20'Noise'&$orderby=ScanName"
 
@@ -427,7 +434,7 @@ def asocExport(app_type):
 
 
 @timer
-@logger
+@f_logger
 def get_reports(args):
     """Get the reports for the scans
 
@@ -435,16 +442,16 @@ def get_reports(args):
         args ([dict]): the arguments passed to the script
     """
     if args.type == ALL:
-        static_reports(args)
-        dynamic_reports(args)
-        asocExport(DYNAMIC)
-        asocExport(STATIC)
+        static_reports()
+        dynamic_reports()
+        asoc_export(DYNAMIC)
+        asoc_export(STATIC)
     elif args.type == STATIC:
-        static_reports(args)
-        asocExport(STATIC)
+        static_reports()
+        asoc_export(STATIC)
     elif args.type == DYNAMIC:
-        dynamic_reports(args)
-        asocExport(DYNAMIC)
+        dynamic_reports()
+        asoc_export(DYNAMIC)
 
     # copy reports to output directory
     run_subprocess(f"rsync -a -v --ignore-existing {os.getcwd()}/reports {args.output}")
@@ -454,7 +461,7 @@ def get_reports(args):
 # *           DEPCHECK            * #
 # ********************************* #
 @timer
-@logger
+@f_logger
 def download_depcheck_tool(download_dir):
     """
     Download depcheck tool.
@@ -473,7 +480,7 @@ def download_depcheck_tool(download_dir):
 
 
 @timer
-@logger
+@f_logger
 def depcheck(args):
     """
     Run and export report for the dependency check.
@@ -496,12 +503,12 @@ def depcheck(args):
                 main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
                 try:
                     start_rt_container(args, image_tag, rt_name=DEPCHECK_SCAN)
-                except Exception as e:
-                    main_logger.warning(e)
+                except Exception as error:
+                    main_logger.warning(error)
                     continue
                 break
-        except Exception as e:
-            main_logger.warning(e)
+        except Exception as error:
+            main_logger.warning(error)
 
         # build the ear
         main_logger.info("Building ear file...")
@@ -549,9 +556,9 @@ def depcheck(args):
             # copy reports to output directory
             run_subprocess(f"rsync -a -v --ignore-existing {os.getcwd()}/reports {args.output}")
 
-    except Exception as e:
+    except Exception as error:
         main_logger.warning(traceback.format_exc())
-        main_logger.warning(e)
+        main_logger.warning(error)
         run_subprocess(f"docker rm -f {DEPCHECK_SCAN}")
     finally:
         run_subprocess(f"docker rm -f {DEPCHECK_SCAN}")
@@ -561,8 +568,11 @@ def depcheck(args):
 # *             MAIN              * #
 # ********************************* #
 @timer
-@logger
+@f_logger
 def main():
+    """
+    Main
+    """
     try:
         args = parse_arguments()
         main_logger.info(args)
@@ -572,8 +582,8 @@ def main():
             get_reports(args)
         elif args.mode == DEPCHECK:
             depcheck(args)
-    except Exception as e:
-        main_logger.info(e)
+    except Exception as error:
+        main_logger.info(error)
         try:
             run_subprocess(f"docker network rm {NETWORK_SCAN}")
         except Exception as _:
