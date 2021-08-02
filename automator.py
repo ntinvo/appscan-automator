@@ -145,14 +145,14 @@ def static_scan(args):
     # - upload the generated irx file to ASoC
     # - create and execute the static scan
     with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdir:
-        # get the latest appscan script
-        appcan_folder_name = download_and_extract_appscan(f"{tmpdir}/")
+        # # get the latest appscan script
+        # appcan_folder_name = download_and_extract_appscan(f"{tmpdir}/")
 
-        # update appscan
-        main_logger.info(
-            f"Updating appscan! From {tmpdir}/appscan/{appcan_folder_name} to {APPSCAN_HOME}..."
-        )
-        copy_tree(f"{tmpdir}/appscan/{appcan_folder_name}/", APPSCAN_HOME)
+        # # update appscan
+        # main_logger.info(
+        #     f"Updating appscan! From {tmpdir}/appscan/{appcan_folder_name} to {APPSCAN_HOME}..."
+        # )
+        # copy_tree(f"{tmpdir}/appscan/{appcan_folder_name}/", APPSCAN_HOME)
         # if os.path.exists(APPSCAN_HOME):
         #     shutil.rmtree(APPSCAN_HOME)
         # shutil.copytree(f"{tmpdir}/appscan/{appcan_folder_name}/", APPSCAN_HOME)

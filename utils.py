@@ -8,7 +8,6 @@ import sys
 import time
 import traceback
 import xml.etree.ElementTree as ET
-import zipfile
 from datetime import datetime
 from math import ceil
 
