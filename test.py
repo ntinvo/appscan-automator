@@ -15,14 +15,19 @@
 # #         adjusted_dom = day_of_month + first_day.weekday()
 # #     return int(ceil(adjusted_dom / 7.0))
 
+import io
+import os
+import sys
+import zipfile
+from io import BytesIO
+from urllib.request import urlopen
+from zipfile import ZipFile
 
-# import io
-# import os
-# import sys
-# import zipfile
-# from io import BytesIO
-# from urllib.request import urlopen
-# from zipfile import ZipFile
+import requests
+from clint.textui import progress
+
+from main_logger import main_logger
+from utils import download_appscan
 
 # # dt = datetime.today()
 # # week_of_month = get_week_of_month(dt)
@@ -72,10 +77,40 @@
 #             yield zip_file_info
 
 
-# # res = requests.get("https://cloud.appscan.com/api/SCX/StaticAnalyzer/SAClientUtil?os=linux")
-# # appscan_zip = zipfile.ZipFile(io.BytesIO(res.content))
-# # # appscan_zip = ZipFile("/Users/tinnvo/Desktop/Dev/appscan_automator/SAClientUtil_8.0.1445_linux.zip")
-# # appscan_zip.extractall("./tmp", get_members(appscan_zip))
+# def download(url, filename, context):
+#     try:
+#         res = requests.get(url, stream=True)
+#         main_logger.info(f"Download {filename} returned {res.status_code}")
+#         if res.status_code != 200:
+#             return False
+#         total_length = int(res.headers.get("content-length"))
+#         with open(f"{context}/{filename}", "wb") as file:
+#             total_length = int(res.headers.get("content-length"))
+#             for chunk in progress.bar(
+#                 res.iter_content(chunk_size=1024),
+#                 expected_size=(total_length / 1024) + 1,
+#                 label="Downloading. Please wait >>> ",
+#             ):
+#                 if chunk:
+#                     file.write(chunk)
+#                     file.flush()
+#         return True
+#     except Exception as error:
+#         main_logger.earning(error)
+#         raise
+
+
+# download(
+#     "https://cloud.appscan.com/api/SCX/StaticAnalyzer/SAClientUtil?os=linux",
+#     "appscan.zip",
+#     "./tmp/",
+# )
+# res = requests.get("https://cloud.appscan.com/api/SCX/StaticAnalyzer/SAClientUtil?os=linux")
+# appscan_zip = zipfile.ZipFile(io.BytesIO(res.content))
+# appscan_zip = ZipFile("./tmp/appscan.zip")
+# appscan_zip.extractall("./tmp/appscan")
+# print(os.listdir("./tmp/appscan/"))
+# appscan_zip.extractall("./tmp")
 
 # from main_logger import main_logger
 
@@ -105,3 +140,6 @@
 #     "/Users/tinnvo/Desktop/Dev/appscan_automator/tmp/",
 #     "/Users/tinnvo/Desktop/Dev/appscan_automator/appscansrc/",
 # )
+
+
+download_appscan("./tmp")

@@ -10,12 +10,12 @@ import traceback
 import xml.etree.ElementTree as ET
 import zipfile
 from datetime import datetime
-from io import BytesIO
 from math import ceil
 
 import coloredlogs
 import requests
 from bs4 import BeautifulSoup
+from clint.textui import progress
 
 from args import init_argparse
 from constants import APPSCAN_ZIP_URL, JFROG_USER, NS, SINGLE_STREAM_RSS_URL
@@ -312,10 +312,45 @@ def get_files_info_in_zip(zip_file):
 
 @timer
 @f_logger
-def download_appscan(path):
+def download(url, filename, context):
+    """
+    Download file given the url
+
+    Args:
+        url (str): file url
+        filename (str): filename to save
+        context (str): directory to save file to
+    """
+    try:
+        res = requests.get(url, stream=True)
+        main_logger.info(f"Download {filename} returned {res.status_code}")
+        if res.status_code != 200:
+            return False
+        total_length = int(res.headers.get("content-length"))
+        with open(f"{context}/{filename}", "wb") as file:
+            total_length = int(res.headers.get("content-length"))
+            for chunk in progress.bar(
+                res.iter_content(chunk_size=1024),
+                expected_size=(total_length / 1024) + 1,
+                label="Downloading. Please wait >>> ",
+            ):
+                if chunk:
+                    file.write(chunk)
+                    file.flush()
+        return True
+    except Exception as error:
+        main_logger.earning(error)
+        raise
+
+
+@timer
+@f_logger
+def download_and_extract_appscan(path):
     """
     Download latest appscan
     """
-    res = requests.get(APPSCAN_ZIP_URL)
-    appscan_zip = zipfile.ZipFile(BytesIO(res.content))
-    appscan_zip.extractall(path, get_files_info_in_zip(appscan_zip))
+    download(APPSCAN_ZIP_URL, "appscan.zip", path)
+    appscan_zip = zipfile.ZipFile(f"{path}/appscan.zip")
+    appscan_zip.extractall(f"{path}/appscan/")
+    appcan_folder_name = os.listdir(f"{path}/appscan/")[0]
+    return appcan_folder_name

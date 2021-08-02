@@ -47,7 +47,7 @@ from main_logger import main_logger
 from settings import APPSCAN_HOME
 from utils import (
     create_dir,
-    download_appscan,
+    download_and_extract_appscan,
     f_logger,
     get_date_str,
     get_latest_stable_image_tags,
@@ -146,10 +146,10 @@ def static_scan(args):
     # - create and execute the static scan
     with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdir:
         # get the latest appscan script
-        download_appscan(f"{tmpdir}/appscan/")
+        appcan_folder_name = download_and_extract_appscan(f"{tmpdir}/")
 
         # update appscan
-        copy_tree(f"{tmpdir}/appscan/", APPSCAN_HOME)
+        copy_tree(f"{tmpdir}/appscan/{appcan_folder_name}", APPSCAN_HOME)
 
         # if any of the old scan still pending, return
         for project in projects:
