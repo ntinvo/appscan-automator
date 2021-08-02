@@ -209,14 +209,15 @@ def static_scan(args):
                     file_data = {"fileToUpload": irx_file}
                     finished = False
                     while not finished:
-                        res = requests.post(
+                        file_upload_res = requests.post(
                             f"{ASOC_API_ENDPOINT}/FileUpload",
                             files=file_data,
                             headers=file_req_header,
                         )
-                        if res.status_code == 201:
+                        main_logger.info(f"File Upload Response: {file_upload_res.json()}")
+                        if file_upload_res.status_code == 201:
                             data = {
-                                "ARSAFileId": res.json()["FileId"],
+                                "ARSAFileId": file_upload_res.json()["FileId"],
                                 "ScanName": project,
                                 "AppId": SINGLE_STATIC,
                                 "Locale": "en-US",
@@ -234,8 +235,7 @@ def static_scan(args):
                             )
                             file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
                         finished = True if res.status_code != 401 else False
-                    main_logger.info(f"Response: {res}")
-                    main_logger.info(f"Response: {res.json()}")
+                        main_logger.info(f"Response: {res.json()}")
                     main_logger.info(
                         f"PROJECT: {project} - {project_file_name} WAS PROCESSED SUCCESSFULLY."
                     )
