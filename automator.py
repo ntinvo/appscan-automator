@@ -24,7 +24,6 @@ from constants import (
     ALL,
     APP_URL_DICT,
     APPSCAN_CONFIG,
-    APPSCAN_CONFIG_TMP,
     ASOC_API_ENDPOINT,
     DEPCHECK,
     DEPCHECK_REPO,
@@ -113,7 +112,7 @@ def generate_appscan_config_file(args, project):
     """
     with open(APPSCAN_CONFIG) as reader:
         text = reader.read().replace("PROJECT_PATH", f"{args.source}/{project.strip()}")
-    with open(APPSCAN_CONFIG_TMP, "w") as writer:
+    with open(f"appscan-config-{project}-tmp.xml", "w") as writer:
         writer.write(text)
 
 
@@ -136,7 +135,7 @@ def create_static_scan(args, project, tmpdir, file_req_header):
     generate_appscan_config_file(args, project)
     main_logger.info(f"Generating {project_file_name}.irx file...")
     run_subprocess(
-        f"source ~/.bashrc && appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_file_name}.irx -d {tmpdir}"
+        f"source ~/.bashrc && appscan.sh prepare -c appscan-config-{project}-tmp.xml -n {project_file_name}.irx -d {tmpdir}"
     )
 
     # call ASoC API to create the static scan
