@@ -102,7 +102,7 @@ def build_source_code(args):
     # run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle fullbuild --stacktrace")
 
 
-def generate_appscan_config_file(args, project):
+def generate_appscan_config_file(args, project, project_file_name):
     """
     Generate appscan config file.
 
@@ -112,7 +112,7 @@ def generate_appscan_config_file(args, project):
     """
     with open(APPSCAN_CONFIG) as reader:
         text = reader.read().replace("PROJECT_PATH", f"{args.source}/{project.strip()}")
-    with open(f"appscan-config-{project}-tmp.xml", "w") as writer:
+    with open(f"appscan-config-{project_file_name}-tmp.xml", "w") as writer:
         writer.write(text)
 
 
@@ -132,10 +132,10 @@ def create_static_scan(args, project, tmpdir, file_req_header):
     main_logger.info("#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING))
 
     # generate config file for appscan
-    generate_appscan_config_file(args, project)
+    generate_appscan_config_file(args, project, project_file_name)
     main_logger.info(f"Generating {project_file_name}.irx file...")
     run_subprocess(
-        f"source ~/.bashrc && appscan.sh prepare -c appscan-config-{project}-tmp.xml -n {project_file_name}.irx -d {tmpdir}"
+        f"source ~/.bashrc && appscan.sh prepare -c appscan-config-{project_file_name}-tmp.xml -n {project_file_name}.irx -d {tmpdir}"
     )
 
     # call ASoC API to create the static scan
