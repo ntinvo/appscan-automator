@@ -246,7 +246,7 @@ def static_scan(args):
 
         main_logger.debug(f"PROJECTS TO SCAN: {projects}")
         processes = []
-        pool = Pool()
+        pool = Pool(processes=3)
         for project in projects:
             static_scan_args = (args, project, tmpdir, file_req_header)
             results = pool.apply_async(create_static_scan, static_scan_args)
