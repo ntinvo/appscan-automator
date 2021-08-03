@@ -6,7 +6,7 @@ import os
 import tempfile
 import traceback
 import zipfile
-from multiprocessing import Process
+from multiprocessing import Pool
 
 import pandas as pd
 import requests
@@ -247,13 +247,13 @@ def static_scan(args):
 
         main_logger.debug(f"PROJECTS TO SCAN: {projects}")
         processes = []
+        pool = Pool()
         for project in projects:
             static_scan_args = (args, project, tmpdir, file_req_header)
-            process = Process(target=create_static_scan, args=static_scan_args, name=project)
-            process.start()
-            processes.append(process)
+            results = pool.apply_async(create_static_scan, static_scan_args)
+            processes.append(results)
         for process in processes:
-            process.join()
+            process.get()
         # for project in projects:
         #     project = project.strip()
         #     project_file_name = project.strip().replace("/", "_")
