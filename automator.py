@@ -6,6 +6,7 @@ import os
 import tempfile
 import traceback
 import zipfile
+from multiprocessing import Process
 
 import pandas as pd
 import requests
@@ -116,6 +117,81 @@ def generate_appscan_config_file(args, project):
         writer.write(text)
 
 
+def create_static_scan(args, project, tmpdir, file_req_header):
+    """
+    Create static scan
+    """
+    project = project.strip()
+    project_file_name = project.strip().replace("/", "_")
+    print()
+    main_logger.info("#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING))
+    main_logger.info(
+        " " * int((PADDING / 2))
+        + f"PROCESSING PROJECT: {project} - {project_file_name}"
+        + " " * int((PADDING / 2)),
+    )
+    main_logger.info("#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING))
+
+    # generate config file for appscan
+    generate_appscan_config_file(args, project)
+    main_logger.info(f"Generating {project_file_name}.irx file...")
+    run_subprocess(
+        f"source ~/.bashrc && appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_file_name}.irx -d {tmpdir}"
+    )
+
+    # call ASoC API to create the static scan
+    try:
+        main_logger.info("Calling ASoC API to create the static scan...")
+
+        with open(f"{tmpdir}/{project_file_name}.irx", "rb") as irx_file:
+            file_data = {"fileToUpload": irx_file}
+            finished = False
+            try_count = 0
+            while not finished:
+                if try_count >= MAX_TRIES:
+                    break
+                try_count += 1
+                file_upload_res = requests.post(
+                    f"{ASOC_API_ENDPOINT}/FileUpload", files=file_data, headers=file_req_header,
+                )
+                main_logger.info(f"File Upload Response: {file_upload_res}")
+                if file_upload_res.status_code == 401:
+                    main_logger.info(
+                        f"Token {file_req_header} expired. Generating a new one and retry..."
+                    )
+                    file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
+                    main_logger.info(f"New bearer token {file_req_header}")
+                    continue
+                if file_upload_res.status_code == 201:
+                    data = {
+                        "ARSAFileId": file_upload_res.json()["FileId"],
+                        "ScanName": project,
+                        "AppId": SINGLE_STATIC,
+                        "Locale": "en-US",
+                        "Execute": "true",
+                        "Personal": "false",
+                    }
+                    res = requests.post(
+                        f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers,
+                    )
+                    if res.status_code == 401:
+                        main_logger.info(
+                            f"Token {file_req_header} expired. Generating a new one and retry..."
+                        )
+                        file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
+                        main_logger.info(f"New bearer token {file_req_header}")
+                        continue
+                finished = res.status_code == 201
+                main_logger.info(f"Response: {res.json()}")
+            main_logger.info(
+                f"PROJECT: {project} - {project_file_name} WAS PROCESSED SUCCESSFULLY."
+            )
+            print()
+    except Exception as error:
+        main_logger.warning(traceback.format_exc())
+        main_logger.warning(error)
+
+
 @timer
 @f_logger
 def static_scan(args):
@@ -162,7 +238,6 @@ def static_scan(args):
         # if any of the old scan still pending, return
         for project in projects:
             project = project.strip()
-            project_file_name = project.strip().replace("/", "_")
             if (
                 project in old_scan_status_dict
                 and old_scan_status_dict[project] in PENDING_STATUSES
@@ -171,90 +246,90 @@ def static_scan(args):
                 return
 
         main_logger.debug(f"PROJECTS TO SCAN: {projects}")
+        processes = []
         for project in projects:
-            project = project.strip()
-            project_file_name = project.strip().replace("/", "_")
-            print()
-            main_logger.info(
-                "#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING)
-            )
-            main_logger.info(
-                " " * int((PADDING / 2))
-                + f"PROCESSING PROJECT: {project} - {project_file_name}"
-                + " " * int((PADDING / 2)),
-            )
-            main_logger.info(
-                "#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING)
-            )
+            static_scan_args = (args, project, tmpdir, file_req_header)
+            process = Process(target=create_static_scan, args=static_scan_args, name=project)
+            process.start()
+            processes.append(process)
+        for process in processes:
+            process.join()
+        # for project in projects:
+        #     project = project.strip()
+        #     project_file_name = project.strip().replace("/", "_")
+        #     print()
+        #     main_logger.info(
+        #         "#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING)
+        #     )
+        #     main_logger.info(
+        #         " " * int((PADDING / 2))
+        #         + f"PROCESSING PROJECT: {project} - {project_file_name}"
+        #         + " " * int((PADDING / 2)),
+        #     )
+        #     main_logger.info(
+        #         "#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING)
+        #     )
 
-            # # if the old scan still pending, skip
-            # if (
-            #     project in old_scan_status_dict
-            #     and old_scan_status_dict[project] in PENDING_STATUSES
-            # ):
-            #     main_logger.info(f"{project} is PENDING/RUNNING")
-            #     return
+        #     # generate config file for appscan
+        #     generate_appscan_config_file(args, project)
+        #     main_logger.info(f"Generating {project_file_name}.irx file...")
+        #     run_subprocess(
+        #         f"source ~/.bashrc && appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_file_name}.irx -d {tmpdir}"
+        #     )
 
-            # generate config file for appscan
-            generate_appscan_config_file(args, project)
-            main_logger.info(f"Generating {project_file_name}.irx file...")
-            run_subprocess(
-                f"source ~/.bashrc && appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_file_name}.irx -d {tmpdir}"
-            )
+        #     # call ASoC API to create the static scan
+        #     try:
+        #         main_logger.info("Calling ASoC API to create the static scan...")
 
-            # call ASoC API to create the static scan
-            try:
-                main_logger.info("Calling ASoC API to create the static scan...")
-
-                with open(f"{tmpdir}/{project_file_name}.irx", "rb") as irx_file:
-                    file_data = {"fileToUpload": irx_file}
-                    finished = False
-                    try_count = 0
-                    while not finished:
-                        if try_count >= MAX_TRIES:
-                            break
-                        try_count += 1
-                        file_upload_res = requests.post(
-                            f"{ASOC_API_ENDPOINT}/FileUpload",
-                            files=file_data,
-                            headers=file_req_header,
-                        )
-                        main_logger.info(f"File Upload Response: {file_upload_res.json()}")
-                        if file_upload_res.status_code == 401:
-                            main_logger.info(
-                                f"Token {file_req_header} expired. Generating a new one and retry..."
-                            )
-                            file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
-                            continue
-                        if file_upload_res.status_code == 201:
-                            data = {
-                                "ARSAFileId": file_upload_res.json()["FileId"],
-                                "ScanName": project,
-                                "AppId": SINGLE_STATIC,
-                                "Locale": "en-US",
-                                "Execute": "true",
-                                "Personal": "false",
-                            }
-                            res = requests.post(
-                                f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer",
-                                json=data,
-                                headers=headers,
-                            )
-                            if res.status_code == 401:
-                                main_logger.info(
-                                    f"Token {file_req_header} expired. Generating a new one and retry..."
-                                )
-                                file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
-                                continue
-                        finished = res.status_code == 201
-                        main_logger.info(f"Response: {res.json()}")
-                    main_logger.info(
-                        f"PROJECT: {project} - {project_file_name} WAS PROCESSED SUCCESSFULLY."
-                    )
-                    print()
-            except Exception as error:
-                main_logger.warning(traceback.format_exc())
-                main_logger.warning(error)
+        #         with open(f"{tmpdir}/{project_file_name}.irx", "rb") as irx_file:
+        #             file_data = {"fileToUpload": irx_file}
+        #             finished = False
+        #             try_count = 0
+        #             while not finished:
+        #                 if try_count >= MAX_TRIES:
+        #                     break
+        #                 try_count += 1
+        #                 file_upload_res = requests.post(
+        #                     f"{ASOC_API_ENDPOINT}/FileUpload",
+        #                     files=file_data,
+        #                     headers=file_req_header,
+        #                 )
+        #                 main_logger.info(f"File Upload Response: {file_upload_res.json()}")
+        #                 if file_upload_res.status_code == 401:
+        #                     main_logger.info(
+        #                         f"Token {file_req_header} expired. Generating a new one and retry..."
+        #                     )
+        #                     file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
+        #                     continue
+        #                 if file_upload_res.status_code == 201:
+        #                     data = {
+        #                         "ARSAFileId": file_upload_res.json()["FileId"],
+        #                         "ScanName": project,
+        #                         "AppId": SINGLE_STATIC,
+        #                         "Locale": "en-US",
+        #                         "Execute": "true",
+        #                         "Personal": "false",
+        #                     }
+        #                     res = requests.post(
+        #                         f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer",
+        #                         json=data,
+        #                         headers=headers,
+        #                     )
+        #                     if res.status_code == 401:
+        #                         main_logger.info(
+        #                             f"Token {file_req_header} expired. Generating a new one and retry..."
+        #                         )
+        #                         file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
+        #                         continue
+        #                 finished = res.status_code == 201
+        #                 main_logger.info(f"Response: {res.json()}")
+        #             main_logger.info(
+        #                 f"PROJECT: {project} - {project_file_name} WAS PROCESSED SUCCESSFULLY."
+        #             )
+        #             print()
+        #     except Exception as error:
+        #         main_logger.warning(traceback.format_exc())
+        #         main_logger.warning(error)
 
 
 # ********************************* #
