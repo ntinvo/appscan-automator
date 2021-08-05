@@ -498,9 +498,11 @@ def asoc_export(app_type):
     filters = "$filter=Status%20ne%20'Fixed'%20and%20Status%20ne%20'Noise'&$orderby=ScanName"
 
     # prepare the header for requests
+    main_logger.info("Requesting bearer token...")
     file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
 
     # request the reports
+    main_logger.info("Getting the reports...")
     app_id = SINGLE_STATIC if app_type == STATIC else SINGLE_DYNAMIC
     res = requests.get(
         f"{ASOC_API_ENDPOINT}/Issues/Application/{app_id}?{filters}", headers=file_req_header
@@ -542,7 +544,10 @@ def asoc_export(app_type):
                     ]
                 )
 
+        main_logger.info("Export to CSV...")
         read_file = pd.read_csv(f"{reports_dir_path}/issues.csv")
+
+        main_logger.info("Export to excel...")
         read_file.to_excel(f"{reports_dir_path}/issues.xlsx", index=None, header=True)
 
 
@@ -566,8 +571,8 @@ def get_reports(args):
         dynamic_reports()
         asoc_export(DYNAMIC)
 
-    # copy reports to output directory
-    run_subprocess(f"rsync -a -v --ignore-existing {os.getcwd()}/reports {args.output}")
+    # # copy reports to output directory
+    # run_subprocess(f"rsync -a -v --ignore-existing {os.getcwd()}/reports {args.output}")
 
 
 # ********************************* #
@@ -666,8 +671,8 @@ def depcheck(args):
                 f"{tmpdir}/dependency-check/bin/dependency-check.sh -s {tmpdir}/3rdpartyship -o {reports_dir_path}/dependency_report.html --suppression {os.getcwd()}/suppressions.xml"
             )
 
-            # copy reports to output directory
-            run_subprocess(f"rsync -a -v --ignore-existing {os.getcwd()}/reports {args.output}")
+            # # copy reports to output directory
+            # run_subprocess(f"rsync -a -v --ignore-existing {os.getcwd()}/reports {args.output}")
 
     except Exception as error:
         main_logger.warning(traceback.format_exc())
