@@ -172,7 +172,7 @@ def start_db2_container(args, image_tag, logger=main_logger):
             f" \
             docker volume create {VOL_SCAN} && \
             docker network create {NETWORK_SCAN} && \
-            docker run -di --name {DB2_SCAN} --privileged \
+            docker run -di --name {DB2_SCAN} --privileged --restart=always \
             --network={NETWORK_SCAN} \
             -e DB2INSTANCE=db2inst1 \
             -e DB2INST1_PASSWORD=db2inst1 \
@@ -220,7 +220,7 @@ def start_rt_container(args, image_tag, rt_name=RT_SCAN, logger=main_logger):
             logger.info(f"#### STARTING RT CONTAINER: {rt_name} - {rt_image_repo} ####")
             run_subprocess(
                 f" \
-                docker run -di --name {rt_name} --privileged \
+                docker run -di --name {rt_name} --privileged --restart=always \
                 {network} \
                 -e DB_HOST={DB2_SCAN} \
                 -e DB_PORT=50000 \
