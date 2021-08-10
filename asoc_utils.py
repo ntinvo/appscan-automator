@@ -137,7 +137,7 @@ def remove_old_scans(app_id):
         main_logger.info(f"Removing {old_scan['Name']} - {old_scan['Id']}... ")
         try:
             _ = requests.delete(
-                f"{ASOC_API_ENDPOINT}/Scans/{old_scan['Id']}?deleteIssues=true", headers=headers,
+                f"{ASOC_API_ENDPOINT}/Scans/{old_scan['Id']}?deleteIssues=false", headers=headers,
             )
         except Exception as error:
             main_logger.warning(error)
