@@ -142,15 +142,15 @@ def remove_old_scans(app_id):
         except Exception as error:
             main_logger.warning(error)
 
-    # reset the app
-    try:
-        main_logger.info(f"Resetting app {app_id}")
-        reset_app_config_data = {"DeleteIssues": "true"}
-        _ = requests.delete(
-            f"{ASOC_API_ENDPOINT}/Apps/{app_id}/Reset", json=reset_app_config_data, headers=headers,
-        )
-    except Exception as error:
-        main_logger.warning(error)
+    # # reset the app
+    # try:
+    #     main_logger.info(f"Resetting app {app_id}")
+    #     reset_app_config_data = {"DeleteIssues": "true"}
+    #     _ = requests.delete(
+    #         f"{ASOC_API_ENDPOINT}/Apps/{app_id}/Reset", json=reset_app_config_data, headers=headers,
+    #     )
+    # except Exception as error:
+    #     main_logger.warning(error)
 
     return scan_status_dict
 
