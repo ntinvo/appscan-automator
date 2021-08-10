@@ -263,13 +263,14 @@ def get_week_of_month(dt_obj):
     Returns:
         [int]: week number
     """
-    first_day = datetime.today().replace(day=1)
+    first_day = dt_obj.replace(day=1)
     day_of_month = dt_obj.day
-    if first_day.weekday() == 6:
-        adjusted_dom = (1 + first_day.weekday()) / 7
-    else:
-        adjusted_dom = day_of_month + first_day.weekday()
-    return int(ceil(adjusted_dom / 7.0))
+    adjusted_day_of_month = day_of_month + first_day.weekday()
+    return (
+        int(ceil(adjusted_day_of_month / 7.0)) - 1
+        if first_day.weekday() == 6
+        else int(ceil(adjusted_day_of_month / 7.0))
+    )
 
 
 @timer

@@ -22,14 +22,18 @@ import os
 import shutil
 import sys
 import zipfile
+from datetime import datetime, timedelta
 from io import BytesIO
+from math import ceil
 from urllib.request import urlopen
 from zipfile import ZipFile
 
 import requests
-from clint.textui import progress
 
 from main_logger import main_logger
+
+# from clint.textui import progress
+
 
 # from utils import download_appscan
 
@@ -153,3 +157,49 @@ from main_logger import main_logger
 #     "/Users/tinnvo/Desktop/Dev/appscan_automator/tmp/appscan/SAClientUtil.8.0.1445",
 #     "/Users/tinnvo/Desktop/Dev/appscan_automator/tmp/tt",
 # )
+
+
+def get_week_of_month(dt_obj):
+    """
+    Get the week number of the month
+
+    Args:
+        dt_obj ([datetime]): date time object
+
+    Returns:
+        [int]: week number
+    """
+    first_day = dt_obj.replace(day=1)
+    day_of_month = dt_obj.day
+    adjusted_day_of_month = day_of_month + first_day.weekday()
+    return (
+        int(ceil(adjusted_day_of_month / 7.0)) - 1
+        if first_day.weekday() == 6
+        else int(ceil(adjusted_day_of_month / 7.0))
+    )
+    # return (dt_obj.day - dt_obj.weekday() - 2) // 7 + 2
+    # month = dt_obj.month
+    # week = 0
+    # while dt_obj.month == month:
+    #     week += 1
+    #     dt_obj -= timedelta(days=7)
+    # return week
+    # return (dt_obj.day - 1) // 7 + 1
+    # first_day = datetime.today().replace(day=1)
+    # print("First day", first_day)
+    # day_of_month = dt_obj.day
+    # print("day of month", day_of_month)
+    # print("Firstday weekday", first_day.weekday())
+    # if first_day.weekday() == 6:
+    #     adjusted_dom = (1 + first_day.weekday()) / 7
+    #     print(adjusted_dom)
+    # else:
+    #     adjusted_dom = day_of_month + first_day.weekday()
+    # print("adjusted_dom", adjusted_dom)
+    # return int(ceil(adjusted_dom / 7.0))
+
+
+# dt = datetime(2011, 2, 28)
+dt = datetime.today()
+week_of_month = get_week_of_month(dt)
+print(week_of_month)
