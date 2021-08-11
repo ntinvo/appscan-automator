@@ -4,6 +4,7 @@ import io
 import json
 import os
 import tempfile
+import time
 import traceback
 import zipfile
 from multiprocessing import Pool
@@ -251,6 +252,7 @@ def static_scan(args):
             static_scan_args = (args, project, tmpdir, file_req_header)
             results = pool.apply_async(create_static_scan, static_scan_args)
             processes.append(results)
+            time.sleep(5)
         for process in processes:
             process.get()
         # for project in projects:
