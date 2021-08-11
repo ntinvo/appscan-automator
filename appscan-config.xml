@@ -20,6 +20,11 @@
       <Exclude>Documentation/</Exclude>
       <Exclude>documentation/</Exclude>
       <Exclude>template/</Exclude>
+      <Exclude>demos/</Exclude>
+      <Exclude>test/</Exclude>
+      <Exclude>tests/</Exclude>
+      <Exclude>example/</Exclude>
+      <Exclude>examples/</Exclude>
     </Target>
   </Targets>
 </Configuration>
