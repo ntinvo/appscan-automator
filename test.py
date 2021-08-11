@@ -200,6 +200,46 @@ def get_week_of_month(dt_obj):
 
 
 # dt = datetime(2011, 2, 28)
-dt = datetime.today()
-week_of_month = get_week_of_month(dt)
-print(week_of_month)
+# dt = datetime.today()
+# week_of_month = get_week_of_month(dt)
+# print(week_of_month)
+
+from clint.textui import progress
+
+from constants import SBA_JAR, SBA_JAR_URL
+from utils import get_auth
+
+
+def download(url, filename, context):
+    """
+    Download file given the url
+
+    Args:
+        url (str): file url
+        filename (str): filename to save
+        context (str): directory to save file to
+    """
+    try:
+        res = requests.get(url, stream=True, auth=get_auth(url))
+        main_logger.info(f"Download {filename} returned {res.status_code}")
+        print(res)
+        if res.status_code != 200:
+            return False
+        total_length = int(res.headers.get("content-length"))
+        with open(f"{context}/{filename}", "wb") as file:
+            total_length = int(res.headers.get("content-length"))
+            for chunk in progress.bar(
+                res.iter_content(chunk_size=1024),
+                expected_size=(total_length / 1024) + 1,
+                label="Downloading. Please wait >>> ",
+            ):
+                if chunk:
+                    file.write(chunk)
+                    file.flush()
+        return True
+    except Exception as error:
+        main_logger.earning(error)
+        raise
+
+
+download(SBA_JAR_URL, SBA_JAR, "./tmp/")

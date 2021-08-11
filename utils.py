@@ -322,7 +322,7 @@ def download(url, filename, context):
         context (str): directory to save file to
     """
     try:
-        res = requests.get(url, stream=True)
+        res = requests.get(url, stream=True, auth=get_auth(url))
         main_logger.info(f"Download {filename} returned {res.status_code}")
         if res.status_code != 200:
             return False
