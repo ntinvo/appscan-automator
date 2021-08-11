@@ -35,6 +35,8 @@ COCDEV = "cocdev"
 COC = "coc"
 V95 = "9.5"
 V10 = "10.0"
+SBA_JAR_URL = "https://wce-sterling-team-oms-jenkins.swg-devops.com/job/SBA/lastSuccessfulBuild/artifact/SBA.jar"
+SBA_JAR = "SBA.jar"
 
 # jazz
 JAZZ_SINGLE_WS_ID = "1016"

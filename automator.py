@@ -3,6 +3,7 @@ import csv
 import io
 import json
 import os
+import pathlib
 import tempfile
 import time
 import traceback
@@ -37,6 +38,8 @@ from constants import (
     PENDING_STATUSES,
     PRESENCE_ID,
     REPORTS,
+    SBA_JAR,
+    SBA_JAR_URL,
     SCAN,
     SINGLE_DYNAMIC,
     SINGLE_STATIC,
@@ -49,6 +52,7 @@ from main_logger import main_logger
 # from settings import APPSCAN_HOME
 from utils import (
     create_dir,
+    download,
     f_logger,
     get_date_str,
     get_latest_stable_image_tags,
@@ -117,29 +121,16 @@ def generate_appscan_config_file(args, project, project_file_name):
         writer.write(text)
 
 
-def create_static_scan(args, project, tmpdir, file_req_header):
+def call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, tmpdir):
     """
-    Create static scan
+    Call AppScan API to create the static scan
+
+    Args:
+        file_req_header: request header
+        project: project name
+        project_file_name: project file name for uploading
+        tmpdir: temporary directory
     """
-    project = project.strip()
-    project_file_name = project.strip().replace("/", "_")
-    print()
-    main_logger.info("#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING))
-    main_logger.info(
-        " " * int((PADDING / 2))
-        + f"PROCESSING PROJECT: {project} - {project_file_name}"
-        + " " * int((PADDING / 2)),
-    )
-    main_logger.info("#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING))
-
-    # generate config file for appscan
-    generate_appscan_config_file(args, project, project_file_name)
-    main_logger.info(f"Generating {project_file_name}.irx file...")
-    run_subprocess(
-        f"source ~/.bashrc && appscan.sh prepare -c appscan-config-{project_file_name}-tmp.xml -n {project_file_name}.irx -d {tmpdir}"
-    )
-
-    # call ASoC API to create the static scan
     try:
         main_logger.info("Calling ASoC API to create the static scan...")
 
@@ -190,6 +181,111 @@ def create_static_scan(args, project, tmpdir, file_req_header):
     except Exception as error:
         main_logger.warning(traceback.format_exc())
         main_logger.warning(error)
+
+
+def create_static_scan_sba(tmpdir, file_req_header):
+    """
+    Create static scan for sba project
+
+    Args:
+        tmpdir (str): temporary directory
+    """
+    main_logger.info("Create a temporary directory for the jar...")
+    pathlib.Path(f"{tmpdir}/SBA").mkdir(parents=True, exist_ok=True)
+
+    main_logger.info(f"Downloading {SBA_JAR}...")
+    download(SBA_JAR_URL, SBA_JAR, f"{tmpdir}/SBA")
+
+    main_logger.info("Generating appscan config file...")
+    project_file_name = "sba"
+    with open(APPSCAN_CONFIG) as reader:
+        text = reader.read().replace("PROJECT_PATH", f"{tmpdir}/SBA")
+    with open(f"appscan-config-{project_file_name}-tmp.xml", "w") as writer:
+        writer.write(text)
+
+    main_logger.info(f"Generating {project_file_name}.irx file...")
+    run_subprocess(
+        f"source ~/.bashrc && appscan.sh prepare -c appscan-config-{project_file_name}-tmp.xml -n {project_file_name}.irx -d {tmpdir}/SBA"
+    )
+
+    call_asoc_apis_to_create_scan(file_req_header, "sba", project_file_name, f"{tmpdir}/SBA")
+
+
+def create_static_scan(args, project, tmpdir, file_req_header):
+    """
+    Create static scan
+    """
+    project = project.strip()
+    project_file_name = project.strip().replace("/", "_")
+    print()
+    main_logger.info("#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING))
+    main_logger.info(
+        " " * int((PADDING / 2))
+        + f"PROCESSING PROJECT: {project} - {project_file_name}"
+        + " " * int((PADDING / 2)),
+    )
+    main_logger.info("#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING))
+
+    # generate config file for appscan
+    generate_appscan_config_file(args, project, project_file_name)
+    main_logger.info(f"Generating {project_file_name}.irx file...")
+    run_subprocess(
+        f"source ~/.bashrc && appscan.sh prepare -c appscan-config-{project_file_name}-tmp.xml -n {project_file_name}.irx -d {tmpdir}"
+    )
+
+    call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, tmpdir)
+
+    # # call ASoC API to create the static scan
+    # try:
+    #     main_logger.info("Calling ASoC API to create the static scan...")
+
+    #     with open(f"{tmpdir}/{project_file_name}.irx", "rb") as irx_file:
+    #         file_data = {"fileToUpload": irx_file}
+    #         finished = False
+    #         try_count = 0
+    #         while not finished:
+    #             if try_count >= MAX_TRIES:
+    #                 break
+    #             try_count += 1
+    #             file_upload_res = requests.post(
+    #                 f"{ASOC_API_ENDPOINT}/FileUpload", files=file_data, headers=file_req_header,
+    #             )
+    #             main_logger.info(f"File Upload Response: {file_upload_res}")
+    #             if file_upload_res.status_code == 401:
+    #                 main_logger.info(
+    #                     f"Token {file_req_header} expired. Generating a new one and retry..."
+    #                 )
+    #                 file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
+    #                 main_logger.info(f"New bearer token {file_req_header}")
+    #                 continue
+    #             if file_upload_res.status_code == 201:
+    #                 data = {
+    #                     "ARSAFileId": file_upload_res.json()["FileId"],
+    #                     "ScanName": project,
+    #                     "AppId": SINGLE_STATIC,
+    #                     "Locale": "en-US",
+    #                     "Execute": "true",
+    #                     "Personal": "false",
+    #                 }
+    #                 res = requests.post(
+    #                     f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers,
+    #                 )
+    #                 if res.status_code == 401:
+    #                     main_logger.info(
+    #                         f"Token {file_req_header} expired. Generating a new one and retry..."
+    #                     )
+    #                     file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
+    #                     main_logger.info(f"New bearer token {file_req_header}")
+    #                     continue
+    #             finished = res.status_code == 201
+    #             main_logger.info(f"Response: {res.json()}")
+    #         main_logger.info(
+    #             f"PROJECT: {project} - {project_file_name} WAS PROCESSED SUCCESSFULLY."
+    #         )
+    #         print()
+    # except Exception as error:
+    #     main_logger.warning(traceback.format_exc())
+    #     main_logger.warning(error)
 
 
 @timer
@@ -244,6 +340,9 @@ def static_scan(args):
             ):
                 main_logger.info(f"{project} is PENDING/RUNNING")
                 return
+
+        main_logger.info("Create Static Scan for SBA")
+        create_static_scan_sba(tmpdir, file_req_header)
 
         main_logger.debug(f"PROJECTS TO SCAN: {projects}")
         processes = []
