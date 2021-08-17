@@ -132,7 +132,7 @@ def call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, t
         tmpdir: temporary directory
     """
     try:
-        main_logger.info("Calling ASoC API to create the static scan...")
+        main_logger.info(f"Calling ASoC API to create the static scan for {project}...")
 
         with open(f"{tmpdir}/{project_file_name}.irx", "rb") as irx_file:
             file_data = {"fileToUpload": irx_file}
@@ -142,10 +142,15 @@ def call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, t
                 if try_count >= MAX_TRIES:
                     break
                 try_count += 1
-                file_upload_res = requests.post(
-                    f"{ASOC_API_ENDPOINT}/FileUpload", files=file_data, headers=file_req_header,
-                )
-                main_logger.info(f"File Upload Response: {file_upload_res}")
+                try:
+                    file_upload_res = requests.post(
+                        f"{ASOC_API_ENDPOINT}/FileUpload", files=file_data, headers=file_req_header,
+                    )
+                    main_logger.info(f"File Upload Response: {file_upload_res}")
+                except Exception as error:
+                    main_logger.warning(f"Error with File Upload: {error}")
+                    continue
+
                 if file_upload_res.status_code == 401:
                     main_logger.info(
                         f"Token {file_req_header} expired. Generating a new one and retry..."
@@ -153,6 +158,7 @@ def call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, t
                     file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
                     main_logger.info(f"New bearer token {file_req_header}")
                     continue
+
                 if file_upload_res.status_code == 201:
                     data = {
                         "ARSAFileId": file_upload_res.json()["FileId"],
