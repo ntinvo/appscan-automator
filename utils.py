@@ -151,7 +151,9 @@ def setup_main_logging(verbose=logging.INFO):
         verbose ([str], optional): the log level ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"). Defaults to logging.INFO.
     """
     coloredlogs.install(
-        level=verbose, logger=main_logger, fmt="%(asctime)s %(levelname)s %(message)s",
+        level=verbose,
+        logger=main_logger,
+        fmt="%(asctime)s %(name)s[%(process)d] %(levelname)s %(message)s",
     )
 
 
