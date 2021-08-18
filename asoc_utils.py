@@ -63,8 +63,7 @@ def get_download_config(name):
             "ReportFileType": "Html",
             "Title": name.replace(" ", "_").lower(),
             "Locale": "en-US",
-        },
-        "OdataFilter": "(Severity eq 'High' or Severity eq 'Critical' or Severity eq 'Medium' or Severity eq 'Low')",
+        }
     }
 
 
