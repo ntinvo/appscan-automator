@@ -5,7 +5,7 @@ import time
 import pdfkit
 import requests
 
-from constants import ASOC_API_ENDPOINT, PENDING_STATUSES, SLOT_1, TIME_TO_SLEEP
+from constants import ASOC_API_ENDPOINT, PENDING_STATUSES, TIME_TO_SLEEP
 from main_logger import main_logger
 from settings import KEY_ID, KEY_SECRET
 from utils import create_dir, f_logger, get_date_str, timer
