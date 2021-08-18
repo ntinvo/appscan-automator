@@ -242,4 +242,10 @@ def download(url, filename, context):
         raise
 
 
-download(SBA_JAR_URL, SBA_JAR, "./tmp/")
+# download(SBA_JAR_URL, SBA_JAR, "./tmp/")
+
+import pdfkit
+
+pdfkit.from_file(
+    "single_stream_static.html", "single_stream_static.pdf",
+)

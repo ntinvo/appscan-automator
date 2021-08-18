@@ -1,6 +1,7 @@
 """ Appscan Utils """
 import time
 
+import pdfkit
 import requests
 
 from constants import ASOC_API_ENDPOINT, PENDING_STATUSES, TIME_TO_SLEEP
@@ -83,6 +84,9 @@ def download_report(scan_type, report):
         create_dir(reports_dir_path)
         with open(f"{reports_dir_path}/{report['Name']}.html", "wb") as file:
             file.write(res.content)
+        pdfkit.from_file(
+            f"{reports_dir_path}/{report['Name']}.html", f"{reports_dir_path}/{report['Name']}.pdf"
+        )
 
 
 @timer
@@ -172,4 +176,6 @@ def wait_for_report(report):
             break
 
         main_logger.info(f"Report for {report['Name']} is not ready. Waiting...")
+        main_logger.info(f"REPORT: {report}")
+        main_logger.info(f"RESPONSE: {res.json()}")
         time.sleep(TIME_TO_SLEEP)
