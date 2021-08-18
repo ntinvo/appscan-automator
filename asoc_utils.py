@@ -82,11 +82,13 @@ def download_report(scan_type, report):
     if res.status_code == 200:
         reports_dir_path = f"reports/{get_date_str()}/{scan_type}"
         create_dir(reports_dir_path)
-        with open(f"{reports_dir_path}/{report['Name']}.html", "wb") as file:
+        html_file_path = f"{reports_dir_path}/{report['Name']}.html"
+        pdf_file_path = f"{reports_dir_path}/{report['Name']}.pdf"
+        main_logger.info(f"HTML file: {html_file_path}")
+        main_logger.info(f"PDF file: {pdf_file_path}")
+        with open(html_file_path, "wb") as file:
             file.write(res.content)
-        pdfkit.from_file(
-            f"{reports_dir_path}/{report['Name']}.html", f"{reports_dir_path}/{report['Name']}.pdf"
-        )
+        pdfkit.from_file(html_file_path, pdf_file_path)
 
 
 @timer
