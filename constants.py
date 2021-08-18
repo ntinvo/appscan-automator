@@ -37,7 +37,6 @@ V95 = "9.5"
 V10 = "10.0"
 SBA_JAR_URL = "https://wce-sterling-team-oms-jenkins.swg-devops.com/job/SBA/lastSuccessfulBuild/artifact/SBA.jar"
 SBA_JAR = "SBA.jar"
-SLOT_1 = "http://9.42.105.123/~harness/scans/reports"
 
 # jazz
 JAZZ_SINGLE_WS_ID = "1016"
