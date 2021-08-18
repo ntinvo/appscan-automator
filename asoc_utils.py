@@ -82,8 +82,8 @@ def download_report(scan_type, report):
     if res.status_code == 200:
         reports_dir_path = f"reports/{get_date_str()}/{scan_type}"
         create_dir(reports_dir_path)
-        html_file_path = f"{reports_dir_path}/{report['Name']}.html"
-        pdf_file_path = f"{reports_dir_path}/{report['Name']}.pdf"
+        html_file_path = f"./{reports_dir_path}/{report['Name']}.html"
+        pdf_file_path = f"./{reports_dir_path}/{report['Name']}.pdf"
         main_logger.info(f"HTML file: {html_file_path}")
         main_logger.info(f"PDF file: {pdf_file_path}")
         with open(html_file_path, "wb") as file:
