@@ -246,6 +246,7 @@ def download(url, filename, context):
 
 import pdfkit
 
-pdfkit.from_file(
-    "single_stream_static.html", "single_stream_static.pdf",
+pdfkit.from_url(
+    "http://9.42.105.123/~harness/scans/reports/2021_08_week_3/static/single_stream_static.html",
+    "/Users/tinnvo/Desktop/Dev/appscan_automator/reports/2021_08_week_3/static/single_stream_static.pdf",
 )

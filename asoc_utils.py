@@ -5,7 +5,7 @@ import time
 import pdfkit
 import requests
 
-from constants import ASOC_API_ENDPOINT, PENDING_STATUSES, TIME_TO_SLEEP
+from constants import ASOC_API_ENDPOINT, PENDING_STATUSES, SLOT_1, TIME_TO_SLEEP
 from main_logger import main_logger
 from settings import KEY_ID, KEY_SECRET
 from utils import create_dir, f_logger, get_date_str, timer
@@ -91,7 +91,7 @@ def download_report(scan_type, report):
         main_logger.info(f"PDF file: {pdf_file_path}")
         with open(html_file_path, "wb") as file:
             file.write(res.content)
-        pdfkit.from_file(html_file_path, pdf_file_path)
+        pdfkit.from_url(f"{SLOT_1}/{reports_dir_path}/{report['Name']}.html", pdf_file_path)
 
 
 @timer
