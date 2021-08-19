@@ -91,7 +91,7 @@ def download_report(scan_type, report):
         main_logger.info(f"PDF file: {pdf_file_path}")
         with open(html_file_path, "wb") as file:
             file.write(res.content)
-        pdfkit.from_file(pdf_file_path, pdf_file_path)
+        pdfkit.from_file(html_file_path, pdf_file_path)
 
 
 @timer
