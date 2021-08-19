@@ -175,9 +175,13 @@ def wait_for_report(report):
     while True:
         res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/{report['Id']}", headers=headers)
         if res.status_code != 200:
+            main_logger.info(f"REPORT: {report}")
+            main_logger.info(f"RESPONSE: {res.json()}")
             break
 
         if res.status_code == 200 and res.json()["Status"] == "Ready":
+            main_logger.info(f"REPORT: {report}")
+            main_logger.info(f"RESPONSE: {res.json()}")
             break
 
         main_logger.info(f"Report for {report['Name']} is not ready. Waiting...")
