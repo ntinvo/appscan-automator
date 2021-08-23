@@ -734,7 +734,6 @@ def depcheck(args):
                 except Exception as error:
                     main_logger.warning(error)
                     continue
-                break
         except Exception as error:
             main_logger.warning(error)
 
