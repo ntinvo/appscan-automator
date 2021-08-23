@@ -23,6 +23,9 @@ import shutil
 import sys
 import zipfile
 from datetime import datetime, timedelta
+
+# from clint.textui import progressfrom distutils.dir_util import copy_tree
+from distutils.dir_util import copy_tree
 from io import BytesIO
 from math import ceil
 from urllib.request import urlopen
@@ -32,8 +35,10 @@ import requests
 
 from main_logger import main_logger
 
-# from clint.textui import progress
-
+copy_tree(
+    "/Users/tinnvo/Desktop/Dev/appscan_automator/reports/2021_08_week_3/static",
+    "/Users/tinnvo/Desktop/Dev/appscan_automator/reports/latest/static",
+)
 
 # from utils import download_appscan
 
@@ -244,9 +249,9 @@ def download(url, filename, context):
 
 # download(SBA_JAR_URL, SBA_JAR, "./tmp/")
 
-import pdfkit
+# import pdfkit
 
-pdfkit.from_url(
-    "http://9.42.105.123/~harness/scans/reports/2021_08_week_3/static/single_stream_static.html",
-    "/Users/tinnvo/Desktop/Dev/appscan_automator/reports/2021_08_week_3/static/single_stream_static.pdf",
-)
+# pdfkit.from_url(
+#     "http://9.42.105.123/~harness/scans/reports/2021_08_week_3/static/single_stream_static.html",
+#     "/Users/tinnvo/Desktop/Dev/appscan_automator/reports/2021_08_week_3/static/single_stream_static.pdf",
+# )

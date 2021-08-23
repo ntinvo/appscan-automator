@@ -8,6 +8,7 @@ import tempfile
 import time
 import traceback
 import zipfile
+from distutils.dir_util import copy_tree
 from multiprocessing import Pool
 
 import pandas as pd
@@ -657,6 +658,8 @@ def asoc_export(app_type):
         main_logger.info("Export to excel...")
         read_file.to_excel(f"{reports_dir_path}/issues.xlsx", index=None, header=True)
 
+        copy_tree(f"reports/{get_date_str()}/{app_type}", f"reports/latest/{app_type}")
+
 
 @timer
 @f_logger
@@ -777,6 +780,7 @@ def depcheck(args):
             run_subprocess(
                 f"{tmpdir}/dependency-check/bin/dependency-check.sh -s {tmpdir}/3rdpartyship -o {reports_dir_path}/dependency_report.html --suppression {os.getcwd()}/suppressions.xml"
             )
+            copy_tree(f"reports/{get_date_str()}/{args.mode}", f"reports/latest/{args.mode}")
 
             # # copy reports to output directory
             # run_subprocess(f"rsync -a -v --ignore-existing {os.getcwd()}/reports {args.output}")

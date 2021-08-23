@@ -1,6 +1,7 @@
 """ Appscan Utils """
 import os
 import time
+from distutils.dir_util import copy_tree
 
 import pdfkit
 import requests
@@ -92,6 +93,7 @@ def download_report(scan_type, report):
         with open(html_file_path, "wb") as file:
             file.write(res.content)
         pdfkit.from_file(html_file_path, pdf_file_path)
+        copy_tree(f"reports/{get_date_str()}/{scan_type}", f"reports/latest/{scan_type}")
 
 
 @timer
