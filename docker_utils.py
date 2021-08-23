@@ -213,32 +213,35 @@ def start_rt_container(args, image_tag, rt_name=RT_SCAN, logger=main_logger):
     network = "" if args.mode == DEPCHECK else f"--network={NETWORK_SCAN}"
     ports = "" if args.mode == DEPCHECK else "-p 9080:9080 -p 9443:9443"
 
+    # try:
     try:
-        try:
-            logger.info(f"Trying {image_tag}")
-            rt_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-rt:{image_tag}-liberty"
-            logger.info(f"#### STARTING RT CONTAINER: {rt_name} - {rt_image_repo} ####")
-            run_subprocess(
-                f" \
-                docker run -di --name {rt_name} --privileged --restart=always \
-                {network} \
-                -e DB_HOST={DB2_SCAN} \
-                -e DB_PORT=50000 \
-                -e DB_VENDOR=db2 \
-                -e DB_NAME=OMDB \
-                {ports} \
-                {rt_image_repo}",
-                logger=logger,
-            )
-        except Exception as error:
-            logger.warning(error)
+        logger.info(f"Trying {image_tag}")
+        rt_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-rt:{image_tag}-liberty"
+        logger.info(f"#### STARTING RT CONTAINER: {rt_name} - {rt_image_repo} ####")
+        run_subprocess(
+            f" \
+            docker run -di --name {rt_name} --privileged --restart=always \
+            {network} \
+            -e DB_HOST={DB2_SCAN} \
+            -e DB_PORT=50000 \
+            -e DB_VENDOR=db2 \
+            -e DB_NAME=OMDB \
+            {ports} \
+            {rt_image_repo}",
+            logger=logger,
+        )
     except Exception as error:
-        logger.error(traceback.format_exc())
-        logger.error(error)
+        logger.warning(error)
+        # logout of registry
+        docker_logout()
         raise Exception  # pylint: disable=raise-missing-from
-
-    # logout of registry
-    docker_logout()
+    finally:
+        # logout of registry
+        docker_logout()
+    # except Exception as error:
+    #     logger.error(traceback.format_exc())
+    #     logger.error(error)
+    #     raise Exception  # pylint: disable=raise-missing-from
 
 
 @timer
