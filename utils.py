@@ -153,7 +153,7 @@ def setup_main_logging(verbose=logging.INFO):
     coloredlogs.install(
         level=verbose,
         logger=main_logger,
-        fmt="%(asctime)s %(name)s[%(process)d] %(levelname)s %(message)s",
+        fmt="%(levelname)s <PID %(process)d:%(processName)s> %(name)s.%(funcName)s(): %(message)s",
     )
 
 
