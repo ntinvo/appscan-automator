@@ -1,7 +1,6 @@
 """ Docker Utils """
 import os
 import time
-import traceback
 
 import docker
 import requests
@@ -20,6 +19,9 @@ from constants import (
 from main_logger import main_logger
 from settings import JFROG_APIKEY
 from utils import f_logger, run_subprocess, timer
+
+# import traceback
+
 
 client = docker.from_env()
 
