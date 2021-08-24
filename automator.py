@@ -225,13 +225,10 @@ def create_static_scan(args, project, tmpdir, file_req_header):
     project = project.strip()
     project_file_name = project.strip().replace("/", "_")
     print()
-    main_logger.info("#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING))
-    main_logger.info(
-        " " * int((PADDING / 2))
-        + f"PROCESSING PROJECT: {project} - {project_file_name}"
-        + " " * int((PADDING / 2)),
-    )
-    main_logger.info("#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING))
+    process_project_message = f"PROCESSING PROJECT: {project} - {project_file_name}"
+    main_logger.info("#" * (len(process_project_message) + PADDING))
+    main_logger.info(" " * int((PADDING / 2)) + process_project_message + " " * int((PADDING / 2)),)
+    main_logger.info("#" * (len(process_project_message) + PADDING))
 
     # generate config file for appscan
     generate_appscan_config_file(args, project, project_file_name)
@@ -241,7 +238,10 @@ def create_static_scan(args, project, tmpdir, file_req_header):
     )
 
     call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, tmpdir)
-
+    process_project_message = f"FINISHED PROCESSING PROJECT: {project} - {project_file_name}"
+    main_logger.info("#" * (len(process_project_message) + PADDING))
+    main_logger.info(" " * int((PADDING / 2)) + process_project_message + " " * int((PADDING / 2)),)
+    main_logger.info("#" * (len(process_project_message) + PADDING))
     # # call ASoC API to create the static scan
     # try:
     #     main_logger.info("Calling ASoC API to create the static scan...")
