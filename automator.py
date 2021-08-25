@@ -144,6 +144,7 @@ def call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, t
                     break
                 try_count += 1
                 try:
+                    main_logger.info(f"TRYING #{try_count} OF {MAX_TRIES}...")
                     file_upload_res = requests.post(
                         f"{ASOC_API_ENDPOINT}/FileUpload", files=file_data, headers=file_req_header,
                     )
@@ -151,6 +152,12 @@ def call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, t
                     main_logger.info(file_upload_res.json())
                 except Exception as error:
                     main_logger.warning(f"Error with File Upload: {error}")
+                    continue
+
+                if file_upload_res.status_code == 400:
+                    main_logger.info("Error when uploading IRX file")
+                    main_logger.info(file_upload_res.json())
+                    main_logger.info("Retrying...")
                     continue
 
                 if file_upload_res.status_code == 401:
@@ -183,9 +190,8 @@ def call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, t
                 finished = res.status_code == 201
                 main_logger.info(f"Response: {res.json()}")
             main_logger.info(
-                f"PROJECT: {project} - {project_file_name} WAS PROCESSED SUCCESSFULLY."
+                f"PROJECT: {project} - {project_file_name} WAS PROCESSED SUCCESSFULLY.\n"
             )
-            print()
     except Exception as error:
         main_logger.warning(traceback.format_exc())
         main_logger.warning(error)
