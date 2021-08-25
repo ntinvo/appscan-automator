@@ -1,0 +1,21 @@
+<Configuration>
+  <Targets>
+    <Target outputs-only="true" path="PROJECT_PATH">
+      <Include>*.js</Include>
+      <Include>*.class</Include>
+      <Include>*.html</Include>
+      <Exclude>*.sql</Exclude>
+      <Exclude>*.jsp</Exclude>
+      <Exclude>*.sql</Exclude>
+      <Exclude>bin/</Exclude>
+      <Exclude>build/</Exclude>
+      <Exclude>NotShipped/</Exclude>
+      <Exclude>RMG_Scripts/</Exclude>
+      <Exclude>Install/</Exclude>
+      <Exclude>HFInstaller/</Exclude>
+      <Exclude>Documentation/</Exclude>
+      <Exclude>documentation/</Exclude>
+      <Exclude>template/</Exclude>
+    </Target>
+  </Targets>
+</Configuration>
