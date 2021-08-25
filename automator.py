@@ -148,6 +148,7 @@ def call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, t
                         f"{ASOC_API_ENDPOINT}/FileUpload", files=file_data, headers=file_req_header,
                     )
                     main_logger.info(f"File Upload Response: {file_upload_res}")
+                    main_logger.info(file_upload_res.json())
                 except Exception as error:
                     main_logger.warning(f"Error with File Upload: {error}")
                     continue
