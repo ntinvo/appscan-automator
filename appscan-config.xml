@@ -7,7 +7,6 @@
       <Include>*.ear</Include>
       <Include>*.jar</Include>
       <Include>*.class</Include>
-      <Include>*.sql</Include>
       <Include>*.html</Include>
       <Exclude>*.jsp</Exclude>
       <Exclude>*.sql</Exclude>
@@ -20,6 +19,7 @@
       <Exclude>Documentation/</Exclude>
       <Exclude>documentation/</Exclude>
       <Exclude>template/</Exclude>
+      <Exclude>tmp/</Exclude>
     </Target>
   </Targets>
 </Configuration>
