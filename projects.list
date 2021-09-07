@@ -30,7 +30,6 @@ Foundation_UBX_Integration/UBX_Integration
 Foundation_VAS/VAS
 Foundation_WMS/WMS
 Foundation_YCS/YCS
-Foundation_isadc/isadc
 Inventory_Service_Adapter
 afc.buildutils
 afc.legacy
