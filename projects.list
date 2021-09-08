@@ -32,7 +32,6 @@ Foundation_WMS/WMS
 Foundation_YCS/YCS
 Inventory_Service_Adapter
 afc.buildutils
-afc.legacy
 afc.product/com.ibm.sterling.afc.activity
 afc.product/com.ibm.sterling.afc.baseutils
 afc.product/com.ibm.sterling.afc.cassandra
