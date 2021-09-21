@@ -37,6 +37,8 @@ V95 = "9.5"
 V10 = "10.0"
 SBA_JAR_URL = "https://wce-sterling-team-oms-jenkins.swg-devops.com/job/SBA/lastSuccessfulBuild/artifact/SBA.jar"
 SBA_JAR = "SBA.jar"
+IAC_JAR_URL = "https://wce-sterling-team-oms-jenkins.swg-devops.com/job/IAC/lastSuccessfulBuild/artifact/IAC.jar"
+IAC_JAR = "IAC.jar"
 
 # jazz
 JAZZ_SINGLE_WS_ID = "1016"

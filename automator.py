@@ -46,6 +46,8 @@ from constants import (
     SINGLE_STATIC,
     STATIC,
     VOL_SCAN,
+    IAC_JAR,
+    IAC_JAR_URL
 )
 from docker_utils import prep_containers, start_rt_container
 from main_logger import main_logger
@@ -227,6 +229,33 @@ def create_static_scan_sba(tmpdir, file_req_header):
 
     call_asoc_apis_to_create_scan(file_req_header, "sba", project_file_name, f"{tmpdir}/SBA")
 
+def create_static_scan_iac(tmpdir, file_req_header):
+    """
+    Create static scan for IAC project
+
+    Args:
+        tmpdir (str): temporary directory
+    """
+    main_logger.info("Create a temporary directory for the jar...")
+    pathlib.Path(f"{tmpdir}/IAC").mkdir(parents=True, exist_ok=True)
+
+    main_logger.info(f"Downloading {IAC_JAR}...")
+    download(IAC_JAR_URL, IAC_JAR, f"{tmpdir}/IAC")
+
+    main_logger.info("Generating appscan config file...")
+    project_file_name = "iac"
+    with open(APPSCAN_CONFIG) as reader:
+        text = reader.read().replace("PROJECT_PATH", f"{tmpdir}/IAC")
+    with open(f"appscan-config-{project_file_name}-tmp.xml", "w") as writer:
+        writer.write(text)
+
+    main_logger.info(f"Generating {project_file_name}.irx file...")
+    run_subprocess(
+        f"source ~/.bashrc && appscan.sh prepare -c appscan-config-{project_file_name}-tmp.xml -n {project_file_name}.irx -d {tmpdir}/IAC"
+    )
+
+    call_asoc_apis_to_create_scan(file_req_header, "iac", project_file_name, f"{tmpdir}/IAC")
+
 
 def create_static_scan(args, project, tmpdir, file_req_header):
     """
@@ -360,6 +389,9 @@ def static_scan(args):
 
         main_logger.info("Create Static Scan for SBA")
         create_static_scan_sba(tmpdir, file_req_header)
+
+        main_logger.info("Create Static Scan for IAC")
+        create_static_scan_iac(tmpdir, file_req_header)
 
         main_logger.debug(f"PROJECTS TO SCAN: {projects}")
         processes = []
