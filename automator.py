@@ -55,6 +55,7 @@ from main_logger import main_logger
 
 # from settings import APPSCAN_HOME
 from utils import (
+    cleanup,
     create_dir,
     download,
     f_logger,
@@ -859,14 +860,7 @@ def main():
             depcheck(args)
     except Exception as error:
         main_logger.info(error)
-        try:
-            run_subprocess(f"docker network rm {NETWORK_SCAN}")
-        except Exception as _:
-            main_logger.warning(f"Error removing {NETWORK_SCAN}")
-        try:
-            run_subprocess(f"docker volume rm {VOL_SCAN}")
-        except Exception as _:
-            main_logger.warning(f"Error removing {VOL_SCAN}")
+        cleanup()
         raise
 
 
@@ -874,5 +868,5 @@ if __name__ == "__main__":
     try:
         main()
         sys.exit(0)
-    except Exception as error:
+    except Exception as _:
         sys.exit(-1)

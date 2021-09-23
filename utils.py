@@ -17,7 +17,16 @@ from bs4 import BeautifulSoup
 from clint.textui import progress
 
 from args import init_argparse
-from constants import APPSCAN_ZIP_URL, JFROG_USER, NS, SINGLE_STREAM_RSS_URL
+from constants import (
+    APPSCAN_ZIP_URL,
+    DB2_SCAN,
+    JFROG_USER,
+    NETWORK_SCAN,
+    NS,
+    RT_SCAN,
+    SINGLE_STREAM_RSS_URL,
+    VOL_SCAN,
+)
 from main_logger import main_logger
 from settings import JENKINS_TAAS_TOKEN, JFROG_APIKEY
 
@@ -343,6 +352,33 @@ def download(url, filename, context):
     except Exception as error:
         main_logger.earning(error)
         raise
+
+
+@timer
+@f_logger
+def cleanup():
+    """
+    Cleaning up
+    """
+    try:
+        run_subprocess(f"docker rm -f {RT_SCAN}")
+    except Exception as _:
+        main_logger.warning(f"Error removing {RT_SCAN}")
+
+    try:
+        run_subprocess(f"docker rm -f {DB2_SCAN}")
+    except Exception as _:
+        main_logger.warning(f"Error removing {DB2_SCAN}")
+
+    try:
+        run_subprocess(f"docker network rm {NETWORK_SCAN}")
+    except Exception as _:
+        main_logger.warning(f"Error removing {NETWORK_SCAN}")
+
+    try:
+        run_subprocess(f"docker volume rm {VOL_SCAN}")
+    except Exception as _:
+        main_logger.warning(f"Error removing {VOL_SCAN}")
 
 
 @timer
