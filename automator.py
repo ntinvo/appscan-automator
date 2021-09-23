@@ -15,20 +15,55 @@ from multiprocessing import Pool
 import pandas as pd
 import requests
 
-from asoc_utils import (download_report, get_bearer_token, get_download_config,
-                        get_scans, headers, remove_old_scans, wait_for_report)
-from constants import (ALL, APP_URL_DICT, APPSCAN_CONFIG, ASOC_API_ENDPOINT,
-                       DEPCHECK, DEPCHECK_REPO, DEPCHECK_SCAN, DYNAMIC,
-                       HEADER_FIELDS, IAC_JAR, IAC_JAR_URL, MAX_TRIES,
-                       NETWORK_SCAN, PADDING, PENDING_STATUSES, PRESENCE_ID,
-                       REPORTS, SBA_JAR, SBA_JAR_URL, SCAN, SINGLE_DYNAMIC,
-                       SINGLE_STATIC, STATIC, VOL_SCAN)
+from asoc_utils import (
+    download_report,
+    get_bearer_token,
+    get_download_config,
+    get_scans,
+    headers,
+    remove_old_scans,
+    wait_for_report,
+)
+from constants import (
+    ALL,
+    APP_URL_DICT,
+    APPSCAN_CONFIG,
+    ASOC_API_ENDPOINT,
+    DEPCHECK,
+    DEPCHECK_REPO,
+    DEPCHECK_SCAN,
+    DYNAMIC,
+    HEADER_FIELDS,
+    IAC_JAR,
+    IAC_JAR_URL,
+    MAX_TRIES,
+    NETWORK_SCAN,
+    PADDING,
+    PENDING_STATUSES,
+    PRESENCE_ID,
+    REPORTS,
+    SBA_JAR,
+    SBA_JAR_URL,
+    SCAN,
+    SINGLE_DYNAMIC,
+    SINGLE_STATIC,
+    STATIC,
+    VOL_SCAN,
+)
 from docker_utils import prep_containers, start_rt_container
 from main_logger import main_logger
+
 # from settings import APPSCAN_HOME
-from utils import (create_dir, download, f_logger, get_date_str,
-                   get_latest_stable_image_tags, parse_arguments,
-                   run_subprocess, timer)
+from utils import (
+    create_dir,
+    download,
+    f_logger,
+    get_date_str,
+    get_latest_stable_image_tags,
+    parse_arguments,
+    run_subprocess,
+    timer,
+)
 
 # from distutils.dir_util import copy_tree
 
@@ -832,8 +867,12 @@ def main():
             run_subprocess(f"docker volume rm {VOL_SCAN}")
         except Exception as _:
             main_logger.warning(f"Error removing {VOL_SCAN}")
-        sys.exit(-1)
+        raise
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+        sys.exit(0)
+    except Exception as error:
+        sys.exit(-1)
