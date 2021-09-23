@@ -110,10 +110,10 @@ def get_scans(app_id):
     """
     try:
         res = requests.get(f"{ASOC_API_ENDPOINT}/Apps/{app_id}/Scans", headers=headers)
+        print(res.json())
+        print(res.json() is not None)
+        assert res.json() is not None
         if res.status_code == 200:
-            print(res.json())
-            print(res.json() is not None)
-            assert res.json() is not None
             return res.json()
     except Exception as _:
         main_logger.error("Error getting the scans")
