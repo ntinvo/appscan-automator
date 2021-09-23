@@ -100,7 +100,7 @@ def download_report(scan_type, report):
 @f_logger
 def get_scans(app_id):
     """
-        Get the list of scans for the application.
+    Get the list of scans for the application.
 
     Args:
         app_id ([str]): the application id that the scans belong to
@@ -108,9 +108,15 @@ def get_scans(app_id):
     Returns:
         [list]: the list of scans belong to the application
     """
-    res = requests.get(f"{ASOC_API_ENDPOINT}/Apps/{app_id}/Scans", headers=headers)
-    if res.status_code == 200:
-        return res.json()
+    try:
+        res = requests.get(f"{ASOC_API_ENDPOINT}/Apps/{app_id}/Scans", headers=headers)
+        if res.status_code == 200:
+            return res.json()
+        assert res.json() is not None
+    except Exception as _:
+        main_logger.error("Error getting the scans")
+        main_logger.error(res)
+        raise
 
 
 @timer
