@@ -316,7 +316,7 @@ def prep_containers(args, image_tags):
 
     # build the ear
     main_logger.info("Building ear file...")
-    run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs,wsc"')
+    run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs"')
 
     # start liberty server
     main_logger.info("Starting liberty server...")
