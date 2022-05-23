@@ -787,7 +787,7 @@ def depcheck(args):
         # build the ear
         main_logger.info("Building ear file...")
         run_subprocess(
-            f'docker exec {DEPCHECK_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs,wsc"'
+            f'docker exec {DEPCHECK_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs"'
         )
 
         # creating the source dir
