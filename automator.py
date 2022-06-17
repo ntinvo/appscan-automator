@@ -121,7 +121,7 @@ def generate_appscan_config_file(args, project, project_file_name):
         project ([str]): the project name
     """
     with open(APPSCAN_CONFIG) as reader:
-        text = reader.read().replace("PROJECT_PATH", f"{args.source}/{project.strip()}")
+        text = reader.read().replace("PROJECT_PATH", f"{args.source_working}/{project.strip()}")
     if project == "afc.product/platform_afc":
         with open(f"appscan-config-{project_file_name}-afc.xml", "w") as writer:
             writer.write(text)
