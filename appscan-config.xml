@@ -10,6 +10,7 @@
       <Include>*.html</Include>
       <Exclude>*.jsp</Exclude>
       <Exclude>*.sql</Exclude>
+      <Exclude>Commons-httpclient.jar</Exclude>
       <Exclude>bin/</Exclude>
       <Exclude>build/</Exclude>
       <Exclude>NotShipped/</Exclude>
