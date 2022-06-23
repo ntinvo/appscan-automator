@@ -653,7 +653,7 @@ def asoc_export(app_type, full_report=False):
 
     # prepare the header for requests
     main_logger.info("Requesting bearer token...")
-    file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
+    file_req_header = {"Authorization": f"Bearer {get_bearer_token()}", "User-Agent": "Mozilla/5.0"}
 
     # request the reports
     main_logger.info("Getting the reports...")
