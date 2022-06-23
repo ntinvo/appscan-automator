@@ -660,12 +660,15 @@ def asoc_export(app_type, full_report=False):
     app_id = SINGLE_STATIC if app_type == STATIC else SINGLE_DYNAMIC
     if full_report is True:
         res = requests.get(
-            f"{ASOC_API_ENDPOINT}/Issues/Application/{app_id}", headers=file_req_header
+            f"{ASOC_API_ENDPOINT}/Issues/Application/{app_id}",
+            headers=file_req_header,
+            timeout=5400,
         )
     else:
         res = requests.get(
             f"{ASOC_API_ENDPOINT}/Issues/Application/{app_id}?{filters}", headers=file_req_header
         )
+    main_logger.info(res)
     if res.status_code == 200:
         reports_dir_path = f"reports/{get_date_str()}/{app_type}"
         create_dir(reports_dir_path)
@@ -727,12 +730,12 @@ def get_reports(args):
         static_reports()
         dynamic_reports()
         asoc_export(DYNAMIC)
-        asoc_export(STATIC, full_report=True)
         asoc_export(STATIC)
+        asoc_export(STATIC, full_report=True)
     elif args.type == STATIC:
-        static_reports()
-        asoc_export(STATIC, full_report=True)
+        # static_reports()
         asoc_export(STATIC)
+        asoc_export(STATIC, full_report=True)
     elif args.type == DYNAMIC:
         dynamic_reports()
         asoc_export(DYNAMIC)
