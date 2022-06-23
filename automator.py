@@ -640,7 +640,7 @@ def static_reports():
 
 @timer
 @f_logger
-def asoc_export(app_type):
+def asoc_export(app_type, full_report=False):
     """
     Generate/export scan results.
 
@@ -648,7 +648,8 @@ def asoc_export(app_type):
         app_type ([str]): type of scan
     """
     # filters
-    filters = "$filter=Status%20ne%20'Fixed'%20and%20Status%20ne%20'Noise'&$orderby=ScanName"
+    if full_report is not True:
+        filters = "$filter=Status%20ne%20'Fixed'%20and%20Status%20ne%20'Noise'&$orderby=ScanName"
 
     # prepare the header for requests
     main_logger.info("Requesting bearer token...")
@@ -657,15 +658,23 @@ def asoc_export(app_type):
     # request the reports
     main_logger.info("Getting the reports...")
     app_id = SINGLE_STATIC if app_type == STATIC else SINGLE_DYNAMIC
-    res = requests.get(
-        f"{ASOC_API_ENDPOINT}/Issues/Application/{app_id}?{filters}", headers=file_req_header
-    )
+    if full_report is True:
+        res = requests.get(
+            f"{ASOC_API_ENDPOINT}/Issues/Application/{app_id}", headers=file_req_header
+        )
+    else:
+        res = requests.get(
+            f"{ASOC_API_ENDPOINT}/Issues/Application/{app_id}?{filters}", headers=file_req_header
+        )
     if res.status_code == 200:
         reports_dir_path = f"reports/{get_date_str()}/{app_type}"
         create_dir(reports_dir_path)
-        with open(f"{reports_dir_path}/issues.json", "w") as file:
+
+        report_file_name = "issues" if full_report is True else "issues_filtered"
+
+        with open(f"{reports_dir_path}/{report_file_name}.json", "w") as file:
             json.dump(res.json(), file)
-        with open(f"{reports_dir_path}/issues.csv", "w") as file:
+        with open(f"{reports_dir_path}/{report_file_name}.csv", "w") as file:
             csv_writer = csv.writer(file)
             csv_writer.writerow(HEADER_FIELDS)
             for item in res.json()["Items"]:
@@ -698,10 +707,10 @@ def asoc_export(app_type):
                 )
 
         main_logger.info("Export to CSV...")
-        read_file = pd.read_csv(f"{reports_dir_path}/issues.csv")
+        read_file = pd.read_csv(f"{reports_dir_path}/{report_file_name}.csv")
 
         main_logger.info("Export to excel...")
-        read_file.to_excel(f"{reports_dir_path}/issues.xlsx", index=None, header=True)
+        read_file.to_excel(f"{reports_dir_path}/{report_file_name}.xlsx", index=None, header=True)
 
         copy_tree(f"reports/{get_date_str()}/{app_type}", f"reports/latest/{app_type}")
 
@@ -718,9 +727,11 @@ def get_reports(args):
         static_reports()
         dynamic_reports()
         asoc_export(DYNAMIC)
+        asoc_export(STATIC, full_report=True)
         asoc_export(STATIC)
     elif args.type == STATIC:
         static_reports()
+        asoc_export(STATIC, full_report=True)
         asoc_export(STATIC)
     elif args.type == DYNAMIC:
         dynamic_reports()
