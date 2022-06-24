@@ -53,7 +53,7 @@ DEPCHECK_SCAN = "depcheck_scan"
 # ASoC consts
 OMS_APP_ID = "87af65be-ef31-4aa7-871f-8354e19d6328"
 SINGLE_DYNAMIC = "fc449ae1-8742-49e9-a06b-fe37988ca2a8"
-SINGLE_STATIC = "491909c5-135f-4ddf-973b-a96d6a3757cf"
+SINGLE_STATIC = "14ad3e4d-8c6e-4e1a-a092-1249ef2b5d74"
 PRESENCE_ID = "97687444-523b-eb11-b9ed-2818780a4fcb"
 ASOC_API_ENDPOINT = "https://cloud.appscan.com/api/v2"
 APPSCAN_CONFIG = "appscan-config.xml"

@@ -733,7 +733,7 @@ def get_reports(args):
         asoc_export(STATIC)
         asoc_export(STATIC, full_report=True)
     elif args.type == STATIC:
-        # static_reports()
+        static_reports()
         asoc_export(STATIC)
         asoc_export(STATIC, full_report=True)
     elif args.type == DYNAMIC:
