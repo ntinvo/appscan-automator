@@ -58,6 +58,7 @@ PRESENCE_ID = "97687444-523b-eb11-b9ed-2818780a4fcb"
 ASOC_API_ENDPOINT = "https://cloud.appscan.com/api/v2"
 APPSCAN_CONFIG = "appscan-config.xml"
 APPSCAN_CONFIG_TMP = "appscan-config-tmp.xml"
+APPSCAN_CONFIG_OP = "appscan-config-op.xml"
 APPSCAN_ZIP_URL = "https://cloud.appscan.com/api/SCX/StaticAnalyzer/SAClientUtil?os=linux"
 MAX_TRIES = 5
 HEADER_FIELDS = [

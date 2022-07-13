@@ -28,6 +28,7 @@ from constants import (
     ALL,
     APP_URL_DICT,
     APPSCAN_CONFIG,
+    APPSCAN_CONFIG_OP,
     ASOC_API_ENDPOINT,
     DEPCHECK,
     DEPCHECK_REPO,
@@ -202,6 +203,26 @@ def call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, t
     except Exception as error:
         main_logger.warning(traceback.format_exc())
         main_logger.warning(error)
+
+
+def create_static_scan_operator(args, file_req_header):
+    """
+    Create static scan for operator project
+    """
+
+    main_logger.info("Generating appscan config file...")
+    project_file_name = "ibm-oms-operator"
+    with open(APPSCAN_CONFIG_OP) as reader:
+        _ = reader.read().replace("PROJECT_PATH", f"{args.source_operator}")
+
+    main_logger.info(f"Generating {project_file_name}.irx file...")
+    run_subprocess(
+        f"source ~/.bashrc && appscan.sh prepare -c {APPSCAN_CONFIG_OP} -n {project_file_name}.irx -d {args.source_operator}"
+    )
+
+    call_asoc_apis_to_create_scan(
+        file_req_header, "ibm-oms-operator", project_file_name, f"{args.source_operator}"
+    )
 
 
 def create_static_scan_sba(tmpdir, file_req_header):
@@ -395,6 +416,9 @@ def static_scan(args):
 
         main_logger.info("Create Static Scan for IAC")
         create_static_scan_iac(tmpdir, file_req_header)
+
+        main_logger.info("Create Static Scan for Operator")
+        create_static_scan_operator(args, file_req_header)
 
         main_logger.debug(f"PROJECTS TO SCAN: {projects}")
         processes = []

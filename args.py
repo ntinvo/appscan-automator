@@ -78,6 +78,13 @@ def add_source_arg(parser, required=False):
         dest="source_working",
         help=f"the path to source working code. When running type {STATIC} and mode {SCAN}, this is required",
     )
+    parser.add_argument(
+        "-so",
+        "--source_operator",
+        required=required,
+        dest="source_operator",
+        help=f"the path to operator source code. When running type {STATIC} and mode {SCAN}, this is required",
+    )
 
 
 def init_argparse():
