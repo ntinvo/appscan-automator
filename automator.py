@@ -213,11 +213,13 @@ def create_static_scan_operator(args, file_req_header):
     main_logger.info("Generating appscan config file...")
     project_file_name = "ibm-oms-operator"
     with open(APPSCAN_CONFIG_OP) as reader:
-        _ = reader.read().replace("PROJECT_PATH", f"{args.source_operator}")
+        text = reader.read().replace("PROJECT_PATH", f"{args.source_operator}")
+    with open(f"appscan-config-{project_file_name}-tmp.xml", "w") as writer:
+        writer.write(text)
 
     main_logger.info(f"Generating {project_file_name}.irx file...")
     run_subprocess(
-        f"source ~/.bashrc && appscan.sh prepare -c {APPSCAN_CONFIG_OP} -n {project_file_name}.irx -d {args.source_operator}"
+        f"source ~/.bashrc && appscan.sh prepare -c appscan-config-{project_file_name}-tmp.xml -n {project_file_name}.irx -d {args.source_operator}"
     )
 
     call_asoc_apis_to_create_scan(
