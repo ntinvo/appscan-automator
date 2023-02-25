@@ -21,9 +21,19 @@ from clint.textui import progress
 from requests.auth import HTTPBasicAuth
 
 from args import init_argparse
-from constants import (APPSCAN_URL, APPSCAN_ZIP_URL, CASE_INDEX_URL, DB2_SCAN,
-                       JFROG_USER, NETWORK_SCAN, NS, RT_SCAN,
-                       SINGLE_STREAM_RSS_URL, TWISTLOCK_URL, VOL_SCAN)
+from constants import (
+    APPSCAN_URL,
+    APPSCAN_ZIP_URL,
+    CASE_INDEX_URL,
+    DB2_SCAN,
+    JFROG_USER,
+    NETWORK_SCAN,
+    NS,
+    RT_SCAN,
+    SINGLE_STREAM_RSS_URL,
+    TWISTLOCK_URL,
+    VOL_SCAN,
+)
 from main_logger import main_logger
 from settings import JENKINS_TAAS_TOKEN, JFROG_APIKEY
 
@@ -467,4 +477,4 @@ def get_latest_released_image():
             json_content = yaml.safe_load(content)
             image_tag = json_content["resources"]["resourceDefs"]["containerImages"][0]["tag"]
             run_subprocess(f"rm -f ibm-oms-ent-case-{case_version}.tgz")
-            return f"icr.io/cp/ibm-oms-enterprise/om-app:{image_tag}"
+            return f"stg.icr.io/cp/ibm-oms-enterprise/om-app:{image_tag}"
