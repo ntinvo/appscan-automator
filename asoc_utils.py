@@ -3,13 +3,11 @@ import os
 import time
 from distutils.dir_util import copy_tree
 
-import pdfkit
 import requests
 
 from constants import ASOC_API_ENDPOINT, PENDING_STATUSES, TIME_TO_SLEEP
 from main_logger import main_logger
-from settings import KEY_ID, KEY_SECRET
-from utils import create_dir, f_logger, get_date_str, timer
+from utils import create_dir, download, f_logger, get_date_str, timer
 
 
 @timer
@@ -24,10 +22,9 @@ def get_bearer_token():
 
     res = requests.post(
         f"{ASOC_API_ENDPOINT}/Account/ApiKeyLogin",
-        json={"KeyId": KEY_ID, "KeySecret": KEY_SECRET},
+        json={"KeyId": os.environ.get("KEY_ID"), "KeySecret": os.environ.get("KEY_SECRET")},
         headers={"Accept": "application/json"},
     )
-    print(res)
     return res.json()["Token"]
 
 
@@ -76,7 +73,7 @@ def get_download_config(name, report_file_type):
 
 @timer
 @f_logger
-def download_report(scan_type, report):
+def download_report(scan_type, report_data):
     """
     Download the generated report.
 
@@ -84,20 +81,14 @@ def download_report(scan_type, report):
         args ([dict]): the arguments passed to the script
         report ([dict]): the report to download
     """
-    res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/Download/{report['Id']}", headers=headers)
-    if res.status_code == 200:
-        reports_dir_path = f"reports/{get_date_str()}/{scan_type}"
-        create_dir(reports_dir_path)
-
-        if report["HtmlInsteadOfPdf"]:
-            file_path = f"./{reports_dir_path}/{report['Name']}.html"
-        else:
-            file_path = f"./{reports_dir_path}/{report['Name']}.pdf"
-        file_path = os.path.abspath(file_path)
-        main_logger.info(f"HTML file: {file_path}")
-        with open(file_path, "wb") as file:
-            file.write(res.content)
-        copy_tree(f"reports/{get_date_str()}/{scan_type}", f"reports/latest/{scan_type}")
+    reports_dir_path = f"reports/{get_date_str()}/{scan_type}"
+    create_dir(reports_dir_path)
+    download(
+        report_data["DownloadLink"],
+        f"{report_data['Name']}.{report_data['ReportFileType']}",
+        reports_dir_path,
+    )
+    copy_tree(f"reports/{get_date_str()}/{scan_type}", f"reports/latest/{scan_type}")
 
 
 @timer
@@ -193,7 +184,7 @@ def wait_for_report(report):
         if res.status_code == 200 and res.json()["Status"] == "Ready":
             main_logger.info(f"REPORT: {report}")
             main_logger.info(f"RESPONSE: {res.json()}")
-            break
+            return res.json()
 
         main_logger.info(f"Report for {report['Name']} is not ready. Waiting...")
         main_logger.info(f"REPORT: {report}")

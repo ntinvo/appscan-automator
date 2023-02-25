@@ -17,13 +17,11 @@
 
 import io
 import os
-
 # download_appscan("./tmp")
 import shutil
 import sys
 import zipfile
 from datetime import datetime, timedelta
-
 # from clint.textui import progressfrom distutils.dir_util import copy_tree
 from distutils.dir_util import copy_tree
 from io import BytesIO
@@ -245,6 +243,8 @@ def download(url, filename, context):
     except Exception as error:
         main_logger.earning(error)
         raise
+
+download("https://asocstorage.blob.core.windows.net/reports/bdbd1962-505e-4a1a-af15-6c50698050dc?sv=2021-10-04&se=2023-02-26T20%3A10%3A44Z&sr=b&sp=r&sig=HcrUTNxvxiSaW5U%2F17y7f6ZgHv1Z6nD1lvvagxhkezM%3D", "test.html", "reports" )
 
 
 # download(SBA_JAR_URL, SBA_JAR, "./tmp/")

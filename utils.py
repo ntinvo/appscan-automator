@@ -19,9 +19,18 @@ from clint.textui import progress
 from requests.auth import HTTPBasicAuth
 
 from args import init_argparse
-from constants import (APPSCAN_URL, APPSCAN_ZIP_URL, DB2_SCAN, JFROG_USER,
-                       NETWORK_SCAN, NS, RT_SCAN, SINGLE_STREAM_RSS_URL,
-                       TWISTLOCK_URL, VOL_SCAN)
+from constants import (
+    APPSCAN_URL,
+    APPSCAN_ZIP_URL,
+    DB2_SCAN,
+    JFROG_USER,
+    NETWORK_SCAN,
+    NS,
+    RT_SCAN,
+    SINGLE_STREAM_RSS_URL,
+    TWISTLOCK_URL,
+    VOL_SCAN,
+)
 from main_logger import main_logger
 from settings import JENKINS_TAAS_TOKEN, JFROG_APIKEY
 

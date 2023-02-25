@@ -473,13 +473,13 @@ def dynamic_reports():
 
     for report in generated_reports:
         # wait for the report to be ready
-        wait_for_report(report)
+        report_data = wait_for_report(report)
 
         # download the report
-        download_report(DYNAMIC, report)
+        download_report(DYNAMIC, report_data)
 
-        # upload reports to artifactory
-        upload_reports_to_artifactory(DYNAMIC, f"reports/{get_date_str()}/{DYNAMIC}")
+        # # upload reports to artifactory
+        # upload_reports_to_artifactory(DYNAMIC, f"reports/{get_date_str()}/{DYNAMIC}")
 
 
 @timer
@@ -517,10 +517,10 @@ def static_reports():
             report = res.json()
 
             # wait for the report to be ready
-            wait_for_report(report)
+            report_data = wait_for_report(report)
 
             # download the report
-            download_report(STATIC, report)
+            download_report(STATIC, report_data)
 
             # upload reports to artifactory
             upload_reports_to_artifactory(STATIC, f"reports/{get_date_str()}/{STATIC}")
@@ -725,6 +725,7 @@ def main():
     """
     Main
     """
+    args = None
     try:
         args = parse_arguments()
         main_logger.info(args)
@@ -739,7 +740,7 @@ def main():
         cleanup()
         raise
     finally:
-        if not args.dev:
+        if args is not None and not args.dev:
             cleanup()
 
 
