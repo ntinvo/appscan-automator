@@ -7,7 +7,8 @@ import requests
 
 from constants import ASOC_API_ENDPOINT, PENDING_STATUSES, TIME_TO_SLEEP
 from main_logger import main_logger
-from utils import create_dir, download, f_logger, get_date_str, timer
+from utils import (create_dir, download, f_logger, get_date_str,
+                   run_subprocess, timer)
 
 
 @timer
@@ -190,3 +191,10 @@ def wait_for_report(report):
         main_logger.info(f"REPORT: {report}")
         main_logger.info(f"RESPONSE: {res.json()}")
         time.sleep(TIME_TO_SLEEP)
+
+
+@timer
+@f_logger
+def start_asoc_presence():
+    """Start the appscan presence"""
+    run_subprocess("/home/harness/appscan/presence_v2/startPresenceAsService.sh start")

@@ -15,57 +15,21 @@ from multiprocessing import Pool
 import pandas as pd
 import requests
 
-from asoc_utils import (
-    download_report,
-    get_bearer_token,
-    get_download_config,
-    get_scans,
-    headers,
-    remove_old_scans,
-    wait_for_report,
-)
-from constants import (
-    ALL,
-    APP_URL_DICT,
-    APPSCAN_CONFIG,
-    APPSCAN_CONFIG_OP,
-    ASOC_API_ENDPOINT,
-    DEPCHECK,
-    DEPCHECK_REPO,
-    DEPCHECK_SCAN,
-    DYNAMIC,
-    HEADER_FIELDS,
-    IAC_JAR,
-    IAC_JAR_URL,
-    MAX_TRIES,
-    PADDING,
-    PENDING_STATUSES,
-    PRESENCE_ID,
-    REPORT_FILE_TYPES,
-    REPORTS,
-    SBA_JAR,
-    SBA_JAR_URL,
-    SCAN,
-    SINGLE_DYNAMIC,
-    SINGLE_STATIC,
-    STATIC,
-    VOL_SCAN,
-)
+from asoc_utils import (download_report, get_bearer_token, get_download_config,
+                        get_scans, headers, remove_old_scans,
+                        start_asoc_presence, wait_for_report)
+from constants import (ALL, APP_URL_DICT, APPSCAN_CONFIG, APPSCAN_CONFIG_OP,
+                       ASOC_API_ENDPOINT, DEPCHECK, DEPCHECK_REPO,
+                       DEPCHECK_SCAN, DYNAMIC, HEADER_FIELDS, IAC_JAR,
+                       IAC_JAR_URL, MAX_TRIES, PADDING, PENDING_STATUSES,
+                       PRESENCE_ID, REPORT_FILE_TYPES, REPORTS, SBA_JAR,
+                       SBA_JAR_URL, SCAN, SINGLE_DYNAMIC, SINGLE_STATIC,
+                       STATIC, VOL_SCAN)
 from docker_utils import start_app_container, start_depcheck_container
 from main_logger import main_logger
-from utils import (
-    cleanup,
-    create_dir,
-    download,
-    f_logger,
-    get_date_str,
-    get_latest_image,
-    parse_arguments,
-    run_subprocess,
-    timer,
-    update_config_file,
-    upload_reports_to_artifactory,
-)
+from utils import (cleanup, create_dir, download, f_logger, get_date_str,
+                   get_latest_image, parse_arguments, run_subprocess, timer,
+                   update_config_file, upload_reports_to_artifactory)
 
 
 # ********************************* #
@@ -387,6 +351,9 @@ def dynamic_scan():
     for status in old_scan_status_dict.values():
         if status in PENDING_STATUSES:
             return
+
+    # start ASoC presense
+    start_asoc_presence()
 
     # start the app container for the scans
     start_app_container(latest_image)
