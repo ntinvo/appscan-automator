@@ -1,27 +1,11 @@
 """ Docker Utils """
 import os
-import time
 
 import docker
-import requests
 
-from constants import (
-    DB2_SCAN,
-    DEPCHECK,
-    DEPLOY_SERVER,
-    ENTITLED_REGISTRY,
-    JFROG_USER,
-    NETWORK_SCAN,
-    PADDING,
-    RT_SCAN,
-    VOL_SCAN,
-)
+from constants import DB2_SCAN, ENTITLED_REGISTRY, NETWORK_SCAN, RT_SCAN, VOL_SCAN
 from main_logger import main_logger
-from settings import JFROG_APIKEY
 from utils import f_logger, run_subprocess, timer
-
-# import traceback
-
 
 client = docker.from_env()
 
@@ -149,54 +133,6 @@ def cleanup(args):
 
 @timer
 @f_logger
-def start_db2_container(args, image_tag, logger=main_logger):
-    """
-    Start the db2 container for deployment.
-
-    Args:
-        args ([str]): the arguments passed to the script
-        image_tag ([str]): the tag of the image
-        logger ([logging], optional): the logger to log the output. Defaults to main_logger.
-
-    Raises:
-        Exception: exception raised when running subprocess
-    """
-    try:
-        db_image_repo = f"{ENTITLED_REGISTRY}/oms-{args.version}-db2-db:{image_tag}-refs"
-        logger.info(f"#### STARTING DB2 CONTAINER: {DB2_SCAN} - {db_image_repo} ####")
-
-        try:
-            run_subprocess(f"docker network rm {NETWORK_SCAN}")
-        except Exception as error:
-            pass
-
-        run_subprocess(
-            f" \
-            docker volume create {VOL_SCAN} && \
-            docker network create {NETWORK_SCAN} && \
-            docker run -di --name {DB2_SCAN} --privileged --restart=always \
-            --network={NETWORK_SCAN} \
-            -e DB2INSTANCE=db2inst1 \
-            -e DB2INST1_PASSWORD=db2inst1 \
-            -e DB_USER=omsuser \
-            -e DB_PASSWORD=omsuser \
-            -e LICENSE=accept \
-            -e DBNAME=omdb \
-            -e AUTOCONFIG=false \
-            -v {VOL_SCAN}:/database \
-            -p 50005:50000 {db_image_repo} && \
-            chmod +x {os.getcwd()}/waitDB2.sh && \
-            /bin/bash {os.getcwd()}/waitDB2.sh {DB2_SCAN}",
-            logger=logger,
-        )
-    except Exception as error:
-        # logger.error(traceback.format_exc())
-        logger.warning(error)
-        raise Exception  # pylint: disable=raise-missing-from
-
-
-@timer
-@f_logger
 def start_app_container(image, rt_name=RT_SCAN, logger=main_logger):
     """
     Start the rt container for deployment
@@ -250,101 +186,3 @@ def start_depcheck_container(image, rt_name=RT_SCAN, logger=main_logger):
         raise Exception  # pylint: disable=raise-missing-from
     finally:
         docker_logout()
-
-
-@timer
-@f_logger
-def wait_for_deployment():
-    """
-    Waiting for the deployment to be ready.
-    """
-    while True:
-        try:
-            res = requests.get(f"{DEPLOY_SERVER}/smcfs/console/login.jsp", timeout=20, verify=False)
-            if res.status_code == 200:
-                break
-        except Exception as _e:
-            time.sleep(10)
-
-
-@timer
-@f_logger
-def needs_server_restart():
-    """
-    Check if we need to restart the application server or not
-
-    Returns:
-        [bool]: True if we need to restart, False otherwise
-    """
-    res = requests.get(f"{DEPLOY_SERVER}/sbc/sbc/login.do", verify=False)
-    return "b_SignInHeader" in res.text
-
-
-# @timer
-# @f_logger
-# def prep_containers(args, image_tags):
-#     """
-#     Prepare the rt and db2 container. This function will do the followings:
-#         - login to the registry
-#         - start db2 and rt containers
-#         - build the ear for deployment
-#         - start liberty server
-#         - wait for the server to be ready
-#         - logout of the registry
-
-#     Args:
-#         args ([dict]): the arguments passed to the script
-#         image_tag ([str]): the tag of the image
-#     """
-
-#     # clean up
-#     cleanup(args)
-
-#     # login to registry
-#     docker_login()
-
-#     # starting db2 and rt containers
-#     main_logger.info("Starting db2 and rt containers...")
-#     for image_tag in image_tags:
-#         try:
-#             print()
-#             main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
-#             main_logger.info(
-#                 " " * int((PADDING / 2)) + f"Trying {image_tag}" + " " * int((PADDING / 2))
-#             )
-#             main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
-#             main_logger.info("Starting db2 and rt containers...")
-#             start_db2_container(args, image_tag)
-#             start_rt_container(args, image_tag)
-#             break
-#         except Exception as error:
-#             main_logger.warning(error)
-
-#     # build the ear
-#     main_logger.info("Building ear file...")
-#     run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs"')
-
-#     # start liberty server
-#     main_logger.info("Starting liberty server...")
-#     run_subprocess(f'docker exec {RT_SCAN} bash -lc "__lbstart"')
-
-#     # wait for deployment to be ready
-#     main_logger.info("Wait for deployment to be ready...")
-#     main_logger.info(f"Checking deployment @ {DEPLOY_SERVER}/smcfs/console/login.jsp...")
-#     wait_for_deployment()
-
-#     # check to see if we need to restart the server
-#     if needs_server_restart():
-#         # restart the server
-#         main_logger.info("Restarting liberty server...")
-#         run_subprocess(f'docker exec {RT_SCAN} bash -lc "__lbstop && __lbstart"')
-
-#         # wait again for deployment to be ready after restarting
-#         main_logger.info("Waiting again for deployment to be ready after restarting...")
-#         main_logger.info(f"Checking deployment @ {DEPLOY_SERVER}/smcfs/console/login.jsp...")
-#         wait_for_deployment()
-
-#     main_logger.info("The db2 and rt containers are up and running...")
-
-#     # logout of registry
-#     docker_logout()

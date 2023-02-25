@@ -15,23 +15,55 @@ from multiprocessing import Pool
 import pandas as pd
 import requests
 
-from asoc_utils import (download_report, get_bearer_token, get_download_config,
-                        get_scans, headers, remove_old_scans, wait_for_report)
-from constants import (ALL, APP_URL_DICT, APPSCAN_CONFIG, APPSCAN_CONFIG_OP,
-                       ASOC_API_ENDPOINT, DEPCHECK, DEPCHECK_REPO,
-                       DEPCHECK_SCAN, DYNAMIC, HEADER_FIELDS, IAC_JAR,
-                       IAC_JAR_URL, MAX_TRIES, NETWORK_SCAN, PADDING,
-                       PENDING_STATUSES, PRESENCE_ID, REPORTS, SBA_JAR,
-                       SBA_JAR_URL, SCAN, SINGLE_DYNAMIC, SINGLE_STATIC,
-                       STATIC, VOL_SCAN)
+from asoc_utils import (
+    download_report,
+    get_bearer_token,
+    get_download_config,
+    get_scans,
+    headers,
+    remove_old_scans,
+    wait_for_report,
+)
+from constants import (
+    ALL,
+    APP_URL_DICT,
+    APPSCAN_CONFIG,
+    APPSCAN_CONFIG_OP,
+    ASOC_API_ENDPOINT,
+    DEPCHECK,
+    DEPCHECK_REPO,
+    DEPCHECK_SCAN,
+    DYNAMIC,
+    HEADER_FIELDS,
+    IAC_JAR,
+    IAC_JAR_URL,
+    MAX_TRIES,
+    PADDING,
+    PENDING_STATUSES,
+    PRESENCE_ID,
+    REPORTS,
+    SBA_JAR,
+    SBA_JAR_URL,
+    SCAN,
+    SINGLE_DYNAMIC,
+    SINGLE_STATIC,
+    STATIC,
+    VOL_SCAN,
+)
 from docker_utils import start_app_container, start_depcheck_container
 from main_logger import main_logger
-# from settings import APPSCAN_HOME
-from utils import (cleanup, create_dir, download, f_logger, get_date_str,
-                   get_latest_image, get_latest_stable_image_tags,
-                   parse_arguments, run_subprocess, timer, update_config_file)
-
-# from distutils.dir_util import copy_tree
+from utils import (
+    cleanup,
+    create_dir,
+    download,
+    f_logger,
+    get_date_str,
+    get_latest_image,
+    parse_arguments,
+    run_subprocess,
+    timer,
+    update_config_file,
+)
 
 
 # ********************************* #
@@ -61,20 +93,8 @@ def build_source_code(args):
     Args:
         args ([dict]): the arguments passed to the script
     """
-    # main_logger.info("Setting up environment...")
-    # run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle setupEnvironment --stacktrace")
-
-    # main_logger.info("Setting 3rd party libs...")
-    # run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle unpack3p")
-
-    # main_logger.info("Cleaning projects...")
-    # run_subprocess(f"cd {args.source} && Build/gradlew clean")
-
     main_logger.info("Removing irx files...")
     run_subprocess(f'cd {args.source} && find . -name "*.irx" -type f -delete')
-
-    # main_logger.info("Building projects...")
-    # run_subprocess(f"cd {args.source}/Build && ./gradlew -b fullbuild.gradle fullbuild --stacktrace")
 
 
 def generate_appscan_config_file(args, project, project_file_name):
@@ -357,14 +377,14 @@ def dynamic_scan():
     # get the image tag
     latest_image = get_latest_image()
 
-    # # remove the old scans
-    # old_scan_status_dict = remove_old_scans(SINGLE_DYNAMIC)
+    # remove the old scans
+    old_scan_status_dict = remove_old_scans(SINGLE_DYNAMIC)
 
-    # # spin up the containers (rt and db2), if
-    # # there is no scan in pending statuses
-    # for status in old_scan_status_dict.values():
-    #     if status in PENDING_STATUSES:
-    #         return
+    # spin up the containers (rt and db2), if
+    # there is no scan in pending statuses
+    for status in old_scan_status_dict.values():
+        if status in PENDING_STATUSES:
+            return
 
     # start the app container for the scans
     start_app_container(latest_image)
@@ -633,6 +653,7 @@ def depcheck(args):
 
         # get the latest image
         latest_image = get_latest_image()
+        assert latest_image is not None
 
         # start runtime container
         try:

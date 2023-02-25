@@ -418,6 +418,7 @@ def get_latest_image():
     for img in scan_results["overview"]["images"]["resultsIncluded"]["noScanErrors"]["list"]:
         if "app" in img:
             return img
+    raise Exception("Can't  find app image. Exiting!!!!")
 
 
 @timer
