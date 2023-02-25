@@ -67,7 +67,9 @@ def get_download_config(name):
             "ReportFileType": "Html",
             "Title": name.replace(" ", "_").lower(),
             "Locale": "en-US",
-        }
+        },
+        "OdataFilter": "",
+        "ApplyPolicies": "All",
     }
 
 
