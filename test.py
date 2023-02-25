@@ -1,3 +1,47 @@
+import tarfile
+
+import requests
+import yaml
+
+from utils import download, run_subprocess
+
+url = "https://raw.githubusercontent.com/IBM/cloud-pak/master/repo/case/ibm-oms-ent-case/index.yaml"
+case_file = "https://raw.githubusercontent.com/IBM/cloud-pak/master/repo/case/ibm-oms-ent-case/3.0.7/ibm-oms-ent-case-3.0.7.tgz"
+
+
+def get_latest_case_version():
+    try:
+        res = requests.get(url, allow_redirects=True)
+        return yaml.safe_load(res.text)["latestVersion"]
+    except yaml.YAMLError as exc:
+        raise exc
+
+
+def get_latest_released_image():
+    case_version = get_latest_case_version()
+    case_url = f"https://raw.githubusercontent.com/IBM/cloud-pak/master/repo/case/ibm-oms-ent-case/{case_version}/ibm-oms-ent-case-{case_version}.tgz"
+    download(case_url, f"ibm-oms-ent-case-{case_version}.tgz", "./")
+    tar = tarfile.open(f"ibm-oms-ent-case-{case_version}.tgz", "r")
+    for item in tar:
+        if "ibmOmsEntProd/resources.yaml" in item.name:
+            f = tar.extractfile(item)
+            content = f.read()
+            json_content = yaml.safe_load(content)
+            image_tag = json_content["resources"]["resourceDefs"]["containerImages"][0]["tag"]
+            run_subprocess(f"rm -f ibm-oms-ent-case-{case_version}.tgz")
+            return f"cp.icr.io/cp/ibm-oms-enterprise/om-app:{image_tag}"
+    # for member in tar.getmembers():
+    #     f = tar.extractfile(member)
+    #     if f:
+    #         content = f.read()
+    #         print(content)
+
+
+# print(get_latest_case_version())
+# download(case_file, "ibm-oms-ent-case-3.0.7.tgz", "./")
+print(get_latest_released_image())
+
+
 # # from datetime import datetime
 # # from math import ceil
 
@@ -15,28 +59,28 @@
 # #         adjusted_dom = day_of_month + first_day.weekday()
 # #     return int(ceil(adjusted_dom / 7.0))
 
-import io
-import os
-# download_appscan("./tmp")
-import shutil
-import sys
-import zipfile
-from datetime import datetime, timedelta
-# from clint.textui import progressfrom distutils.dir_util import copy_tree
-from distutils.dir_util import copy_tree
-from io import BytesIO
-from math import ceil
-from urllib.request import urlopen
-from zipfile import ZipFile
+# import io
+# import os
+# # download_appscan("./tmp")
+# import shutil
+# import sys
+# import zipfile
+# from datetime import datetime, timedelta
+# # from clint.textui import progressfrom distutils.dir_util import copy_tree
+# from distutils.dir_util import copy_tree
+# from io import BytesIO
+# from math import ceil
+# from urllib.request import urlopen
+# from zipfile import ZipFile
 
-import requests
+# import requests
 
-from main_logger import main_logger
+# from main_logger import main_logger
 
-copy_tree(
-    "/Users/tinnvo/Desktop/Dev/appscan_automator/reports/2021_08_week_3/static",
-    "/Users/tinnvo/Desktop/Dev/appscan_automator/reports/latest/static",
-)
+# copy_tree(
+#     "/Users/tinnvo/Desktop/Dev/appscan_automator/reports/2021_08_week_3/static",
+#     "/Users/tinnvo/Desktop/Dev/appscan_automator/reports/latest/static",
+# )
 
 # from utils import download_appscan
 
@@ -162,44 +206,44 @@ copy_tree(
 # )
 
 
-def get_week_of_month(dt_obj):
-    """
-    Get the week number of the month
+# def get_week_of_month(dt_obj):
+#     """
+#     Get the week number of the month
 
-    Args:
-        dt_obj ([datetime]): date time object
+#     Args:
+#         dt_obj ([datetime]): date time object
 
-    Returns:
-        [int]: week number
-    """
-    first_day = dt_obj.replace(day=1)
-    day_of_month = dt_obj.day
-    adjusted_day_of_month = day_of_month + first_day.weekday()
-    return (
-        int(ceil(adjusted_day_of_month / 7.0)) - 1
-        if first_day.weekday() == 6
-        else int(ceil(adjusted_day_of_month / 7.0))
-    )
-    # return (dt_obj.day - dt_obj.weekday() - 2) // 7 + 2
-    # month = dt_obj.month
-    # week = 0
-    # while dt_obj.month == month:
-    #     week += 1
-    #     dt_obj -= timedelta(days=7)
-    # return week
-    # return (dt_obj.day - 1) // 7 + 1
-    # first_day = datetime.today().replace(day=1)
-    # print("First day", first_day)
-    # day_of_month = dt_obj.day
-    # print("day of month", day_of_month)
-    # print("Firstday weekday", first_day.weekday())
-    # if first_day.weekday() == 6:
-    #     adjusted_dom = (1 + first_day.weekday()) / 7
-    #     print(adjusted_dom)
-    # else:
-    #     adjusted_dom = day_of_month + first_day.weekday()
-    # print("adjusted_dom", adjusted_dom)
-    # return int(ceil(adjusted_dom / 7.0))
+#     Returns:
+#         [int]: week number
+#     """
+#     first_day = dt_obj.replace(day=1)
+#     day_of_month = dt_obj.day
+#     adjusted_day_of_month = day_of_month + first_day.weekday()
+#     return (
+#         int(ceil(adjusted_day_of_month / 7.0)) - 1
+#         if first_day.weekday() == 6
+#         else int(ceil(adjusted_day_of_month / 7.0))
+#     )
+# return (dt_obj.day - dt_obj.weekday() - 2) // 7 + 2
+# month = dt_obj.month
+# week = 0
+# while dt_obj.month == month:
+#     week += 1
+#     dt_obj -= timedelta(days=7)
+# return week
+# return (dt_obj.day - 1) // 7 + 1
+# first_day = datetime.today().replace(day=1)
+# print("First day", first_day)
+# day_of_month = dt_obj.day
+# print("day of month", day_of_month)
+# print("Firstday weekday", first_day.weekday())
+# if first_day.weekday() == 6:
+#     adjusted_dom = (1 + first_day.weekday()) / 7
+#     print(adjusted_dom)
+# else:
+#     adjusted_dom = day_of_month + first_day.weekday()
+# print("adjusted_dom", adjusted_dom)
+# return int(ceil(adjusted_dom / 7.0))
 
 
 # dt = datetime(2011, 2, 28)
@@ -207,44 +251,44 @@ def get_week_of_month(dt_obj):
 # week_of_month = get_week_of_month(dt)
 # print(week_of_month)
 
-from clint.textui import progress
+# from clint.textui import progress
 
-from constants import SBA_JAR, SBA_JAR_URL
-from utils import get_auth
+# from constants import SBA_JAR, SBA_JAR_URL
+# from utils import get_auth
 
 
-def download(url, filename, context):
-    """
-    Download file given the url
+# def download(url, filename, context):
+#     """
+#     Download file given the url
 
-    Args:
-        url (str): file url
-        filename (str): filename to save
-        context (str): directory to save file to
-    """
-    try:
-        res = requests.get(url, stream=True, auth=get_auth(url))
-        main_logger.info(f"Download {filename} returned {res.status_code}")
-        print(res)
-        if res.status_code != 200:
-            return False
-        total_length = int(res.headers.get("content-length"))
-        with open(f"{context}/{filename}", "wb") as file:
-            total_length = int(res.headers.get("content-length"))
-            for chunk in progress.bar(
-                res.iter_content(chunk_size=1024),
-                expected_size=(total_length / 1024) + 1,
-                label="Downloading. Please wait >>> ",
-            ):
-                if chunk:
-                    file.write(chunk)
-                    file.flush()
-        return True
-    except Exception as error:
-        main_logger.earning(error)
-        raise
+#     Args:
+#         url (str): file url
+#         filename (str): filename to save
+#         context (str): directory to save file to
+#     """
+#     try:
+#         res = requests.get(url, stream=True, auth=get_auth(url))
+#         main_logger.info(f"Download {filename} returned {res.status_code}")
+#         print(res)
+#         if res.status_code != 200:
+#             return False
+#         total_length = int(res.headers.get("content-length"))
+#         with open(f"{context}/{filename}", "wb") as file:
+#             total_length = int(res.headers.get("content-length"))
+#             for chunk in progress.bar(
+#                 res.iter_content(chunk_size=1024),
+#                 expected_size=(total_length / 1024) + 1,
+#                 label="Downloading. Please wait >>> ",
+#             ):
+#                 if chunk:
+#                     file.write(chunk)
+#                     file.flush()
+#         return True
+#     except Exception as error:
+#         main_logger.earning(error)
+#         raise
 
-download("https://asocstorage.blob.core.windows.net/reports/bdbd1962-505e-4a1a-af15-6c50698050dc?sv=2021-10-04&se=2023-02-26T20%3A10%3A44Z&sr=b&sp=r&sig=HcrUTNxvxiSaW5U%2F17y7f6ZgHv1Z6nD1lvvagxhkezM%3D", "test.html", "reports" )
+# download("https://asocstorage.blob.core.windows.net/reports/bdbd1962-505e-4a1a-af15-6c50698050dc?sv=2021-10-04&se=2023-02-26T20%3A10%3A44Z&sr=b&sp=r&sig=HcrUTNxvxiSaW5U%2F17y7f6ZgHv1Z6nD1lvvagxhkezM%3D", "test.html", "reports" )
 
 
 # download(SBA_JAR_URL, SBA_JAR, "./tmp/")

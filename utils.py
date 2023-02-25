@@ -6,6 +6,7 @@ import os
 import re
 import subprocess
 import sys
+import tarfile
 import time
 import traceback
 import xml.etree.ElementTree as ET
@@ -14,6 +15,7 @@ from math import ceil
 
 import coloredlogs
 import requests
+import yaml
 from bs4 import BeautifulSoup
 from clint.textui import progress
 from requests.auth import HTTPBasicAuth
@@ -22,6 +24,7 @@ from args import init_argparse
 from constants import (
     APPSCAN_URL,
     APPSCAN_ZIP_URL,
+    CASE_INDEX_URL,
     DB2_SCAN,
     JFROG_USER,
     NETWORK_SCAN,
@@ -419,7 +422,7 @@ def get_latest_image():
     for img in scan_results["overview"]["images"]["resultsIncluded"]["noScanErrors"]["list"]:
         if "app" in img:
             return img
-    raise Exception("Can't  find app image. Exiting!!!!")
+    return get_latest_released_image()
 
 
 @timer
@@ -446,3 +449,32 @@ def upload_reports_to_artifactory(scan_type, report_dir):
     run_subprocess(
         f"cd {report_dir} && for file in $(ls); do curl -u {os.environ['ARTF_USER']}:{os.environ['ARTF_TOKEN']} -T $(realpath $file) {APPSCAN_URL}/{timestamp}/{scan_type}/$(basename $file); done"
     )
+
+
+@timer
+@f_logger
+def get_latest_case_version():
+    """Get latest case version"""
+    try:
+        res = requests.get(CASE_INDEX_URL, allow_redirects=True)
+        return yaml.safe_load(res.text)["latestVersion"]
+    except yaml.YAMLError as exc:
+        raise exc
+
+
+@timer
+@f_logger
+def get_latest_released_image():
+    """Get latest case image"""
+    case_version = get_latest_case_version()
+    case_url = f"https://raw.githubusercontent.com/IBM/cloud-pak/master/repo/case/ibm-oms-ent-case/{case_version}/ibm-oms-ent-case-{case_version}.tgz"
+    download(case_url, f"ibm-oms-ent-case-{case_version}.tgz", "./")
+    tar = tarfile.open(f"ibm-oms-ent-case-{case_version}.tgz", "r")
+    for item in tar:
+        if "ibmOmsEntProd/resources.yaml" in item.name:
+            f = tar.extractfile(item)
+            content = f.read()
+            json_content = yaml.safe_load(content)
+            image_tag = json_content["resources"]["resourceDefs"]["containerImages"][0]["tag"]
+            run_subprocess(f"rm -f ibm-oms-ent-case-{case_version}.tgz")
+            return f"cp.icr.io/cp/ibm-oms-enterprise/om-app:{image_tag}"
