@@ -27,6 +27,7 @@ def get_bearer_token():
         json={"KeyId": KEY_ID, "KeySecret": KEY_SECRET},
         headers={"Accept": "application/json"},
     )
+    print(res)
     return res.json()["Token"]
 
 

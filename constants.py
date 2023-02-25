@@ -39,6 +39,8 @@ SBA_JAR_URL = "https://wce-sterling-team-oms-jenkins.swg-devops.com/job/SBA/last
 SBA_JAR = "SBA.jar"
 IAC_JAR_URL = "https://wce-sterling-team-oms-jenkins.swg-devops.com/job/IAC/lastSuccessfulBuild/artifact/IAC.jar"
 IAC_JAR = "IAC.jar"
+ENTITLED_REGISTRY = "stg.icr.io"
+TWISTLOCK_URL = "https://wce-sterling-team-oms-jenkins.swg-devops.com/job/OMS_CD_Development.TwistLock-Scan/lastSuccessfulBuild/artifact/tt_v1.5.0/linux_x86_64"
 
 # jazz
 JAZZ_SINGLE_WS_ID = "1016"

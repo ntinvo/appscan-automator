@@ -1,0 +1,8 @@
+-Dvendor=websphere
+-DvendorFile=servers.properties
+-Dclient.encoding.override=UTF-8
+-Dfile.encoding=UTF-8
+-DSCI.Server.Name=DefaultAppServer
+-Dserver.state.dir=/opt/ssfs/runtime/serverstate
+-Xms2048m
+-Xmx8192m

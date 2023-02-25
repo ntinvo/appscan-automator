@@ -3,6 +3,7 @@ import errno
 import functools
 import logging
 import os
+import re
 import subprocess
 import sys
 import time
@@ -15,6 +16,7 @@ import coloredlogs
 import requests
 from bs4 import BeautifulSoup
 from clint.textui import progress
+from requests.auth import HTTPBasicAuth
 
 from args import init_argparse
 from constants import (
@@ -25,6 +27,7 @@ from constants import (
     NS,
     RT_SCAN,
     SINGLE_STREAM_RSS_URL,
+    TWISTLOCK_URL,
     VOL_SCAN,
 )
 from main_logger import main_logger
@@ -396,3 +399,38 @@ def download_and_extract_appscan(path):
     run_subprocess(f"unzip -o {path}/appscan.zip -d {path}/appscan/")
     appcan_folder_name = os.listdir(f"{path}/appscan/")[0]
     return appcan_folder_name
+
+
+@timer
+@f_logger
+def get_latest_image():
+    """Get latest built image"""
+    res = requests.get(
+        TWISTLOCK_URL, auth=HTTPBasicAuth(os.environ["JENKINS_USER"], os.environ["JENKINS_TOKEN"])
+    )
+    soup = BeautifulSoup(res.text, "html.parser")
+    twistlock_file_soup = soup.find("a", href=re.compile((r"^twistlock.*json$")))
+    res = requests.get(
+        f"{TWISTLOCK_URL}/{twistlock_file_soup.text}",
+        auth=HTTPBasicAuth(os.environ["JENKINS_USER"], os.environ["JENKINS_TOKEN"]),
+    )
+    scan_results = res.json()
+    for img in scan_results["overview"]["images"]["resultsIncluded"]["noScanErrors"]["list"]:
+        if "app" in img:
+            return img
+
+
+@timer
+@f_logger
+def update_config_file(file_name):
+    """Update config file"""
+    with open(file_name, "r") as file:
+        data = file.read()
+        data = data.replace("__DB_HOST__", os.environ["DB_HOST"])
+        data = data.replace("__DB_PORT__", os.environ["DB_PORT"])
+        data = data.replace("__DB_NAME__", os.environ["DB_NAME"])
+        data = data.replace("__DB_USER__", os.environ["DB_USER"])
+        data = data.replace("__DB_PASS__", os.environ["DB_PASS"])
+        data = data.replace("__DB_SCHEMA__", os.environ["DB_SCHEMA"])
+    with open(f"{file_name}.updated", "w") as file:
+        file.write(data)

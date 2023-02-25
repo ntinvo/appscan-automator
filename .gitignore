@@ -9,3 +9,4 @@ tmp*
 dependency*
 appscan-config-tmp.xml
 appscan-config-*-tmp.xml
+*.updated

@@ -4,8 +4,17 @@ import logging
 import os
 from argparse import ArgumentDefaultsHelpFormatter
 
-from constants import ALL, COC, COCDEV, DEPCHECK, DYNAMIC, REPORTS, SCAN, SINGLE, STATIC, V10, V95
+from constants import (ALL, COC, COCDEV, DEPCHECK, DYNAMIC, REPORTS, SCAN,
+                       SINGLE, STATIC, V10, V95)
 from main_logger import main_logger
+
+
+def str2bool(value):
+    if value.lower() in ("yes", "true", "t", "y", "1"):
+        return True
+    elif value.lower() in ("no", "false", "f", "n", "0"):
+        return False
+    return value
 
 
 def add_optionals_args(parser):
@@ -22,6 +31,16 @@ def add_optionals_args(parser):
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         help="logging level",
         default=logging.WARNING,
+    )
+    parser.add_argument(
+        "-d",
+        "--dev",
+        default=False,
+        const=False,
+        type=str2bool,
+        nargs="?",
+        choices=["yes", "true", "t", "y", "no", "false", "f", "n", "0", True, False],
+        help="if this flag is set, it will run in dev mode",
     )
 
 

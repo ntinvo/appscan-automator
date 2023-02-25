@@ -1,0 +1,64 @@
+<server description="Default server">
+    <featureManager>
+        <feature>adminCenter-1.0</feature>
+        <feature>jdbc-4.1</feature>
+        <feature>jndi-1.0</feature>
+        <feature>jsp-2.3</feature>
+        <feature>servlet-3.1</feature>
+        <feature>ssl-1.0</feature>
+        <feature>monitor-1.0</feature>
+        <feature>localConnector-1.0</feature>
+    </featureManager>
+    <basicRegistry id="basic">
+        <user name="admin" password="__DB_PASS__" />
+        <user name="nonadmin" password="__DB_PASS__" />
+    </basicRegistry>
+    <administrator-role>
+        <user>admin</user>
+    </administrator-role>
+    <sslDefault sslRef="defaultSSLSettings" />
+
+    <variable name="LIBERTY_HTTP_PORT" defaultValue="9080" />
+    <variable name="LIBERTY_HTTPS_PORT" defaultValue="9443" />
+    <variable name="LIBERTY_CORE_THREADS" defaultValue="20" />
+    <variable name="LIBERTY_MAX_THREADS" defaultValue="100" />
+    <variable name="LIBERTY_DS_MIN_POOLSIZE" defaultValue="10" />
+    <variable name="LIBERTY_DS_MAX_POOLSIZE" defaultValue="50" />
+    <variable name="LIBERTY_LOG_DIR" defaultValue="/tmp/logs" />
+    <variable name="MESSAGE_FILE_NAME" defaultValue="messages.log" />
+    <variable name="TRACE_FILE_NAME" defaultValue="trace.log" />
+
+    <ssl id="defaultSSLSettings" sslProtocol="TLSv1.2" keyStoreRef="defaultKeyStore"
+        trustStoreRef="defaultTrustStore" clientAuthenticationSupported="true" />
+
+    <httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="${LIBERTY_HTTP_PORT}"
+        httpsPort="${LIBERTY_HTTPS_PORT}" />
+
+    <executor name="Default Executor" coreThreads="${LIBERTY_CORE_THREADS}"
+        maxThreads="${LIBERTY_MAX_THREADS}" />
+
+    <dataSource id="DefaultDataSource" jndiName="jdbc/OMDS">
+        <jdbcDriver libraryRef="dblib" />
+        <connectionManager maxPoolSize="${LIBERTY_DS_MAX_POOLSIZE}"
+            minPoolSize="${LIBERTY_DS_MIN_POOLSIZE}" />
+        <properties.db2.jcc databaseName="__DB_NAME__" serverName="__DB_HOST__"
+            portNumber="__DB_PORT__" user="__DB_USER__" password="__DB_PASS__"
+            currentSchema="__DB_SCHEMA__" />
+    </dataSource>
+
+    <library id="dblib">
+        <fileset dir="/opt/ibm/jars/" includes="*.jar" />
+        <fileset dir="/opt/ibm/wlp/usr/servers/defaultServer/dropins/smcfs.ear/" includes="*.jar" />
+    </library>
+
+    <logging
+        hideMessage="SRVE9967W, CWWKO0221E, SRVE9968W, JSPG8502I, SRVE8094W, SESN0172I, SESN0176I, SESN8501I, JSPG8502I, 
+      CWWKZ0022W, SRVE9103I, CWWKF0007I, CWWKF0008I, CWWKE0100I, SRVE0169I, SRVE0250I, SRVE0190E, SRVE0242I, FFDC1015I, 
+      SRVE0777E, CWNEN0047W, CWWKZ0117E, CWWKO0219I, CWWKO0220I, CWWKE0002I"
+        maxFileSize="64" consoleLogLevel="INFO"
+        logDirectory="${LIBERTY_LOG_DIR}" messageFileName="${MESSAGE_FILE_NAME}"
+        traceFileName="${TRACE_FILE_NAME}" />
+
+    <httpSession useContextRootAsCookiePath="true" cookieSecure="true" />
+    <applicationManager autoExpand="true" />
+</server>

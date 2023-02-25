@@ -15,57 +15,21 @@ from multiprocessing import Pool
 import pandas as pd
 import requests
 
-from asoc_utils import (
-    download_report,
-    get_bearer_token,
-    get_download_config,
-    get_scans,
-    headers,
-    remove_old_scans,
-    wait_for_report,
-)
-from constants import (
-    ALL,
-    APP_URL_DICT,
-    APPSCAN_CONFIG,
-    APPSCAN_CONFIG_OP,
-    ASOC_API_ENDPOINT,
-    DEPCHECK,
-    DEPCHECK_REPO,
-    DEPCHECK_SCAN,
-    DYNAMIC,
-    HEADER_FIELDS,
-    IAC_JAR,
-    IAC_JAR_URL,
-    MAX_TRIES,
-    NETWORK_SCAN,
-    PADDING,
-    PENDING_STATUSES,
-    PRESENCE_ID,
-    REPORTS,
-    SBA_JAR,
-    SBA_JAR_URL,
-    SCAN,
-    SINGLE_DYNAMIC,
-    SINGLE_STATIC,
-    STATIC,
-    VOL_SCAN,
-)
-from docker_utils import prep_containers, start_rt_container
+from asoc_utils import (download_report, get_bearer_token, get_download_config,
+                        get_scans, headers, remove_old_scans, wait_for_report)
+from constants import (ALL, APP_URL_DICT, APPSCAN_CONFIG, APPSCAN_CONFIG_OP,
+                       ASOC_API_ENDPOINT, DEPCHECK, DEPCHECK_REPO,
+                       DEPCHECK_SCAN, DYNAMIC, HEADER_FIELDS, IAC_JAR,
+                       IAC_JAR_URL, MAX_TRIES, NETWORK_SCAN, PADDING,
+                       PENDING_STATUSES, PRESENCE_ID, REPORTS, SBA_JAR,
+                       SBA_JAR_URL, SCAN, SINGLE_DYNAMIC, SINGLE_STATIC,
+                       STATIC, VOL_SCAN)
+from docker_utils import start_app_container, start_depcheck_container
 from main_logger import main_logger
-
 # from settings import APPSCAN_HOME
-from utils import (
-    cleanup,
-    create_dir,
-    download,
-    f_logger,
-    get_date_str,
-    get_latest_stable_image_tags,
-    parse_arguments,
-    run_subprocess,
-    timer,
-)
+from utils import (cleanup, create_dir, download, f_logger, get_date_str,
+                   get_latest_image, get_latest_stable_image_tags,
+                   parse_arguments, run_subprocess, timer, update_config_file)
 
 # from distutils.dir_util import copy_tree
 
@@ -307,57 +271,6 @@ def create_static_scan(args, project, tmpdir, file_req_header):
     main_logger.info("#" * (len(process_project_message) + PADDING))
     main_logger.info(" " * int((PADDING / 2)) + process_project_message + " " * int((PADDING / 2)),)
     main_logger.info("#" * (len(process_project_message) + PADDING))
-    # # call ASoC API to create the static scan
-    # try:
-    #     main_logger.info("Calling ASoC API to create the static scan...")
-
-    #     with open(f"{tmpdir}/{project_file_name}.irx", "rb") as irx_file:
-    #         file_data = {"fileToUpload": irx_file}
-    #         finished = False
-    #         try_count = 0
-    #         while not finished:
-    #             if try_count >= MAX_TRIES:
-    #                 break
-    #             try_count += 1
-    #             file_upload_res = requests.post(
-    #                 f"{ASOC_API_ENDPOINT}/FileUpload", files=file_data, headers=file_req_header,
-    #             )
-    #             main_logger.info(f"File Upload Response: {file_upload_res}")
-    #             if file_upload_res.status_code == 401:
-    #                 main_logger.info(
-    #                     f"Token {file_req_header} expired. Generating a new one and retry..."
-    #                 )
-    #                 file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
-    #                 main_logger.info(f"New bearer token {file_req_header}")
-    #                 continue
-    #             if file_upload_res.status_code == 201:
-    #                 data = {
-    #                     "ARSAFileId": file_upload_res.json()["FileId"],
-    #                     "ScanName": project,
-    #                     "AppId": SINGLE_STATIC,
-    #                     "Locale": "en-US",
-    #                     "Execute": "true",
-    #                     "Personal": "false",
-    #                 }
-    #                 res = requests.post(
-    #                     f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers,
-    #                 )
-    #                 if res.status_code == 401:
-    #                     main_logger.info(
-    #                         f"Token {file_req_header} expired. Generating a new one and retry..."
-    #                     )
-    #                     file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
-    #                     main_logger.info(f"New bearer token {file_req_header}")
-    #                     continue
-    #             finished = res.status_code == 201
-    #             main_logger.info(f"Response: {res.json()}")
-    #         main_logger.info(
-    #             f"PROJECT: {project} - {project_file_name} WAS PROCESSED SUCCESSFULLY."
-    #         )
-    #         print()
-    # except Exception as error:
-    #     main_logger.warning(traceback.format_exc())
-    #     main_logger.warning(error)
 
 
 @timer
@@ -391,17 +304,6 @@ def static_scan(args):
     # - upload the generated irx file to ASoC
     # - create and execute the static scan
     with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdir:
-        # # get the latest appscan script
-        # appcan_folder_name = download_and_extract_appscan(f"{tmpdir}/")
-
-        # # update appscan
-        # main_logger.info(
-        #     f"Updating appscan! From {tmpdir}/appscan/{appcan_folder_name} to {APPSCAN_HOME}..."
-        # )
-        # copy_tree(f"{tmpdir}/appscan/{appcan_folder_name}/", APPSCAN_HOME)
-        # if os.path.exists(APPSCAN_HOME):
-        #     shutil.rmtree(APPSCAN_HOME)
-        # shutil.copytree(f"{tmpdir}/appscan/{appcan_folder_name}/", APPSCAN_HOME)
 
         # if any of the old scan still pending, return
         for project in projects:
@@ -432,82 +334,6 @@ def static_scan(args):
             time.sleep(5)
         for process in processes:
             process.get()
-        # for project in projects:
-        #     project = project.strip()
-        #     project_file_name = project.strip().replace("/", "_")
-        #     print()
-        #     main_logger.info(
-        #         "#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING)
-        #     )
-        #     main_logger.info(
-        #         " " * int((PADDING / 2))
-        #         + f"PROCESSING PROJECT: {project} - {project_file_name}"
-        #         + " " * int((PADDING / 2)),
-        #     )
-        #     main_logger.info(
-        #         "#" * (len(f"PROCESSING PROJECT: {project} - {project_file_name}") + PADDING)
-        #     )
-
-        #     # generate config file for appscan
-        #     generate_appscan_config_file(args, project)
-        #     main_logger.info(f"Generating {project_file_name}.irx file...")
-        #     run_subprocess(
-        #         f"source ~/.bashrc && appscan.sh prepare -c {APPSCAN_CONFIG_TMP} -n {project_file_name}.irx -d {tmpdir}"
-        #     )
-
-        #     # call ASoC API to create the static scan
-        #     try:
-        #         main_logger.info("Calling ASoC API to create the static scan...")
-
-        #         with open(f"{tmpdir}/{project_file_name}.irx", "rb") as irx_file:
-        #             file_data = {"fileToUpload": irx_file}
-        #             finished = False
-        #             try_count = 0
-        #             while not finished:
-        #                 if try_count >= MAX_TRIES:
-        #                     break
-        #                 try_count += 1
-        #                 file_upload_res = requests.post(
-        #                     f"{ASOC_API_ENDPOINT}/FileUpload",
-        #                     files=file_data,
-        #                     headers=file_req_header,
-        #                 )
-        #                 main_logger.info(f"File Upload Response: {file_upload_res.json()}")
-        #                 if file_upload_res.status_code == 401:
-        #                     main_logger.info(
-        #                         f"Token {file_req_header} expired. Generating a new one and retry..."
-        #                     )
-        #                     file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
-        #                     continue
-        #                 if file_upload_res.status_code == 201:
-        #                     data = {
-        #                         "ARSAFileId": file_upload_res.json()["FileId"],
-        #                         "ScanName": project,
-        #                         "AppId": SINGLE_STATIC,
-        #                         "Locale": "en-US",
-        #                         "Execute": "true",
-        #                         "Personal": "false",
-        #                     }
-        #                     res = requests.post(
-        #                         f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer",
-        #                         json=data,
-        #                         headers=headers,
-        #                     )
-        #                     if res.status_code == 401:
-        #                         main_logger.info(
-        #                             f"Token {file_req_header} expired. Generating a new one and retry..."
-        #                         )
-        #                         file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
-        #                         continue
-        #                 finished = res.status_code == 201
-        #                 main_logger.info(f"Response: {res.json()}")
-        #             main_logger.info(
-        #                 f"PROJECT: {project} - {project_file_name} WAS PROCESSED SUCCESSFULLY."
-        #             )
-        #             print()
-        #     except Exception as error:
-        #         main_logger.warning(traceback.format_exc())
-        #         main_logger.warning(error)
 
 
 # ********************************* #
@@ -515,7 +341,7 @@ def static_scan(args):
 # ********************************* #
 @timer
 @f_logger
-def dynamic_scan(args):
+def dynamic_scan():
     """
     Prepare and run the dynamic scan.
 
@@ -523,20 +349,25 @@ def dynamic_scan(args):
         args ([dict]): the arguments passed to the script
     """
 
+    # update configs
+    configs_dir = f"{os.getcwd()}/app_configs"
+    update_config_file(f"{configs_dir}/server.xml")
+    update_config_file(f"{configs_dir}/system_overrides.properties")
+
     # get the image tag
-    image_tags = get_latest_stable_image_tags()
+    latest_image = get_latest_image()
 
-    # remove the old scans
-    old_scan_status_dict = remove_old_scans(SINGLE_DYNAMIC)
+    # # remove the old scans
+    # old_scan_status_dict = remove_old_scans(SINGLE_DYNAMIC)
 
-    # spin up the containers (rt and db2), if
-    # there is no scan in pending statuses
-    for status in old_scan_status_dict.values():
-        if status in PENDING_STATUSES:
-            return
+    # # spin up the containers (rt and db2), if
+    # # there is no scan in pending statuses
+    # for status in old_scan_status_dict.values():
+    #     if status in PENDING_STATUSES:
+    #         return
 
-    # prep containers for the scans
-    prep_containers(args, image_tags)
+    # start the app container for the scans
+    start_app_container(latest_image)
 
     # create the new scans
     main_logger.info(f"Create new scan for: {APP_URL_DICT}")
@@ -583,12 +414,12 @@ def run_scan(args):
         args ([dict]): the arguments passed to the script
     """
     if args.type == ALL:
-        dynamic_scan(args)
+        dynamic_scan()
         static_scan(args)
     elif args.type == STATIC:
         static_scan(args)
     else:
-        dynamic_scan(args)
+        dynamic_scan()
 
 
 # ********************************* #
@@ -766,9 +597,6 @@ def get_reports(args):
         dynamic_reports()
         asoc_export(DYNAMIC)
 
-    # # copy reports to output directory
-    # run_subprocess(f"rsync -a -v --ignore-existing {os.getcwd()}/reports {args.output}")
-
 
 # ********************************* #
 # *           DEPCHECK            * #
@@ -802,82 +630,55 @@ def depcheck(args):
         args ([dict]): the arguments passed to the script
     """
     try:
-        # get the image tag
-        image_tags = get_latest_stable_image_tags()
+
+        # get the latest image
+        latest_image = get_latest_image()
 
         # start runtime container
         try:
-            for image_tag in image_tags:
-                print()
-                main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
-                main_logger.info(
-                    " " * int((PADDING / 2)) + f"Trying {image_tag}" + " " * int((PADDING / 2))
-                )
-                main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
-                try:
-                    start_rt_container(args, image_tag, rt_name=DEPCHECK_SCAN)
-                    break
-                except Exception as error:
-                    main_logger.warning(error)
-                    main_logger.info("Skipping to the next tag...")
-                    continue
+            start_depcheck_container(latest_image, rt_name=DEPCHECK_SCAN)
         except Exception as error:
             main_logger.warning(error)
-
-        # build the ear
-        main_logger.info("Building ear file...")
-        run_subprocess(
-            f'docker exec {DEPCHECK_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs"'
-        )
 
         # creating the source dir
         with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdir:
 
-            # copy the ear to tempdir
-            main_logger.info("Copying the ear to tempdir...")
+            third_party_jars = "3rdpartyjars"
+
+            # build the ear
+            main_logger.info("Getting jars to scans...")
             run_subprocess(
-                f"docker cp {DEPCHECK_SCAN}:/opt/ssfs/runtime/external_deployments/smcfs.ear {tmpdir}"
+                f'docker exec {DEPCHECK_SCAN} bash -lc \'cd /opt/ibm/wlp/usr/servers/defaultServer/dropins/smcfs.ear/ && mkdir -p mkdir ../{third_party_jars} && rm -rf ../{third_party_jars}/* && for file in $(find ./*/ -type f -name "*.jar" -not -path "*ui.jar" -not -path "*platform_*" -not -path "*xapi.jar" -not -path "*yfscommon*icons*" -not -path "*yfscommon*y*"); do cp -vf $file /opt/ibm/wlp/usr/servers/defaultServer/dropins/{third_party_jars}/; done\''
             )
 
-            # extract war files from the ear
-            run_subprocess(f"cd {tmpdir} && unzip smcfs.ear *.war")
-
-            # extract jars
-            apps = ["smcfs", "sma", "sbc", "isccs", "wsc"]
-
-            create_dir(f"{tmpdir}/3rdpartyship")
-            for app in apps:
-                if app == "smcfs":
-                    run_subprocess(
-                        f"cd {tmpdir} && mkdir {app}jarsfolder && unzip -o -j smcfs.war yfscommon/* -d {app}jarsfolder/ -x  yfscommon/platform* -x yfscommon/smcfs* -x yfscommon/*.properties -x yfscommon/*ui.jar -x yfscommon/yantra* -x yfscommon/scecore* -x yfscommon/yc*"
-                    )
-                else:
-                    run_subprocess(
-                        f"cd {tmpdir} && mkdir {app}jarsfolder && unzip -o -j sma.war WEB-INF/lib/* -d {app}jarsfolder/ -x  WEB-INF/lib/platform*"
-                    )
-                run_subprocess(f"cp -R {tmpdir}/{app}jarsfolder/* {tmpdir}/3rdpartyship")
+            # copy the 3rd party jars to temp dir
+            main_logger.info("Copying 3rd party jars to tempdir...")
+            run_subprocess(
+                f"docker cp {DEPCHECK_SCAN}:/opt/ibm/wlp/usr/servers/defaultServer/dropins/{third_party_jars}/ {tmpdir}/"
+            )
 
             # download the latest depcheck
+            main_logger.info("Download the latest depcheck...")
             download_depcheck_tool(tmpdir)
 
             # run dependency check
+            main_logger.info("Running the scan...")
             reports_dir_path = f"reports/{get_date_str()}/{args.mode}"
             create_dir(reports_dir_path)
             run_subprocess(
-                f"{tmpdir}/dependency-check/bin/dependency-check.sh -s {tmpdir}/3rdpartyship -o {reports_dir_path}/dependency_report.html --suppression {os.getcwd()}/suppressions.xml"
+                f"{tmpdir}/dependency-check/bin/dependency-check.sh -s {tmpdir}/{third_party_jars} -o {reports_dir_path}/dependency_report.html --suppression {os.getcwd()}/suppressions.xml"
             )
             copy_tree(f"reports/{get_date_str()}/{args.mode}", f"reports/latest/{args.mode}")
-
-            # # copy reports to output directory
-            # run_subprocess(f"rsync -a -v --ignore-existing {os.getcwd()}/reports {args.output}")
 
     except Exception as error:
         main_logger.warning(traceback.format_exc())
         main_logger.warning(error)
         run_subprocess(f"docker rm -f {DEPCHECK_SCAN}")
+        run_subprocess(f"docker volume rm {VOL_SCAN}")
         raise
     finally:
         run_subprocess(f"docker rm -f {DEPCHECK_SCAN}")
+        run_subprocess(f"docker volume rm {VOL_SCAN}")
 
 
 # ********************************* #
@@ -902,6 +703,9 @@ def main():
         main_logger.info(error)
         cleanup()
         raise
+    finally:
+        if not args.dev:
+            cleanup()
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ from constants import (
     DB2_SCAN,
     DEPCHECK,
     DEPLOY_SERVER,
-    JFROG_REGISTRY,
+    ENTITLED_REGISTRY,
     JFROG_USER,
     NETWORK_SCAN,
     PADDING,
@@ -32,10 +32,10 @@ def docker_login():
     """
     Login to the registry.
     """
-    main_logger.info(f"#### Login to {JFROG_REGISTRY} ####")
-    # main_logger.info(f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}")
+    main_logger.info(f"#### Login to {ENTITLED_REGISTRY} ####")
     run_subprocess(
-        f"docker login -u {JFROG_USER} -p {JFROG_APIKEY} {JFROG_REGISTRY}", logger=main_logger,
+        f"docker login -u {os.environ['ENTITLED_REGISTRY_USER']} -p {os.environ['ENTITLED_REGISTRY_TOKEN']} {ENTITLED_REGISTRY}",
+        logger=main_logger,
     )
 
 
@@ -45,9 +45,9 @@ def docker_logout():
     """
     Logout of the registry.
     """
-    main_logger.info(f"#### Logout of {JFROG_REGISTRY} ####")
+    main_logger.info(f"#### Logout of {ENTITLED_REGISTRY} ####")
     run_subprocess(
-        f"docker logout {JFROG_REGISTRY}", logger=main_logger,
+        f"docker logout {ENTITLED_REGISTRY}", logger=main_logger,
     )
 
 
@@ -162,7 +162,7 @@ def start_db2_container(args, image_tag, logger=main_logger):
         Exception: exception raised when running subprocess
     """
     try:
-        db_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-db:{image_tag}-refs"
+        db_image_repo = f"{ENTITLED_REGISTRY}/oms-{args.version}-db2-db:{image_tag}-refs"
         logger.info(f"#### STARTING DB2 CONTAINER: {DB2_SCAN} - {db_image_repo} ####")
 
         try:
@@ -197,7 +197,7 @@ def start_db2_container(args, image_tag, logger=main_logger):
 
 @timer
 @f_logger
-def start_rt_container(args, image_tag, rt_name=RT_SCAN, logger=main_logger):
+def start_app_container(image, rt_name=RT_SCAN, logger=main_logger):
     """
     Start the rt container for deployment
 
@@ -209,41 +209,47 @@ def start_rt_container(args, image_tag, rt_name=RT_SCAN, logger=main_logger):
     Raises:
         Exception: exception raised when spinning up runtime container
     """
-    # login to registry
-    docker_login()
-
-    network = "" if args.mode == DEPCHECK else f"--network={NETWORK_SCAN}"
-    ports = "" if args.mode == DEPCHECK else "-p 9080:9080 -p 9443:9443"
-
-    # try:
+    configs_dir = f"{os.getcwd()}/app_configs"
     try:
-        logger.info(f"Trying {image_tag}")
-        rt_image_repo = f"{JFROG_REGISTRY}/oms-{args.version}-db2-rt:{image_tag}-liberty"
-        logger.info(f"#### STARTING RT CONTAINER: {rt_name} - {rt_image_repo} ####")
-        run_subprocess(
-            f" \
-            docker run -di --name {rt_name} --privileged --restart=always \
-            {network} \
-            -e DB_HOST={DB2_SCAN} \
-            -e DB_PORT=50000 \
-            -e DB_VENDOR=db2 \
-            -e DB_NAME=OMDB \
-            {ports} \
-            {rt_image_repo}",
-            logger=logger,
-        )
+        docker_login()
+        command = f"docker run -dit --name {rt_name} -v {configs_dir}/jvm.options:/config/jvm.options -v {configs_dir}/server.xml.updated:/config/server.xml -v {configs_dir}/system_overrides.properties.updated:/config/dropins/smcfs.ear/properties.jar/system_overrides.properties -p 9080:9080 -p 9443:9443 {image}"
+        logger.info(f"#### STARTING RT CONTAINER: {rt_name} - {image} ####")
+        logger.info(f"Command: {command}")
+        run_subprocess(command, logger=logger)
     except Exception as error:
         logger.warning(error)
-        # logout of registry
         docker_logout()
         raise Exception  # pylint: disable=raise-missing-from
     finally:
-        # logout of registry
         docker_logout()
-    # except Exception as error:
-    #     logger.error(traceback.format_exc())
-    #     logger.error(error)
-    #     raise Exception  # pylint: disable=raise-missing-from
+
+
+@timer
+@f_logger
+def start_depcheck_container(image, rt_name=RT_SCAN, logger=main_logger):
+    """
+    Start the depcheck rt container for getting the jars
+
+    Args:
+        args ([dict]): the arguments passed to the script
+        image_tag ([str]): the tag of the image
+        logger ([logging], optional): the logger to log the output. Defaults to main_logger.
+
+    Raises:
+        Exception: exception raised when spinning up runtime container
+    """
+    try:
+        docker_login()
+        command = f"docker run -dit -e LICENSE=accept -e LANG --privileged -v {VOL_SCAN}:/images --name {rt_name} -p 9080:9080 -p 9443:9443 {image}"
+        logger.info(f"#### STARTING RT CONTAINER: {rt_name} - {image} ####")
+        logger.info(f"Command: {command}")
+        run_subprocess(command, logger=logger)
+    except Exception as error:
+        logger.warning(error)
+        docker_logout()
+        raise Exception  # pylint: disable=raise-missing-from
+    finally:
+        docker_logout()
 
 
 @timer
@@ -274,71 +280,71 @@ def needs_server_restart():
     return "b_SignInHeader" in res.text
 
 
-@timer
-@f_logger
-def prep_containers(args, image_tags):
-    """
-    Prepare the rt and db2 container. This function will do the followings:
-        - login to the registry
-        - start db2 and rt containers
-        - build the ear for deployment
-        - start liberty server
-        - wait for the server to be ready
-        - logout of the registry
+# @timer
+# @f_logger
+# def prep_containers(args, image_tags):
+#     """
+#     Prepare the rt and db2 container. This function will do the followings:
+#         - login to the registry
+#         - start db2 and rt containers
+#         - build the ear for deployment
+#         - start liberty server
+#         - wait for the server to be ready
+#         - logout of the registry
 
-    Args:
-        args ([dict]): the arguments passed to the script
-        image_tag ([str]): the tag of the image
-    """
+#     Args:
+#         args ([dict]): the arguments passed to the script
+#         image_tag ([str]): the tag of the image
+#     """
 
-    # clean up
-    cleanup(args)
+#     # clean up
+#     cleanup(args)
 
-    # login to registry
-    docker_login()
+#     # login to registry
+#     docker_login()
 
-    # starting db2 and rt containers
-    main_logger.info("Starting db2 and rt containers...")
-    for image_tag in image_tags:
-        try:
-            print()
-            main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
-            main_logger.info(
-                " " * int((PADDING / 2)) + f"Trying {image_tag}" + " " * int((PADDING / 2))
-            )
-            main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
-            main_logger.info("Starting db2 and rt containers...")
-            start_db2_container(args, image_tag)
-            start_rt_container(args, image_tag)
-            break
-        except Exception as error:
-            main_logger.warning(error)
+#     # starting db2 and rt containers
+#     main_logger.info("Starting db2 and rt containers...")
+#     for image_tag in image_tags:
+#         try:
+#             print()
+#             main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
+#             main_logger.info(
+#                 " " * int((PADDING / 2)) + f"Trying {image_tag}" + " " * int((PADDING / 2))
+#             )
+#             main_logger.info("#" * (len(f"Trying {image_tag}") + PADDING))
+#             main_logger.info("Starting db2 and rt containers...")
+#             start_db2_container(args, image_tag)
+#             start_rt_container(args, image_tag)
+#             break
+#         except Exception as error:
+#             main_logger.warning(error)
 
-    # build the ear
-    main_logger.info("Building ear file...")
-    run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs"')
+#     # build the ear
+#     main_logger.info("Building ear file...")
+#     run_subprocess(f'docker exec {RT_SCAN} bash -lc "buildear -warfiles=smcfs,sbc,sma,isccs"')
 
-    # start liberty server
-    main_logger.info("Starting liberty server...")
-    run_subprocess(f'docker exec {RT_SCAN} bash -lc "__lbstart"')
+#     # start liberty server
+#     main_logger.info("Starting liberty server...")
+#     run_subprocess(f'docker exec {RT_SCAN} bash -lc "__lbstart"')
 
-    # wait for deployment to be ready
-    main_logger.info("Wait for deployment to be ready...")
-    main_logger.info(f"Checking deployment @ {DEPLOY_SERVER}/smcfs/console/login.jsp...")
-    wait_for_deployment()
+#     # wait for deployment to be ready
+#     main_logger.info("Wait for deployment to be ready...")
+#     main_logger.info(f"Checking deployment @ {DEPLOY_SERVER}/smcfs/console/login.jsp...")
+#     wait_for_deployment()
 
-    # check to see if we need to restart the server
-    if needs_server_restart():
-        # restart the server
-        main_logger.info("Restarting liberty server...")
-        run_subprocess(f'docker exec {RT_SCAN} bash -lc "__lbstop && __lbstart"')
+#     # check to see if we need to restart the server
+#     if needs_server_restart():
+#         # restart the server
+#         main_logger.info("Restarting liberty server...")
+#         run_subprocess(f'docker exec {RT_SCAN} bash -lc "__lbstop && __lbstart"')
 
-        # wait again for deployment to be ready after restarting
-        main_logger.info("Waiting again for deployment to be ready after restarting...")
-        main_logger.info(f"Checking deployment @ {DEPLOY_SERVER}/smcfs/console/login.jsp...")
-        wait_for_deployment()
+#         # wait again for deployment to be ready after restarting
+#         main_logger.info("Waiting again for deployment to be ready after restarting...")
+#         main_logger.info(f"Checking deployment @ {DEPLOY_SERVER}/smcfs/console/login.jsp...")
+#         wait_for_deployment()
 
-    main_logger.info("The db2 and rt containers are up and running...")
+#     main_logger.info("The db2 and rt containers are up and running...")
 
-    # logout of registry
-    docker_logout()
+#     # logout of registry
+#     docker_logout()
