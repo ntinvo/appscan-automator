@@ -41,6 +41,7 @@ IAC_JAR_URL = "https://wce-sterling-team-oms-jenkins.swg-devops.com/job/IAC/last
 IAC_JAR = "IAC.jar"
 ENTITLED_REGISTRY = "stg.icr.io"
 TWISTLOCK_URL = "https://wce-sterling-team-oms-jenkins.swg-devops.com/job/OMS_CD_Development.TwistLock-Scan/lastSuccessfulBuild/artifact/tt_v1.5.0/linux_x86_64"
+APPSCAN_URL = "https://na.artifactory.swg-devops.com:443/artifactory/wce-oms-onprem-dev-generic-local/Security_Scans/AppScan"
 
 # jazz
 JAZZ_SINGLE_WS_ID = "1016"

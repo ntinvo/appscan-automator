@@ -63,6 +63,7 @@ from utils import (
     run_subprocess,
     timer,
     update_config_file,
+    upload_reports_to_artifactory,
 )
 
 
@@ -475,6 +476,9 @@ def dynamic_reports():
         # download the report
         download_report(DYNAMIC, report)
 
+        # upload reports to artifactory
+        upload_reports_to_artifactory(DYNAMIC, f"reports/{get_date_str()}/{DYNAMIC}")
+
 
 @timer
 @f_logger
@@ -513,6 +517,9 @@ def static_reports():
 
         # download the report
         download_report(STATIC, report)
+
+        # upload reports to artifactory
+        upload_reports_to_artifactory(STATIC, f"reports/{get_date_str()}/{STATIC}")
 
 
 @timer
@@ -690,6 +697,9 @@ def depcheck(args):
                 f"{tmpdir}/dependency-check/bin/dependency-check.sh -s {tmpdir}/{third_party_jars} -o {reports_dir_path}/dependency_report.html --suppression {os.getcwd()}/suppressions.xml"
             )
             copy_tree(f"reports/{get_date_str()}/{args.mode}", f"reports/latest/{args.mode}")
+
+            # upload reports to artifactory
+            upload_reports_to_artifactory(DEPCHECK, f"reports/{get_date_str()}/{DEPCHECK}")
 
     except Exception as error:
         main_logger.warning(traceback.format_exc())

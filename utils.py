@@ -19,17 +19,9 @@ from clint.textui import progress
 from requests.auth import HTTPBasicAuth
 
 from args import init_argparse
-from constants import (
-    APPSCAN_ZIP_URL,
-    DB2_SCAN,
-    JFROG_USER,
-    NETWORK_SCAN,
-    NS,
-    RT_SCAN,
-    SINGLE_STREAM_RSS_URL,
-    TWISTLOCK_URL,
-    VOL_SCAN,
-)
+from constants import (APPSCAN_URL, APPSCAN_ZIP_URL, DB2_SCAN, JFROG_USER,
+                       NETWORK_SCAN, NS, RT_SCAN, SINGLE_STREAM_RSS_URL,
+                       TWISTLOCK_URL, VOL_SCAN)
 from main_logger import main_logger
 from settings import JENKINS_TAAS_TOKEN, JFROG_APIKEY
 
@@ -435,3 +427,13 @@ def update_config_file(file_name):
         data = data.replace("__DB_SCHEMA__", os.environ["DB_SCHEMA"])
     with open(f"{file_name}.updated", "w") as file:
         file.write(data)
+
+
+@timer
+@f_logger
+def upload_reports_to_artifactory(scan_type, report_dir):
+    """Upload the reports to artifactory"""
+    timestamp = datetime.today().strftime("%y%m%d_%H%m")
+    run_subprocess(
+        f"cd {report_dir} && for file in $(ls); do curl -u {os.environ['ARTF_USER']}:{os.environ['ARTF_TOKEN']} -T $(realpath $file) {APPSCAN_URL}/{timestamp}/{scan_type}/$(basename $file); done"
+    )
