@@ -41,12 +41,13 @@ headers = {
 
 @timer
 @f_logger
-def get_download_config(name):
+def get_download_config(name, report_file_type):
     """
     Get the report download configurations
 
     Args:
         name ([str]): the name of the scan
+        report_file_type ([str]): the file type of the report file
 
     Returns:
         [dict]: the configurations of the scan
@@ -64,7 +65,7 @@ def get_download_config(name):
             "Coverage": "true",
             "IsTrialReport": "true",
             "MinimizeDetails": "true",
-            "ReportFileType": "Html",
+            "ReportFileType": report_file_type,
             "Title": name.replace(" ", "_").lower(),
             "Locale": "en-US",
         },
@@ -87,15 +88,15 @@ def download_report(scan_type, report):
     if res.status_code == 200:
         reports_dir_path = f"reports/{get_date_str()}/{scan_type}"
         create_dir(reports_dir_path)
-        html_file_path = f"./{reports_dir_path}/{report['Name']}.html"
-        pdf_file_path = f"./{reports_dir_path}/{report['Name']}.pdf"
-        html_file_path = os.path.abspath(html_file_path)
-        pdf_file_path = os.path.abspath(pdf_file_path)
-        main_logger.info(f"HTML file: {html_file_path}")
-        main_logger.info(f"PDF file: {pdf_file_path}")
-        with open(html_file_path, "wb") as file:
+
+        if report["HtmlInsteadOfPdf"]:
+            file_path = f"./{reports_dir_path}/{report['Name']}.html"
+        else:
+            file_path = f"./{reports_dir_path}/{report['Name']}.pdf"
+        file_path = os.path.abspath(file_path)
+        main_logger.info(f"HTML file: {file_path}")
+        with open(file_path, "wb") as file:
             file.write(res.content)
-        pdfkit.from_file(html_file_path, pdf_file_path)
         copy_tree(f"reports/{get_date_str()}/{scan_type}", f"reports/latest/{scan_type}")
 
 

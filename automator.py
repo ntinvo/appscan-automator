@@ -41,6 +41,7 @@ from constants import (
     PADDING,
     PENDING_STATUSES,
     PRESENCE_ID,
+    REPORT_FILE_TYPES,
     REPORTS,
     SBA_JAR,
     SBA_JAR_URL,
@@ -460,14 +461,15 @@ def dynamic_reports():
     for scan in scans:
         # only generate report for ready scan
         if scan["LatestExecution"]["Status"] == "Ready":
-            config_data = get_download_config(scan["Name"])
-            res = requests.post(
-                f"{ASOC_API_ENDPOINT}/Reports/Security/Scan/{scan['Id']}",
-                json=config_data,
-                headers=headers,
-            )
-            if res.status_code == 200:
-                generated_reports.append(res.json())
+            for report_file_type in REPORT_FILE_TYPES:
+                config_data = get_download_config(scan["Name"], report_file_type)
+                res = requests.post(
+                    f"{ASOC_API_ENDPOINT}/Reports/Security/Scan/{scan['Id']}",
+                    json=config_data,
+                    headers=headers,
+                )
+                if res.status_code == 200:
+                    generated_reports.append(res.json())
 
     for report in generated_reports:
         # wait for the report to be ready
@@ -499,27 +501,29 @@ def static_reports():
         if scan["LatestExecution"]["Status"] != "Ready":
             return
 
-    # config data for the reports
-    config_data = get_download_config(app_name)
+    for report_file_type in REPORT_FILE_TYPES:
 
-    # generate the reports for the application
-    res = requests.post(
-        f"{ASOC_API_ENDPOINT}/Reports/Security/Application/{SINGLE_STATIC}",
-        json=config_data,
-        headers=headers,
-    )
+        # config data for the reports
+        config_data = get_download_config(app_name, report_file_type)
 
-    if res.status_code == 200:
-        report = res.json()
+        # generate the reports for the application
+        res = requests.post(
+            f"{ASOC_API_ENDPOINT}/Reports/Security/Application/{SINGLE_STATIC}",
+            json=config_data,
+            headers=headers,
+        )
 
-        # wait for the report to be ready
-        wait_for_report(report)
+        if res.status_code == 200:
+            report = res.json()
 
-        # download the report
-        download_report(STATIC, report)
+            # wait for the report to be ready
+            wait_for_report(report)
 
-        # upload reports to artifactory
-        upload_reports_to_artifactory(STATIC, f"reports/{get_date_str()}/{STATIC}")
+            # download the report
+            download_report(STATIC, report)
+
+            # upload reports to artifactory
+            upload_reports_to_artifactory(STATIC, f"reports/{get_date_str()}/{STATIC}")
 
 
 @timer

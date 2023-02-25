@@ -63,6 +63,7 @@ APPSCAN_CONFIG = "appscan-config.xml"
 APPSCAN_CONFIG_TMP = "appscan-config-tmp.xml"
 APPSCAN_CONFIG_OP = "appscan-config-op.xml"
 APPSCAN_ZIP_URL = "https://cloud.appscan.com/api/SCX/StaticAnalyzer/SAClientUtil?os=linux"
+REPORT_FILE_TYPES = ["Html", "Pdf"]
 MAX_TRIES = 5
 HEADER_FIELDS = [
     "ScanName",
