@@ -42,7 +42,9 @@ IAC_JAR = "IAC.jar"
 ENTITLED_REGISTRY = "stg.icr.io"
 TWISTLOCK_URL = "https://wce-sterling-team-oms-jenkins.swg-devops.com/job/OMS_CD_Development.TwistLock-Scan/lastSuccessfulBuild/artifact/tt_v1.5.0/linux_x86_64"
 APPSCAN_URL = "https://na.artifactory.swg-devops.com:443/artifactory/wce-oms-onprem-dev-generic-local/Security_Scans/AppScan"
-CASE_INDEX_URL = "https://raw.githubusercontent.com/IBM/cloud-pak/master/repo/case/ibm-oms-ent-case/index.yaml"
+CASE_INDEX_URL = (
+    "https://raw.githubusercontent.com/IBM/cloud-pak/master/repo/case/ibm-oms-ent-case/index.yaml"
+)
 
 # jazz
 JAZZ_SINGLE_WS_ID = "1016"
@@ -58,7 +60,6 @@ DEPCHECK_SCAN = "depcheck_scan"
 OMS_APP_ID = "87af65be-ef31-4aa7-871f-8354e19d6328"
 SINGLE_DYNAMIC = "fc449ae1-8742-49e9-a06b-fe37988ca2a8"
 SINGLE_STATIC = "14ad3e4d-8c6e-4e1a-a092-1249ef2b5d74"
-PRESENCE_ID = "97687444-523b-eb11-b9ed-2818780a4fcb"
 ASOC_API_ENDPOINT = "https://cloud.appscan.com/api/v2"
 APPSCAN_CONFIG = "appscan-config.xml"
 APPSCAN_CONFIG_TMP = "appscan-config-tmp.xml"

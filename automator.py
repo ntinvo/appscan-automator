@@ -407,7 +407,7 @@ def dynamic_scan():
             "LoginUser": user,
             "LoginPassword": passwd,
             "ScanType": "Production",
-            "PresenceId": PRESENCE_ID,
+            "PresenceId": os.environ.get("PRESENCE_ID"),
             "IncludeVerifiedDomains": "true",
             "HttpAuthUserName": "string",
             "HttpAuthPassword": "string",

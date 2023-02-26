@@ -133,6 +133,16 @@ def cleanup(args):
 
 @timer
 @f_logger
+def pre_install_app(rt_name=RT_SCAN):
+    """Remove runtime app container and volume"""
+    try:
+        run_subprocess(f"docker rm -f {rt_name}")
+    except Exception as _:
+        pass
+
+
+@timer
+@f_logger
 def start_app_container(image, rt_name=RT_SCAN, logger=main_logger):
     """
     Start the rt container for deployment
@@ -148,6 +158,7 @@ def start_app_container(image, rt_name=RT_SCAN, logger=main_logger):
     configs_dir = f"{os.getcwd()}/app_configs"
     try:
         docker_login()
+        pre_install_app(rt_name)
         command = f"docker run -dit --name {rt_name} -v {configs_dir}/jvm.options:/config/jvm.options -v {configs_dir}/server.xml.updated:/config/server.xml -v {configs_dir}/system_overrides.properties.updated:/config/dropins/smcfs.ear/properties.jar/system_overrides.properties -p 9080:9080 -p 9443:9443 {image}"
         logger.info(f"#### STARTING RT CONTAINER: {rt_name} - {image} ####")
         logger.info(f"Command: {command}")
