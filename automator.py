@@ -15,57 +15,22 @@ from multiprocessing import Pool
 import pandas as pd
 import requests
 
-from asoc_utils import (
-    download_report,
-    get_asoc_req_headers,
-    get_bearer_token,
-    get_download_config,
-    get_scans,
-    remove_old_scans,
-    start_asoc_presence,
-    wait_for_report,
-)
-from constants import (
-    ALL,
-    APP_URL_DICT,
-    APPSCAN_CONFIG,
-    APPSCAN_CONFIG_OP,
-    ASOC_API_ENDPOINT,
-    DEPCHECK,
-    DEPCHECK_REPO,
-    DEPCHECK_SCAN,
-    DYNAMIC,
-    HEADER_FIELDS,
-    IAC_JAR,
-    IAC_JAR_URL,
-    MAX_TRIES,
-    PADDING,
-    PENDING_STATUSES,
-    REPORT_FILE_TYPES,
-    REPORTS,
-    RT_SCAN,
-    SBA_JAR,
-    SBA_JAR_URL,
-    SCAN,
-    SINGLE_DYNAMIC,
-    SINGLE_STATIC,
-    STATIC,
-)
-from docker_utils import cleanup_runtime_container, start_app_container, start_depcheck_container
+from asoc_utils import (download_report, get_asoc_req_headers,
+                        get_bearer_token, get_download_config, get_scans,
+                        remove_old_scans, start_asoc_presence, wait_for_report)
+from constants import (ALL, APP_URL_DICT, APPSCAN_CONFIG, APPSCAN_CONFIG_OP,
+                       ASOC_API_ENDPOINT, DEPCHECK, DEPCHECK_REPO,
+                       DEPCHECK_SCAN, DYNAMIC, HEADER_FIELDS, IAC_JAR,
+                       IAC_JAR_URL, MAX_TRIES, PADDING, PENDING_STATUSES,
+                       REPORT_FILE_TYPES, REPORTS, RT_SCAN, SBA_JAR,
+                       SBA_JAR_URL, SCAN, SINGLE_DYNAMIC, SINGLE_STATIC,
+                       STATIC)
+from docker_utils import (cleanup_runtime_container, start_app_container,
+                          start_depcheck_container)
 from main_logger import main_logger
-from utils import (
-    cleanup,
-    create_dir,
-    download,
-    f_logger,
-    get_date_str,
-    get_latest_image,
-    parse_arguments,
-    run_subprocess,
-    timer,
-    update_config_file,
-    upload_reports_to_artifactory,
-)
+from utils import (cleanup, create_dir, download, f_logger, get_date_str,
+                   get_latest_image, parse_arguments, run_subprocess, timer,
+                   update_config_file, upload_reports_to_artifactory)
 
 
 # ********************************* #
@@ -485,7 +450,7 @@ def dynamic_reports(args):
     Args:
         args ([dict]): the arguments passed to the script
     """
-    scans = get_scans(SINGLE_DYNAMIC)
+    scans = get_scans(SINGLE_DYNAMIC, args.asoc_headers)
     generated_reports = []
     all_done = True
     for scan in scans:
@@ -527,7 +492,7 @@ def static_reports(args):
     Args:
         args ([dict]): the arguments passed to the script
     """
-    scans = get_scans(SINGLE_STATIC)
+    scans = get_scans(SINGLE_STATIC, args.asoc_headers)
     app_name = "static_report"
     # for static reports, we will wait until all of the
     # scan in the static application to finish running
