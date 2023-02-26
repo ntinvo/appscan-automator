@@ -41,7 +41,6 @@ from constants import (
     MAX_TRIES,
     PADDING,
     PENDING_STATUSES,
-    PRESENCE_ID,
     REPORT_FILE_TYPES,
     REPORTS,
     SBA_JAR,
