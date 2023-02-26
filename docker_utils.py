@@ -1,9 +1,19 @@
 """ Docker Utils """
 import os
+import time
 
 import docker
+import requests
 
-from constants import DB2_SCAN, DEPCHECK_SCAN, ENTITLED_REGISTRY, NETWORK_SCAN, RT_SCAN, VOL_SCAN
+from constants import (
+    DB2_SCAN,
+    DEPCHECK_SCAN,
+    DEPLOY_SERVER,
+    ENTITLED_REGISTRY,
+    NETWORK_SCAN,
+    RT_SCAN,
+    VOL_SCAN,
+)
 from main_logger import main_logger
 from utils import f_logger, run_subprocess, timer
 
@@ -143,6 +153,21 @@ def pre_install_app(rt_name=RT_SCAN):
 
 @timer
 @f_logger
+def wait_for_deployment():
+    """
+    Waiting for the deployment to be ready.
+    """
+    while True:
+        try:
+            res = requests.get(f"{DEPLOY_SERVER}/smcfs/console/login.jsp", timeout=20, verify=False)
+            if res.status_code == 200:
+                break
+        except Exception as _e:
+            time.sleep(10)
+
+
+@timer
+@f_logger
 def start_app_container(image, rt_name=RT_SCAN, logger=main_logger):
     """
     Start the rt container for deployment
@@ -163,6 +188,7 @@ def start_app_container(image, rt_name=RT_SCAN, logger=main_logger):
         logger.info(f"#### STARTING RT CONTAINER: {rt_name} - {image} ####")
         logger.info(f"Command: {command}")
         run_subprocess(command, logger=logger)
+        wait_for_deployment()
     except Exception as error:
         logger.warning(error)
         docker_logout()

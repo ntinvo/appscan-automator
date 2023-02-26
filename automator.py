@@ -421,7 +421,11 @@ def dynamic_scan():
             "Execute": True,
             "Personal": False,
             "UseAutomaticTimeout": True,
+            "FullyAutomatic": False,
         }
+
+        # payload
+        main_logger.info(f"Payload: \n{create_scan_data}")
 
         # creating a new scan
         main_logger.info(f"Creating a new scan for {app}...")
