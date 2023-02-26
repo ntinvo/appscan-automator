@@ -17,10 +17,10 @@ import requests
 
 from asoc_utils import (
     download_report,
+    get_asoc_req_headers,
     get_bearer_token,
     get_download_config,
     get_scans,
-    headers,
     remove_old_scans,
     start_asoc_presence,
     wait_for_report,
@@ -117,7 +117,9 @@ def generate_appscan_config_file(args, project, project_file_name):
             writer.write(text)
 
 
-def call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, tmpdir):
+def call_asoc_apis_to_create_scan(
+    file_req_header, project, project_file_name, tmpdir, asoc_headers
+):
     """
     Call AppScan API to create the static scan
 
@@ -176,7 +178,9 @@ def call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, t
                     main_logger.info(f"Payload: \n{data}\n")
 
                     res = requests.post(
-                        f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers,
+                        f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer",
+                        json=data,
+                        headers=asoc_headers,
                     )
                     if res.status_code == 401:
                         main_logger.info(
@@ -213,11 +217,15 @@ def create_static_scan_operator(args, file_req_header):
     )
 
     call_asoc_apis_to_create_scan(
-        file_req_header, "ibm-oms-operator", project_file_name, f"{args.source_operator}"
+        file_req_header,
+        "ibm-oms-operator",
+        project_file_name,
+        f"{args.source_operator}",
+        args.asoc_headers,
     )
 
 
-def create_static_scan_sba(tmpdir, file_req_header):
+def create_static_scan_sba(args, tmpdir, file_req_header):
     """
     Create static scan for sba project
 
@@ -242,10 +250,12 @@ def create_static_scan_sba(tmpdir, file_req_header):
         f"source ~/.bashrc && appscan.sh prepare -c appscan-config-{project_file_name}-tmp.xml -n {project_file_name}.irx -d {tmpdir}/SBA"
     )
 
-    call_asoc_apis_to_create_scan(file_req_header, "sba", project_file_name, f"{tmpdir}/SBA")
+    call_asoc_apis_to_create_scan(
+        file_req_header, "sba", project_file_name, f"{tmpdir}/SBA", args.asoc_headers
+    )
 
 
-def create_static_scan_iac(tmpdir, file_req_header):
+def create_static_scan_iac(args, tmpdir, file_req_header):
     """
     Create static scan for IAC project
 
@@ -270,7 +280,9 @@ def create_static_scan_iac(tmpdir, file_req_header):
         f"source ~/.bashrc && appscan.sh prepare -c appscan-config-{project_file_name}-tmp.xml -n {project_file_name}.irx -d {tmpdir}/IAC"
     )
 
-    call_asoc_apis_to_create_scan(file_req_header, "iac", project_file_name, f"{tmpdir}/IAC")
+    call_asoc_apis_to_create_scan(
+        file_req_header, "iac", project_file_name, f"{tmpdir}/IAC", args.asoc_headers
+    )
 
 
 def create_static_scan(args, project, tmpdir, file_req_header):
@@ -292,7 +304,9 @@ def create_static_scan(args, project, tmpdir, file_req_header):
         f"source ~/.bashrc && appscan.sh prepare -c appscan-config-{project_file_name}-tmp.xml -n {project_file_name}.irx -d {tmpdir}"
     )
 
-    call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, tmpdir)
+    call_asoc_apis_to_create_scan(
+        file_req_header, project, project_file_name, tmpdir, args.asoc_headers
+    )
     process_project_message = f"FINISHED PROCESSING PROJECT: {project} - {project_file_name}"
     main_logger.info("#" * (len(process_project_message) + PADDING))
     main_logger.info(" " * int((PADDING / 2)) + process_project_message + " " * int((PADDING / 2)),)
@@ -313,7 +327,7 @@ def static_scan(args):
     file_req_header = {"Authorization": f"Bearer {get_bearer_token()}"}
 
     # remove the old scans
-    old_scan_status_dict = remove_old_scans(SINGLE_STATIC)
+    old_scan_status_dict = remove_old_scans(SINGLE_STATIC, args.asoc_headers)
 
     # build source code
     main_logger.info("Building source code...")
@@ -342,10 +356,10 @@ def static_scan(args):
                 return
 
         main_logger.info("Create Static Scan for SBA")
-        create_static_scan_sba(tmpdir, file_req_header)
+        create_static_scan_sba(args, tmpdir, file_req_header)
 
         main_logger.info("Create Static Scan for IAC")
-        create_static_scan_iac(tmpdir, file_req_header)
+        create_static_scan_iac(args, tmpdir, file_req_header)
 
         main_logger.info("Create Static Scan for Operator")
         create_static_scan_operator(args, file_req_header)
@@ -367,7 +381,7 @@ def static_scan(args):
 # ********************************* #
 @timer
 @f_logger
-def dynamic_scan():
+def dynamic_scan(args):
     """
     Prepare and run the dynamic scan.
 
@@ -384,7 +398,7 @@ def dynamic_scan():
     latest_image = get_latest_image()
 
     # remove the old scans
-    old_scan_status_dict = remove_old_scans(SINGLE_DYNAMIC)
+    old_scan_status_dict = remove_old_scans(SINGLE_DYNAMIC, args.asoc_headers)
 
     # spin up the containers (rt and db2), if
     # there is no scan in pending statuses
@@ -434,7 +448,9 @@ def dynamic_scan():
         # creating a new scan
         main_logger.info(f"Creating a new scan for {app}...")
         res = requests.post(
-            f"{ASOC_API_ENDPOINT}/Scans/DynamicAnalyzer", json=create_scan_data, headers=headers
+            f"{ASOC_API_ENDPOINT}/Scans/DynamicAnalyzer",
+            json=create_scan_data,
+            headers=args.asoc_headers,
         )
         main_logger.debug(res)
 
@@ -449,12 +465,12 @@ def run_scan(args):
         args ([dict]): the arguments passed to the script
     """
     if args.type == ALL:
-        dynamic_scan()
+        dynamic_scan(args)
         static_scan(args)
     elif args.type == STATIC:
         static_scan(args)
     else:
-        dynamic_scan()
+        dynamic_scan(args)
 
 
 # ********************************* #
@@ -480,7 +496,7 @@ def dynamic_reports(args):
                 res = requests.post(
                     f"{ASOC_API_ENDPOINT}/Reports/Security/Scan/{scan['Id']}",
                     json=config_data,
-                    headers=headers,
+                    headers=args.asoc_headers,
                 )
                 if res.status_code == 200:
                     generated_reports.append(res.json())
@@ -493,7 +509,7 @@ def dynamic_reports(args):
 
     for report in generated_reports:
         # wait for the report to be ready
-        report_data = wait_for_report(report)
+        report_data = wait_for_report(report, args.asoc_headers)
 
         # download the report
         download_report(DYNAMIC, report_data)
@@ -530,14 +546,14 @@ def static_reports(args):
         res = requests.post(
             f"{ASOC_API_ENDPOINT}/Reports/Security/Application/{SINGLE_STATIC}",
             json=config_data,
-            headers=headers,
+            headers=args.asoc_headers,
         )
 
         if res.status_code == 200:
             report = res.json()
 
             # wait for the report to be ready
-            report_data = wait_for_report(report)
+            report_data = wait_for_report(report, args.asoc_headers)
 
             # download the report
             download_report(STATIC, report_data)
@@ -751,6 +767,7 @@ def main():
     try:
         args = parse_arguments()
         args.date_str = get_date_str()
+        args.asoc_headers = get_asoc_req_headers()
         main_logger.info(args)
         if args.mode == SCAN:
             run_scan(args)

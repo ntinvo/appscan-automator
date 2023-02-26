@@ -7,8 +7,7 @@ import requests
 
 from constants import ASOC_API_ENDPOINT, PENDING_STATUSES, TIME_TO_SLEEP
 from main_logger import main_logger
-from utils import (create_dir, download, f_logger, get_date_str,
-                   run_subprocess, timer)
+from utils import create_dir, download, f_logger, get_date_str, run_subprocess, timer
 
 
 @timer
@@ -29,12 +28,15 @@ def get_bearer_token():
     return res.json()["Token"]
 
 
-# headers for API requests
-headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-    "Authorization": f"Bearer {get_bearer_token()}",
-}
+@timer
+@f_logger
+def get_asoc_req_headers():
+    """Get ASoC request headers for the API calls"""
+    return {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {get_bearer_token()}",
+    }
 
 
 @timer
@@ -94,7 +96,7 @@ def download_report(scan_type, report_data):
 
 @timer
 @f_logger
-def get_scans(app_id):
+def get_scans(app_id, asoc_headers):
     """
     Get the list of scans for the application.
 
@@ -105,7 +107,7 @@ def get_scans(app_id):
         [list]: the list of scans belong to the application
     """
     try:
-        res = requests.get(f"{ASOC_API_ENDPOINT}/Apps/{app_id}/Scans", headers=headers)
+        res = requests.get(f"{ASOC_API_ENDPOINT}/Apps/{app_id}/Scans", headers=asoc_headers)
         assert res.status_code == 200
         return res.json()
     except Exception as _:
@@ -116,7 +118,7 @@ def get_scans(app_id):
 
 @timer
 @f_logger
-def remove_old_scans(app_id):
+def remove_old_scans(app_id, asoc_headers):
     """
     Remove old scan by calling the ASoC API.
 
@@ -127,7 +129,7 @@ def remove_old_scans(app_id):
         [dict]: the scans with their statuses
     """
     # read the old scan ids
-    old_scans = get_scans(app_id)
+    old_scans = get_scans(app_id, asoc_headers)
     scan_status_dict = {}
     scans_pending = False
 
@@ -148,27 +150,18 @@ def remove_old_scans(app_id):
         main_logger.info(f"Removing {old_scan['Name']} - {old_scan['Id']}... ")
         try:
             _ = requests.delete(
-                f"{ASOC_API_ENDPOINT}/Scans/{old_scan['Id']}?deleteIssues=false", headers=headers,
+                f"{ASOC_API_ENDPOINT}/Scans/{old_scan['Id']}?deleteIssues=false",
+                headers=asoc_headers,
             )
         except Exception as error:
             main_logger.warning(error)
-
-    # # reset the app
-    # try:
-    #     main_logger.info(f"Resetting app {app_id}")
-    #     reset_app_config_data = {"DeleteIssues": "true"}
-    #     _ = requests.delete(
-    #         f"{ASOC_API_ENDPOINT}/Apps/{app_id}/Reset", json=reset_app_config_data, headers=headers,
-    #     )
-    # except Exception as error:
-    #     main_logger.warning(error)
 
     return scan_status_dict
 
 
 @timer
 @f_logger
-def wait_for_report(report):
+def wait_for_report(report, asoc_headers):
     """
     Wait for the generated report to be ready.
 
@@ -176,7 +169,7 @@ def wait_for_report(report):
         report ([dict]): the report to download
     """
     while True:
-        res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/{report['Id']}", headers=headers)
+        res = requests.get(f"{ASOC_API_ENDPOINT}/Reports/{report['Id']}", headers=asoc_headers)
         if res.status_code != 200:
             main_logger.info(f"REPORT: {report}")
             main_logger.info(f"RESPONSE: {res.json()}")
