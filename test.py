@@ -3,43 +3,46 @@ import tarfile
 import requests
 import yaml
 
+from docker_utils import get_image_from_container
 from utils import download, run_subprocess
 
-url = "https://raw.githubusercontent.com/IBM/cloud-pak/master/repo/case/ibm-oms-ent-case/index.yaml"
-case_file = "https://raw.githubusercontent.com/IBM/cloud-pak/master/repo/case/ibm-oms-ent-case/3.0.7/ibm-oms-ent-case-3.0.7.tgz"
+print(get_image_from_container("oms"))
+
+# url = "https://raw.githubusercontent.com/IBM/cloud-pak/master/repo/case/ibm-oms-ent-case/index.yaml"
+# case_file = "https://raw.githubusercontent.com/IBM/cloud-pak/master/repo/case/ibm-oms-ent-case/3.0.7/ibm-oms-ent-case-3.0.7.tgz"
 
 
-def get_latest_case_version():
-    try:
-        res = requests.get(url, allow_redirects=True)
-        return yaml.safe_load(res.text)["latestVersion"]
-    except yaml.YAMLError as exc:
-        raise exc
+# def get_latest_case_version():
+#     try:
+#         res = requests.get(url, allow_redirects=True)
+#         return yaml.safe_load(res.text)["latestVersion"]
+#     except yaml.YAMLError as exc:
+#         raise exc
 
 
-def get_latest_released_image():
-    case_version = get_latest_case_version()
-    case_url = f"https://raw.githubusercontent.com/IBM/cloud-pak/master/repo/case/ibm-oms-ent-case/{case_version}/ibm-oms-ent-case-{case_version}.tgz"
-    download(case_url, f"ibm-oms-ent-case-{case_version}.tgz", "./")
-    tar = tarfile.open(f"ibm-oms-ent-case-{case_version}.tgz", "r")
-    for item in tar:
-        if "ibmOmsEntProd/resources.yaml" in item.name:
-            f = tar.extractfile(item)
-            content = f.read()
-            json_content = yaml.safe_load(content)
-            image_tag = json_content["resources"]["resourceDefs"]["containerImages"][0]["tag"]
-            run_subprocess(f"rm -f ibm-oms-ent-case-{case_version}.tgz")
-            return f"cp.icr.io/cp/ibm-oms-enterprise/om-app:{image_tag}"
-    # for member in tar.getmembers():
-    #     f = tar.extractfile(member)
-    #     if f:
-    #         content = f.read()
-    #         print(content)
+# def get_latest_released_image():
+#     case_version = get_latest_case_version()
+#     case_url = f"https://raw.githubusercontent.com/IBM/cloud-pak/master/repo/case/ibm-oms-ent-case/{case_version}/ibm-oms-ent-case-{case_version}.tgz"
+#     download(case_url, f"ibm-oms-ent-case-{case_version}.tgz", "./")
+#     tar = tarfile.open(f"ibm-oms-ent-case-{case_version}.tgz", "r")
+#     for item in tar:
+#         if "ibmOmsEntProd/resources.yaml" in item.name:
+#             f = tar.extractfile(item)
+#             content = f.read()
+#             json_content = yaml.safe_load(content)
+#             image_tag = json_content["resources"]["resourceDefs"]["containerImages"][0]["tag"]
+#             run_subprocess(f"rm -f ibm-oms-ent-case-{case_version}.tgz")
+#             return f"cp.icr.io/cp/ibm-oms-enterprise/om-app:{image_tag}"
+#     # for member in tar.getmembers():
+#     #     f = tar.extractfile(member)
+#     #     if f:
+#     #         content = f.read()
+#     #         print(content)
 
 
 # print(get_latest_case_version())
 # download(case_file, "ibm-oms-ent-case-3.0.7.tgz", "./")
-print(get_latest_released_image())
+# print(get_latest_released_image())
 
 
 # # from datetime import datetime

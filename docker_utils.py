@@ -3,7 +3,8 @@ import os
 
 import docker
 
-from constants import DB2_SCAN, ENTITLED_REGISTRY, NETWORK_SCAN, RT_SCAN, VOL_SCAN
+from constants import (DB2_SCAN, ENTITLED_REGISTRY, NETWORK_SCAN, RT_SCAN,
+                       VOL_SCAN)
 from main_logger import main_logger
 from utils import f_logger, run_subprocess, timer
 
@@ -197,3 +198,37 @@ def start_depcheck_container(image, rt_name=RT_SCAN, logger=main_logger):
         raise Exception  # pylint: disable=raise-missing-from
     finally:
         docker_logout()
+
+
+@timer
+@f_logger
+def get_image_from_container(container):
+    """Return the image from a container"""
+    _, image = run_subprocess(f'docker inspect --format="{{{{.Config.Image}}}}" {container}')
+    image = image.replace("\n", "")
+    return image
+
+
+@timer
+@f_logger
+def cleanup_runtime_container(container):
+    """Clean up runtime container"""
+    image = get_image_from_container(container)
+
+    # Remove the container
+    try:
+        run_subprocess(f"docker rm -f {container}")
+    except Exception as _:
+        pass
+
+    # Remove the image
+    try:
+        run_subprocess(f"docker rmi {image}")
+    except Exception as _:
+        pass
+
+    # Remove un-used volumes
+    try:
+        run_subprocess("docker volume prune -f")
+    except Exception as _:
+        pass

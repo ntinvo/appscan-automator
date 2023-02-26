@@ -43,6 +43,7 @@ from constants import (
     PENDING_STATUSES,
     REPORT_FILE_TYPES,
     REPORTS,
+    RT_SCAN,
     SBA_JAR,
     SBA_JAR_URL,
     SCAN,
@@ -51,7 +52,7 @@ from constants import (
     STATIC,
     VOL_SCAN,
 )
-from docker_utils import start_app_container, start_depcheck_container
+from docker_utils import cleanup_runtime_container, start_app_container, start_depcheck_container
 from main_logger import main_logger
 from utils import (
     cleanup,
@@ -461,6 +462,7 @@ def dynamic_reports():
     """
     scans = get_scans(SINGLE_DYNAMIC)
     generated_reports = []
+    all_done = True
     for scan in scans:
         # only generate report for ready scan
         if scan["LatestExecution"]["Status"] == "Ready":
@@ -473,6 +475,12 @@ def dynamic_reports():
                 )
                 if res.status_code == 200:
                     generated_reports.append(res.json())
+        else:
+            all_done = False
+
+    # clean up when all of the scans complete
+    if all_done:
+        cleanup_runtime_container(RT_SCAN)
 
     for report in generated_reports:
         # wait for the report to be ready
@@ -707,6 +715,10 @@ def depcheck(args):
 
             # upload reports to artifactory
             upload_reports_to_artifactory(DEPCHECK, f"reports/{get_date_str()}/{DEPCHECK}")
+
+            # Clean up depcheck container
+            if args.mode == DEPCHECK:
+                cleanup_runtime_container(DEPCHECK_SCAN)
 
     except Exception as error:
         main_logger.warning(traceback.format_exc())
