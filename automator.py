@@ -15,57 +15,22 @@ from multiprocessing import Pool
 import pandas as pd
 import requests
 
-from asoc_utils import (
-    download_report,
-    get_bearer_token,
-    get_download_config,
-    get_scans,
-    headers,
-    remove_old_scans,
-    start_asoc_presence,
-    wait_for_report,
-)
-from constants import (
-    ALL,
-    APP_URL_DICT,
-    APPSCAN_CONFIG,
-    APPSCAN_CONFIG_OP,
-    ASOC_API_ENDPOINT,
-    DEPCHECK,
-    DEPCHECK_REPO,
-    DEPCHECK_SCAN,
-    DYNAMIC,
-    HEADER_FIELDS,
-    IAC_JAR,
-    IAC_JAR_URL,
-    MAX_TRIES,
-    PADDING,
-    PENDING_STATUSES,
-    REPORT_FILE_TYPES,
-    REPORTS,
-    RT_SCAN,
-    SBA_JAR,
-    SBA_JAR_URL,
-    SCAN,
-    SINGLE_DYNAMIC,
-    SINGLE_STATIC,
-    STATIC,
-)
-from docker_utils import cleanup_runtime_container, start_app_container, start_depcheck_container
+from asoc_utils import (download_report, get_bearer_token, get_download_config,
+                        get_scans, headers, remove_old_scans,
+                        start_asoc_presence, wait_for_report)
+from constants import (ALL, APP_URL_DICT, APPSCAN_CONFIG, APPSCAN_CONFIG_OP,
+                       ASOC_API_ENDPOINT, DEPCHECK, DEPCHECK_REPO,
+                       DEPCHECK_SCAN, DYNAMIC, HEADER_FIELDS, IAC_JAR,
+                       IAC_JAR_URL, MAX_TRIES, PADDING, PENDING_STATUSES,
+                       REPORT_FILE_TYPES, REPORTS, RT_SCAN, SBA_JAR,
+                       SBA_JAR_URL, SCAN, SINGLE_DYNAMIC, SINGLE_STATIC,
+                       STATIC)
+from docker_utils import (cleanup_runtime_container, start_app_container,
+                          start_depcheck_container)
 from main_logger import main_logger
-from utils import (
-    cleanup,
-    create_dir,
-    download,
-    f_logger,
-    get_date_str,
-    get_latest_image,
-    parse_arguments,
-    run_subprocess,
-    timer,
-    update_config_file,
-    upload_reports_to_artifactory,
-)
+from utils import (cleanup, create_dir, download, f_logger, get_date_str,
+                   get_latest_image, parse_arguments, run_subprocess, timer,
+                   update_config_file, upload_reports_to_artifactory)
 
 
 # ********************************* #
@@ -171,6 +136,10 @@ def call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, t
                         "Execute": True,
                         "Personal": False,
                     }
+
+                    # payload 
+                    main_logger.info(f"Payload: \n{data}\n")
+
                     res = requests.post(
                         f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers,
                     )
@@ -425,7 +394,7 @@ def dynamic_scan():
         }
 
         # payload
-        main_logger.info(f"Payload: \n{create_scan_data}")
+        main_logger.info(f"Payload: \n{create_scan_data}\n")
 
         # creating a new scan
         main_logger.info(f"Creating a new scan for {app}...")
