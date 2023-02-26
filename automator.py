@@ -50,7 +50,6 @@ from constants import (
     SINGLE_DYNAMIC,
     SINGLE_STATIC,
     STATIC,
-    VOL_SCAN,
 )
 from docker_utils import cleanup_runtime_container, start_app_container, start_depcheck_container
 from main_logger import main_logger
@@ -168,9 +167,9 @@ def call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, t
                         "ARSAFileId": file_upload_res.json()["FileId"],
                         "ScanName": project,
                         "AppId": SINGLE_STATIC,
-                        "Locale": "en-US",
-                        "Execute": "true",
-                        "Personal": "false",
+                        "Locale": "en",
+                        "Execute": True,
+                        "Personal": False,
                     }
                     res = requests.post(
                         f"{ASOC_API_ENDPOINT}/Scans/StaticAnalyzer", json=data, headers=headers,
@@ -403,23 +402,25 @@ def dynamic_scan():
 
         # scan data
         create_scan_data = {
+            "ScanType": "Staging",
+            "PresenceId": os.environ.get("PRESENCE_ID"),
+            "IncludeVerifiedDomains": False,
             "StartingUrl": url,
             "LoginUser": user,
             "LoginPassword": passwd,
-            "ScanType": "Production",
-            "PresenceId": os.environ.get("PRESENCE_ID"),
-            "IncludeVerifiedDomains": "true",
-            "HttpAuthUserName": "string",
-            "HttpAuthPassword": "string",
-            "HttpAuthDomain": "string",
-            "OnlyFullResults": "true",
+            "ExtraField": "",
+            "HttpAuthUserName": user,
+            "HttpAuthPassword": passwd,
+            "OnlyFullResults": True,
             "TestOptimizationLevel": "NoOptimization",
+            "ThreadNum": 5,
             "ScanName": f"{app} Scan",
-            "EnableMailNotification": "false",
-            "Locale": "en-US",
+            "EnableMailNotification": False,
+            "Locale": "en",
             "AppId": SINGLE_DYNAMIC,
-            "Execute": "true",
-            "Personal": "false",
+            "Execute": True,
+            "Personal": False,
+            "UseAutomaticTimeout": True,
         }
 
         # creating a new scan
@@ -722,12 +723,12 @@ def depcheck(args):
     except Exception as error:
         main_logger.warning(traceback.format_exc())
         main_logger.warning(error)
-        run_subprocess(f"docker rm -f {DEPCHECK_SCAN}")
-        run_subprocess(f"docker volume rm {VOL_SCAN}")
+        run_subprocess(f"docker rm -f {DEPCHECK_SCAN} 2> /dev/null")
+        run_subprocess("docker volume prune -f 2> /dev/null")
         raise
     finally:
-        run_subprocess(f"docker rm -f {DEPCHECK_SCAN}")
-        run_subprocess(f"docker volume rm {VOL_SCAN}")
+        run_subprocess(f"docker rm -f {DEPCHECK_SCAN} 2> /dev/null")
+        run_subprocess("docker volume prune -f 2> /dev/null")
 
 
 # ********************************* #

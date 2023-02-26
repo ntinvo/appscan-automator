@@ -366,17 +366,19 @@ def cleanup():
     Cleaning up
     """
     try:
-        run_subprocess(f"docker rm -f {RT_SCAN}")
+        run_subprocess(f"docker rm -f {RT_SCAN} 2> /dev/null")
     except Exception as _:
-        main_logger.warning(f"Error removing {RT_SCAN}")
+        main_logger.warning(f"Error removing {RT_SCAN} 2> /dev/null")
 
     try:
-        run_subprocess(f"docker rm -f {DEPCHECK_SCAN}")
+        run_subprocess(f"docker rm -f {DEPCHECK_SCAN} 2> /dev/null ")
     except Exception as _:
-        main_logger.warning(f"Error removing {DEPCHECK_SCAN}")
+        main_logger.warning(f"Error removing {DEPCHECK_SCAN} 2> /dev/null")
 
     try:
-        run_subprocess("docker network prune -f && docker volume prune -f")
+        run_subprocess(
+            "docker network prune -f  2> /dev/null && docker volume prune -f 2> /dev/null"
+        )
     except Exception as _:
         pass
 
