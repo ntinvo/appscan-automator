@@ -188,7 +188,7 @@ def start_depcheck_container(image, rt_name=RT_SCAN, logger=main_logger):
     """
     try:
         docker_login()
-        command = f"docker run -dit -e LICENSE=accept -e LANG --privileged -v {VOL_SCAN}:/images --name {rt_name} -p 9080:9080 -p 9443:9443 {image}"
+        command = f"docker run -dit -e LICENSE=accept -e LANG --privileged -v {VOL_SCAN}:/images --name {rt_name} {image}"
         logger.info(f"#### STARTING RT CONTAINER: {rt_name} - {image} ####")
         logger.info(f"Command: {command}")
         run_subprocess(command, logger=logger)
