@@ -9,6 +9,7 @@ import tempfile
 import time
 import traceback
 import zipfile
+from datetime import datetime
 from distutils.dir_util import copy_tree
 from multiprocessing import Pool
 
@@ -480,7 +481,7 @@ def dynamic_reports(args):
         download_report(DYNAMIC, report_data)
 
     # upload reports to artifactory
-    upload_reports_to_artifactory(DYNAMIC, f"reports/{args.date_str}/{DYNAMIC}")
+    upload_reports_to_artifactory(DYNAMIC, f"reports/{args.date_str}/{DYNAMIC}", args.timestamp)
 
 
 @timer
@@ -732,6 +733,7 @@ def main():
     try:
         args = parse_arguments()
         args.date_str = get_date_str()
+        args.timestamp = datetime.today().strftime("%y%m%d_%H%m")
         args.asoc_headers = get_asoc_req_headers()
         main_logger.info(args)
         if args.mode == SCAN:
