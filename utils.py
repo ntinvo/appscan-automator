@@ -21,9 +21,19 @@ from clint.textui import progress
 from requests.auth import HTTPBasicAuth
 
 from args import init_argparse
-from constants import (APPSCAN_URL, APPSCAN_ZIP_URL, CASE_INDEX_URL, DEPCHECK,
-                       DEPCHECK_SCAN, JFROG_USER, NS, OWASP_URL, RT_SCAN,
-                       SINGLE_STREAM_RSS_URL, TWISTLOCK_URL)
+from constants import (
+    APPSCAN_URL,
+    APPSCAN_ZIP_URL,
+    CASE_INDEX_URL,
+    DEPCHECK,
+    DEPCHECK_SCAN,
+    JFROG_USER,
+    NS,
+    OWASP_URL,
+    RT_SCAN,
+    SINGLE_STREAM_RSS_URL,
+    TWISTLOCK_URL,
+)
 from main_logger import main_logger
 from settings import JENKINS_TAAS_TOKEN, JFROG_APIKEY
 
@@ -432,9 +442,11 @@ def update_config_file(file_name):
 @f_logger
 def upload_reports_to_artifactory(scan_type, report_dir, timestamp):
     """Upload the reports to artifactory"""
-    upload_url = OWASP_URL if scan_type == DEPCHECK else APPSCAN_URL
+    upload_url = f"{APPSCAN_URL}/{timestamp}/{scan_type}"
+    if scan_type == DEPCHECK:
+        upload_url = f"{OWASP_URL}/{timestamp}"
     run_subprocess(
-        f"cd {report_dir} && for file in $(ls); do curl -u {os.environ['ARTF_USER']}:{os.environ['ARTF_TOKEN']} -T $(realpath $file) {upload_url}/{timestamp}/{scan_type}/$(basename $file); done"
+        f"cd {report_dir} && for file in $(ls); do curl -u {os.environ['ARTF_USER']}:{os.environ['ARTF_TOKEN']} -T $(realpath $file) {upload_url}/$(basename $file); done"
     )
 
 

@@ -16,22 +16,57 @@ from multiprocessing import Pool
 import pandas as pd
 import requests
 
-from asoc_utils import (download_report, get_asoc_req_headers,
-                        get_bearer_token, get_download_config, get_scans,
-                        remove_old_scans, start_asoc_presence, wait_for_report)
-from constants import (ALL, APP_URL_DICT, APPSCAN_CONFIG, APPSCAN_CONFIG_OP,
-                       ASOC_API_ENDPOINT, DEPCHECK, DEPCHECK_REPO,
-                       DEPCHECK_SCAN, DYNAMIC, HEADER_FIELDS, IAC_JAR,
-                       IAC_JAR_URL, MAX_TRIES, PADDING, PENDING_STATUSES,
-                       REPORT_FILE_TYPES, REPORTS, RT_SCAN, SBA_JAR,
-                       SBA_JAR_URL, SCAN, SINGLE_DYNAMIC, SINGLE_STATIC,
-                       STATIC)
-from docker_utils import (cleanup_runtime_container, start_app_container,
-                          start_depcheck_container)
+from asoc_utils import (
+    download_report,
+    get_asoc_req_headers,
+    get_bearer_token,
+    get_download_config,
+    get_scans,
+    remove_old_scans,
+    start_asoc_presence,
+    wait_for_report,
+)
+from constants import (
+    ALL,
+    APP_URL_DICT,
+    APPSCAN_CONFIG,
+    APPSCAN_CONFIG_OP,
+    ASOC_API_ENDPOINT,
+    DEPCHECK,
+    DEPCHECK_REPO,
+    DEPCHECK_SCAN,
+    DYNAMIC,
+    HEADER_FIELDS,
+    IAC_JAR,
+    IAC_JAR_URL,
+    MAX_TRIES,
+    PADDING,
+    PENDING_STATUSES,
+    REPORT_FILE_TYPES,
+    REPORTS,
+    RT_SCAN,
+    SBA_JAR,
+    SBA_JAR_URL,
+    SCAN,
+    SINGLE_DYNAMIC,
+    SINGLE_STATIC,
+    STATIC,
+)
+from docker_utils import cleanup_runtime_container, start_app_container, start_depcheck_container
 from main_logger import main_logger
-from utils import (cleanup, create_dir, download, f_logger, get_date_str,
-                   get_latest_image, parse_arguments, run_subprocess, timer,
-                   update_config_file, upload_reports_to_artifactory)
+from utils import (
+    cleanup,
+    create_dir,
+    download,
+    f_logger,
+    get_date_str,
+    get_latest_image,
+    parse_arguments,
+    run_subprocess,
+    timer,
+    update_config_file,
+    upload_reports_to_artifactory,
+)
 
 
 # ********************************* #
@@ -525,7 +560,7 @@ def static_reports(args):
             download_report(STATIC, report_data)
 
     # upload reports to artifactory
-    upload_reports_to_artifactory(STATIC, f"reports/{args.date_str}/{STATIC}")
+    upload_reports_to_artifactory(STATIC, f"reports/{args.date_str}/{STATIC}", args.timestamp)
 
 
 @timer
@@ -705,7 +740,9 @@ def depcheck(args):
             copy_tree(f"reports/{args.date_str}/{args.mode}", f"reports/latest/{args.mode}")
 
             # upload reports to artifactory
-            upload_reports_to_artifactory(DEPCHECK, f"reports/{args.date_str}/{DEPCHECK}")
+            upload_reports_to_artifactory(
+                DEPCHECK, f"reports/{args.date_str}/{DEPCHECK}", args.timestamp
+            )
 
             # clean up depcheck container
             cleanup_runtime_container(DEPCHECK_SCAN)
