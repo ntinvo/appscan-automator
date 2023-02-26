@@ -481,8 +481,8 @@ def dynamic_reports():
         # download the report
         download_report(DYNAMIC, report_data)
 
-        # # upload reports to artifactory
-        # upload_reports_to_artifactory(DYNAMIC, f"reports/{get_date_str()}/{DYNAMIC}")
+    # upload reports to artifactory
+    upload_reports_to_artifactory(DYNAMIC, f"reports/{get_date_str()}/{DYNAMIC}")
 
 
 @timer
@@ -525,8 +525,8 @@ def static_reports():
             # download the report
             download_report(STATIC, report_data)
 
-            # upload reports to artifactory
-            upload_reports_to_artifactory(STATIC, f"reports/{get_date_str()}/{STATIC}")
+    # upload reports to artifactory
+    upload_reports_to_artifactory(STATIC, f"reports/{get_date_str()}/{STATIC}")
 
 
 @timer
