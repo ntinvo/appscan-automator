@@ -15,22 +15,57 @@ from multiprocessing import Pool
 import pandas as pd
 import requests
 
-from asoc_utils import (download_report, get_bearer_token, get_download_config,
-                        get_scans, headers, remove_old_scans,
-                        start_asoc_presence, wait_for_report)
-from constants import (ALL, APP_URL_DICT, APPSCAN_CONFIG, APPSCAN_CONFIG_OP,
-                       ASOC_API_ENDPOINT, DEPCHECK, DEPCHECK_REPO,
-                       DEPCHECK_SCAN, DYNAMIC, HEADER_FIELDS, IAC_JAR,
-                       IAC_JAR_URL, MAX_TRIES, PADDING, PENDING_STATUSES,
-                       REPORT_FILE_TYPES, REPORTS, RT_SCAN, SBA_JAR,
-                       SBA_JAR_URL, SCAN, SINGLE_DYNAMIC, SINGLE_STATIC,
-                       STATIC)
-from docker_utils import (cleanup_runtime_container, start_app_container,
-                          start_depcheck_container)
+from asoc_utils import (
+    download_report,
+    get_bearer_token,
+    get_download_config,
+    get_scans,
+    headers,
+    remove_old_scans,
+    start_asoc_presence,
+    wait_for_report,
+)
+from constants import (
+    ALL,
+    APP_URL_DICT,
+    APPSCAN_CONFIG,
+    APPSCAN_CONFIG_OP,
+    ASOC_API_ENDPOINT,
+    DEPCHECK,
+    DEPCHECK_REPO,
+    DEPCHECK_SCAN,
+    DYNAMIC,
+    HEADER_FIELDS,
+    IAC_JAR,
+    IAC_JAR_URL,
+    MAX_TRIES,
+    PADDING,
+    PENDING_STATUSES,
+    REPORT_FILE_TYPES,
+    REPORTS,
+    RT_SCAN,
+    SBA_JAR,
+    SBA_JAR_URL,
+    SCAN,
+    SINGLE_DYNAMIC,
+    SINGLE_STATIC,
+    STATIC,
+)
+from docker_utils import cleanup_runtime_container, start_app_container, start_depcheck_container
 from main_logger import main_logger
-from utils import (cleanup, create_dir, download, f_logger, get_date_str,
-                   get_latest_image, parse_arguments, run_subprocess, timer,
-                   update_config_file, upload_reports_to_artifactory)
+from utils import (
+    cleanup,
+    create_dir,
+    download,
+    f_logger,
+    get_date_str,
+    get_latest_image,
+    parse_arguments,
+    run_subprocess,
+    timer,
+    update_config_file,
+    upload_reports_to_artifactory,
+)
 
 
 # ********************************* #
@@ -137,7 +172,7 @@ def call_asoc_apis_to_create_scan(file_req_header, project, project_file_name, t
                         "Personal": False,
                     }
 
-                    # payload 
+                    # payload
                     main_logger.info(f"Payload: \n{data}\n")
 
                     res = requests.post(
@@ -427,7 +462,7 @@ def run_scan(args):
 # ********************************* #
 @timer
 @f_logger
-def dynamic_reports():
+def dynamic_reports(args):
     """
     Generate and download dynamic reports.
 
@@ -464,12 +499,12 @@ def dynamic_reports():
         download_report(DYNAMIC, report_data)
 
     # upload reports to artifactory
-    upload_reports_to_artifactory(DYNAMIC, f"reports/{get_date_str()}/{DYNAMIC}")
+    upload_reports_to_artifactory(DYNAMIC, f"reports/{args.date_str}/{DYNAMIC}")
 
 
 @timer
 @f_logger
-def static_reports():
+def static_reports(args):
     """
     Generate and download static reports.
 
@@ -508,12 +543,12 @@ def static_reports():
             download_report(STATIC, report_data)
 
     # upload reports to artifactory
-    upload_reports_to_artifactory(STATIC, f"reports/{get_date_str()}/{STATIC}")
+    upload_reports_to_artifactory(STATIC, f"reports/{args.date_str}/{STATIC}")
 
 
 @timer
 @f_logger
-def asoc_export(app_type, full_report=False):
+def asoc_export(args, app_type, full_report=False):
     """
     Generate/export scan results.
 
@@ -543,7 +578,7 @@ def asoc_export(app_type, full_report=False):
         )
     main_logger.info(res)
     if res.status_code == 200:
-        reports_dir_path = f"reports/{get_date_str()}/{app_type}"
+        reports_dir_path = f"reports/{args.date_str}/{app_type}"
         create_dir(reports_dir_path)
 
         report_file_name = "issues" if full_report is True else "issues_filtered"
@@ -588,7 +623,7 @@ def asoc_export(app_type, full_report=False):
         main_logger.info("Export to excel...")
         read_file.to_excel(f"{reports_dir_path}/{report_file_name}.xlsx", index=None, header=True)
 
-        copy_tree(f"reports/{get_date_str()}/{app_type}", f"reports/latest/{app_type}")
+        copy_tree(f"reports/{args.date_str}/{app_type}", f"reports/latest/{app_type}")
 
 
 @timer
@@ -600,18 +635,18 @@ def get_reports(args):
         args ([dict]): the arguments passed to the script
     """
     if args.type == ALL:
-        static_reports()
-        dynamic_reports()
-        asoc_export(DYNAMIC)
-        asoc_export(STATIC)
-        asoc_export(STATIC, full_report=True)
+        static_reports(args)
+        dynamic_reports(args)
+        asoc_export(args, DYNAMIC)
+        asoc_export(args, STATIC)
+        asoc_export(args, STATIC, full_report=True)
     elif args.type == STATIC:
-        static_reports()
-        asoc_export(STATIC)
-        asoc_export(STATIC, full_report=True)
+        static_reports(args)
+        asoc_export(args, STATIC)
+        asoc_export(args, STATIC, full_report=True)
     elif args.type == DYNAMIC:
-        dynamic_reports()
-        asoc_export(DYNAMIC)
+        dynamic_reports(args)
+        asoc_export(args, DYNAMIC)
 
 
 # ********************************* #
@@ -680,15 +715,15 @@ def depcheck(args):
 
             # run dependency check
             main_logger.info("Running the scan...")
-            reports_dir_path = f"reports/{get_date_str()}/{args.mode}"
+            reports_dir_path = f"reports/{args.date_str}/{args.mode}"
             create_dir(reports_dir_path)
             run_subprocess(
                 f"{tmpdir}/dependency-check/bin/dependency-check.sh -s {tmpdir}/{third_party_jars} -o {reports_dir_path}/dependency_report.html --suppression {os.getcwd()}/suppressions.xml"
             )
-            copy_tree(f"reports/{get_date_str()}/{args.mode}", f"reports/latest/{args.mode}")
+            copy_tree(f"reports/{args.date_str}/{args.mode}", f"reports/latest/{args.mode}")
 
             # upload reports to artifactory
-            upload_reports_to_artifactory(DEPCHECK, f"reports/{get_date_str()}/{DEPCHECK}")
+            upload_reports_to_artifactory(DEPCHECK, f"reports/{args.date_str}/{DEPCHECK}")
 
             # clean up depcheck container
             cleanup_runtime_container(DEPCHECK_SCAN)
@@ -715,6 +750,7 @@ def main():
     """
     try:
         args = parse_arguments()
+        args.date_str = get_date_str()
         main_logger.info(args)
         if args.mode == SCAN:
             run_scan(args)
