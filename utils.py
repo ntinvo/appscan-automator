@@ -25,9 +25,11 @@ from constants import (
     APPSCAN_URL,
     APPSCAN_ZIP_URL,
     CASE_INDEX_URL,
+    DEPCHECK,
     DEPCHECK_SCAN,
     JFROG_USER,
     NS,
+    OWASP_URL,
     RT_SCAN,
     SINGLE_STREAM_RSS_URL,
     TWISTLOCK_URL,
@@ -441,8 +443,9 @@ def update_config_file(file_name):
 def upload_reports_to_artifactory(scan_type, report_dir):
     """Upload the reports to artifactory"""
     timestamp = datetime.today().strftime("%y%m%d_%H%m")
+    upload_url = OWASP_URL if scan_type == DEPCHECK else APPSCAN_URL
     run_subprocess(
-        f"cd {report_dir} && for file in $(ls); do curl -u {os.environ['ARTF_USER']}:{os.environ['ARTF_TOKEN']} -T $(realpath $file) {APPSCAN_URL}/{timestamp}/{scan_type}/$(basename $file); done"
+        f"cd {report_dir} && for file in $(ls); do curl -u {os.environ['ARTF_USER']}:{os.environ['ARTF_TOKEN']} -T $(realpath $file) {upload_url}/{timestamp}/{scan_type}/$(basename $file); done"
     )
 
 
