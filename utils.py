@@ -25,14 +25,12 @@ from constants import (
     APPSCAN_URL,
     APPSCAN_ZIP_URL,
     CASE_INDEX_URL,
-    DB2_SCAN,
+    DEPCHECK_SCAN,
     JFROG_USER,
-    NETWORK_SCAN,
     NS,
     RT_SCAN,
     SINGLE_STREAM_RSS_URL,
     TWISTLOCK_URL,
-    VOL_SCAN,
 )
 from main_logger import main_logger
 from settings import JENKINS_TAAS_TOKEN, JFROG_APIKEY
@@ -373,19 +371,14 @@ def cleanup():
         main_logger.warning(f"Error removing {RT_SCAN}")
 
     try:
-        run_subprocess(f"docker rm -f {DB2_SCAN}")
+        run_subprocess(f"docker rm -f {DEPCHECK_SCAN}")
     except Exception as _:
-        main_logger.warning(f"Error removing {DB2_SCAN}")
+        main_logger.warning(f"Error removing {DEPCHECK_SCAN}")
 
     try:
-        run_subprocess(f"docker network rm {NETWORK_SCAN}")
+        run_subprocess("docker network prune -f && docker volume prune -f")
     except Exception as _:
-        main_logger.warning(f"Error removing {NETWORK_SCAN}")
-
-    try:
-        run_subprocess(f"docker volume rm {VOL_SCAN}")
-    except Exception as _:
-        main_logger.warning(f"Error removing {VOL_SCAN}")
+        pass
 
 
 @timer

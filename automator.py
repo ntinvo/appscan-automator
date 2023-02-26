@@ -716,9 +716,8 @@ def depcheck(args):
             # upload reports to artifactory
             upload_reports_to_artifactory(DEPCHECK, f"reports/{get_date_str()}/{DEPCHECK}")
 
-            # Clean up depcheck container
-            if args.mode == DEPCHECK:
-                cleanup_runtime_container(DEPCHECK_SCAN)
+            # clean up depcheck container
+            cleanup_runtime_container(DEPCHECK_SCAN)
 
     except Exception as error:
         main_logger.warning(traceback.format_exc())
