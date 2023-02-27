@@ -5,15 +5,8 @@ import time
 import docker
 import requests
 
-from constants import (
-    DB2_SCAN,
-    DEPCHECK_SCAN,
-    DEPLOY_SERVER,
-    ENTITLED_REGISTRY,
-    NETWORK_SCAN,
-    RT_SCAN,
-    VOL_SCAN,
-)
+from constants import (DB2_SCAN, DEPCHECK_SCAN, DEPLOY_SERVER,
+                       ENTITLED_REGISTRY, NETWORK_SCAN, RT_SCAN, VOL_SCAN)
 from main_logger import main_logger
 from utils import f_logger, run_subprocess, timer
 
@@ -268,6 +261,6 @@ def cleanup_runtime_container(container, logger=main_logger):
     # Remove un-used volumes
     try:
         logger.info("Removing un-used volumes")
-        _, out = run_subprocess("docker volume prune -f")
+        run_subprocess("docker network prune -f  2> /dev/null && docker volume prune -f 2> /dev/null")
     except Exception as _:
-        logger.warn(out.replace("\n", ""))
+        pass

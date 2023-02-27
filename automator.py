@@ -16,57 +16,22 @@ from multiprocessing import Pool
 import pandas as pd
 import requests
 
-from asoc_utils import (
-    download_report,
-    get_asoc_req_headers,
-    get_bearer_token,
-    get_download_config,
-    get_scans,
-    remove_old_scans,
-    start_asoc_presence,
-    wait_for_report,
-)
-from constants import (
-    ALL,
-    APP_URL_DICT,
-    APPSCAN_CONFIG,
-    APPSCAN_CONFIG_OP,
-    ASOC_API_ENDPOINT,
-    DEPCHECK,
-    DEPCHECK_REPO,
-    DEPCHECK_SCAN,
-    DYNAMIC,
-    HEADER_FIELDS,
-    IAC_JAR,
-    IAC_JAR_URL,
-    MAX_TRIES,
-    PADDING,
-    PENDING_STATUSES,
-    REPORT_FILE_TYPES,
-    REPORTS,
-    RT_SCAN,
-    SBA_JAR,
-    SBA_JAR_URL,
-    SCAN,
-    SINGLE_DYNAMIC,
-    SINGLE_STATIC,
-    STATIC,
-)
-from docker_utils import cleanup_runtime_container, start_app_container, start_depcheck_container
+from asoc_utils import (download_report, get_asoc_req_headers,
+                        get_bearer_token, get_download_config, get_scans,
+                        remove_old_scans, start_asoc_presence, wait_for_report)
+from constants import (ALL, APP_URL_DICT, APPSCAN_CONFIG, APPSCAN_CONFIG_OP,
+                       ASOC_API_ENDPOINT, DEPCHECK, DEPCHECK_REPO,
+                       DEPCHECK_SCAN, DYNAMIC, HEADER_FIELDS, IAC_JAR,
+                       IAC_JAR_URL, MAX_TRIES, PADDING, PENDING_STATUSES,
+                       REPORT_FILE_TYPES, REPORTS, RT_SCAN, SBA_JAR,
+                       SBA_JAR_URL, SCAN, SINGLE_DYNAMIC, SINGLE_STATIC,
+                       STATIC)
+from docker_utils import (cleanup_runtime_container, start_app_container,
+                          start_depcheck_container)
 from main_logger import main_logger
-from utils import (
-    cleanup,
-    create_dir,
-    download,
-    f_logger,
-    get_date_str,
-    get_latest_image,
-    parse_arguments,
-    run_subprocess,
-    timer,
-    update_config_file,
-    upload_reports_to_artifactory,
-)
+from utils import (create_dir, download, f_logger, get_date_str,
+                   get_latest_image, parse_arguments, run_subprocess, timer,
+                   update_config_file, upload_reports_to_artifactory)
 
 
 # ********************************* #
@@ -767,22 +732,22 @@ def main():
     """
     Main
     """
-    try:
-        args = parse_arguments()
-        args.date_str = get_date_str()
-        args.timestamp = datetime.today().strftime("%y%m%d_%H%m")
-        args.asoc_headers = get_asoc_req_headers()
-        main_logger.info(args)
-        if args.mode == SCAN:
-            run_scan(args)
-        elif args.mode == REPORTS:
-            get_reports(args)
-        elif args.mode == DEPCHECK:
-            depcheck(args)
-    except Exception as error:
-        main_logger.info(error)
-        cleanup()
-        raise
+    # try:
+    args = parse_arguments()
+    args.date_str = get_date_str()
+    args.timestamp = datetime.today().strftime("%y%m%d_%H%m")
+    args.asoc_headers = get_asoc_req_headers()
+    main_logger.info(args)
+    if args.mode == SCAN:
+        run_scan(args)
+    elif args.mode == REPORTS:
+        get_reports(args)
+    elif args.mode == DEPCHECK:
+        depcheck(args)
+    # except Exception as error:
+    #     main_logger.info(error)
+    #     cleanup()
+    #     raise
 
 
 if __name__ == "__main__":
