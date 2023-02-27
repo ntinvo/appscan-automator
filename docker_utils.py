@@ -5,15 +5,8 @@ import time
 import docker
 import requests
 
-from constants import (
-    DB2_SCAN,
-    DEPCHECK_SCAN,
-    DEPLOY_SERVER,
-    ENTITLED_REGISTRY,
-    NETWORK_SCAN,
-    RT_SCAN,
-    VOL_SCAN,
-)
+from constants import (DB2_SCAN, DEPCHECK_SCAN, DEPLOY_SERVER,
+                       ENTITLED_REGISTRY, NETWORK_SCAN, RT_SCAN, VOL_SCAN)
 from main_logger import main_logger
 from utils import f_logger, run_subprocess, timer
 
@@ -227,19 +220,21 @@ def start_depcheck_container(image, rt_name=DEPCHECK_SCAN, logger=main_logger):
 
 @timer
 @f_logger
-def get_image_from_container(container):
+def get_image_from_container(container, logger=main_logger):
     """Return the image from a container"""
-    _, image = run_subprocess(f'docker inspect --format="{{{{.Config.Image}}}}" {container}')
-    image = image.replace("\n", "")
-    return image
+    try:
+        _, image = run_subprocess(f'docker inspect --format="{{{{.Config.Image}}}}" {container}')
+        image = image.replace("\n", "")
+        return image
+    except Exception as _:
+        logger.warn(f"Container {container} does not exist")
+        return None
 
 
 @timer
 @f_logger
 def cleanup_runtime_container(container, logger=main_logger):
     """Clean up runtime container"""
-    image = get_image_from_container(container)
-
     # Remove the container
     try:
         logger.info(f"Removing container {container}")
@@ -247,12 +242,18 @@ def cleanup_runtime_container(container, logger=main_logger):
     except Exception as _:
         logger.warn(out)
 
-    # Remove the image
-    try:
-        logger.info(f"Trying to remove image {image}")
-        _, out = run_subprocess(f"docker rmi {image}")
-    except Exception as _:
-        logger.warn(out)
+    # Remove the image if needed
+    image = get_image_from_container(container)
+    if container == DEPCHECK_SCAN:
+        tmp_image = get_image_from_container(RT_SCAN)
+    else:
+        tmp_image = get_image_from_container(DEPCHECK_SCAN)
+    if image != tmp_image:
+        try:
+            logger.info(f"Trying to remove image {image}")
+            _, out = run_subprocess(f"docker rmi {image}")
+        except Exception as _:
+            logger.warn(out)
 
     # Remove un-used volumes
     try:
