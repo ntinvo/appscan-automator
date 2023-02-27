@@ -5,8 +5,15 @@ import time
 import docker
 import requests
 
-from constants import (DB2_SCAN, DEPCHECK_SCAN, DEPLOY_SERVER,
-                       ENTITLED_REGISTRY, NETWORK_SCAN, RT_SCAN, VOL_SCAN)
+from constants import (
+    DB2_SCAN,
+    DEPCHECK_SCAN,
+    DEPLOY_SERVER,
+    ENTITLED_REGISTRY,
+    NETWORK_SCAN,
+    RT_SCAN,
+    VOL_SCAN,
+)
 from main_logger import main_logger
 from utils import f_logger, run_subprocess, timer
 
@@ -225,6 +232,7 @@ def get_image_from_container(container, logger=main_logger):
     try:
         _, image = run_subprocess(f'docker inspect --format="{{{{.Config.Image}}}}" {container}')
         image = image.replace("\n", "")
+        logger.info(f"Container {container} is using image {image}")
         return image
     except Exception as _:
         logger.warn(f"Container {container} does not exist")
@@ -235,15 +243,17 @@ def get_image_from_container(container, logger=main_logger):
 @f_logger
 def cleanup_runtime_container(container, logger=main_logger):
     """Clean up runtime container"""
+    logger.info(f"Cleaning up runtime container {container}")
+    image = get_image_from_container(container)
+
     # Remove the container
     try:
         logger.info(f"Removing container {container}")
         _, out = run_subprocess(f"docker rm -f {container}")
     except Exception as _:
-        logger.warn(out)
+        logger.warn(out.replace("\n", ""))
 
     # Remove the image if needed
-    image = get_image_from_container(container)
     if container == DEPCHECK_SCAN:
         tmp_image = get_image_from_container(RT_SCAN)
     else:
@@ -253,11 +263,11 @@ def cleanup_runtime_container(container, logger=main_logger):
             logger.info(f"Trying to remove image {image}")
             _, out = run_subprocess(f"docker rmi {image}")
         except Exception as _:
-            logger.warn(out)
+            logger.warn(out.replace("\n", ""))
 
     # Remove un-used volumes
     try:
         logger.info("Removing un-used volumes")
         _, out = run_subprocess("docker volume prune -f")
     except Exception as _:
-        logger.warn(out)
+        logger.warn(out.replace("\n", ""))
