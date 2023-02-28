@@ -21,19 +21,9 @@ from clint.textui import progress
 from requests.auth import HTTPBasicAuth
 
 from args import init_argparse
-from constants import (
-    APPSCAN_URL,
-    APPSCAN_ZIP_URL,
-    CASE_INDEX_URL,
-    DEPCHECK,
-    DEPCHECK_SCAN,
-    JFROG_USER,
-    NS,
-    OWASP_URL,
-    RT_SCAN,
-    SINGLE_STREAM_RSS_URL,
-    TWISTLOCK_URL,
-)
+from constants import (APPSCAN_URL, APPSCAN_ZIP_URL, CASE_INDEX_URL, DEPCHECK,
+                       DEPCHECK_SCAN, JFROG_USER, NS, OWASP_URL, RT_SCAN,
+                       SINGLE_STREAM_RSS_URL, TWISTLOCK_URL)
 from main_logger import main_logger
 from settings import JENKINS_TAAS_TOKEN, JFROG_APIKEY
 
@@ -418,8 +408,8 @@ def get_latest_image():
     scan_results = res.json()
     for img in scan_results["overview"]["images"]["all"]["list"]:
         if "app" in img:
-            return img
-    return get_latest_released_image()
+            return img.replace("cp.", "", 1)
+    return get_latest_released_image().replace("cp.", "", 1)
 
 
 @timer
