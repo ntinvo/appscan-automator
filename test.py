@@ -4,9 +4,9 @@ import requests
 import yaml
 
 from docker_utils import get_image_from_container
-from utils import download, run_subprocess
+from utils import download, get_latest_image, run_subprocess
 
-print(get_image_from_container("odms"))
+print(get_latest_image())
 
 # url = "https://raw.githubusercontent.com/IBM/cloud-pak/master/repo/case/ibm-oms-ent-case/index.yaml"
 # case_file = "https://raw.githubusercontent.com/IBM/cloud-pak/master/repo/case/ibm-oms-ent-case/3.0.7/ibm-oms-ent-case-3.0.7.tgz"

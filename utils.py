@@ -416,7 +416,7 @@ def get_latest_image():
         auth=HTTPBasicAuth(os.environ["JENKINS_USER"], os.environ["JENKINS_TOKEN"]),
     )
     scan_results = res.json()
-    for img in scan_results["overview"]["images"]["resultsIncluded"]["noScanErrors"]["list"]:
+    for img in scan_results["overview"]["images"]["all"]["list"]:
         if "app" in img:
             return img
     return get_latest_released_image()
