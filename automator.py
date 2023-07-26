@@ -220,9 +220,10 @@ def create_static_scan_operators(args, file_req_header):
         f"git clone git@github.ibm.com:cmus/ibm-sip-operator.git {args.workspace}/operators/ibm-sip-operator"
     )
 
-    # clone oms gateway 
+    # clone oms gateway
     run_subprocess(
         f"git clone git@github.ibm.com:cmus/oms-gateway.git {args.workspace}/operators/oms-gateway"
+    )
 
     operators = ["ibm-oms-operator", "ibm-jwt-verifier-operator", "ibm-sip-operator", "oms-gateway"]
     for operator in operators:
