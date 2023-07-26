@@ -4,8 +4,7 @@ import logging
 import os
 from argparse import ArgumentDefaultsHelpFormatter
 
-from constants import (ALL, COC, COCDEV, DEPCHECK, DYNAMIC, REPORTS, SCAN,
-                       SINGLE, STATIC, V10, V95)
+from constants import ALL, COC, COCDEV, DEPCHECK, DYNAMIC, REPORTS, SCAN, SINGLE, STATIC, V10, V95
 from main_logger import main_logger
 
 
@@ -53,7 +52,11 @@ def add_output_arg(parser):
         required (bool, optional): required or not. Defaults to False.
     """
     parser.add_argument(
-        "-o", "--output", dest="output", help="path to store the reports", default=f"{os.getcwd()}",
+        "-o",
+        "--output",
+        dest="output",
+        help="path to store the reports",
+        default=f"{os.getcwd()}",
     )
 
 
@@ -98,12 +101,19 @@ def add_source_arg(parser, required=False):
         help=f"the path to source working code. When running type {STATIC} and mode {SCAN}, this is required",
     )
     parser.add_argument(
-        "-so",
-        "--source_operator",
+        "-ws",
+        "--workspace",
         required=required,
-        dest="source_operator",
-        help=f"the path to operator source code. When running type {STATIC} and mode {SCAN}, this is required",
+        dest="workspace",
+        help=f"the path to workspace. When running type {STATIC} and mode {SCAN}, this is required",
     )
+    # parser.add_argument(
+    #     "-so",
+    #     "--source_operator",
+    #     required=required,
+    #     dest="source_operator",
+    #     help=f"the path to operator source code. When running type {STATIC} and mode {SCAN}, this is required",
+    # )
 
 
 def init_argparse():

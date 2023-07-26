@@ -16,22 +16,56 @@ from multiprocessing import Pool
 import pandas as pd
 import requests
 
-from asoc_utils import (download_report, get_asoc_req_headers,
-                        get_bearer_token, get_download_config, get_scans,
-                        remove_old_scans, start_asoc_presence, wait_for_report)
-from constants import (ALL, APP_URL_DICT, APPSCAN_CONFIG, APPSCAN_CONFIG_OP,
-                       ASOC_API_ENDPOINT, DEPCHECK, DEPCHECK_REPO,
-                       DEPCHECK_SCAN, DYNAMIC, HEADER_FIELDS, IAC_JAR,
-                       IAC_JAR_URL, MAX_TRIES, PADDING, PENDING_STATUSES,
-                       REPORT_FILE_TYPES, REPORTS, RT_SCAN, SBA_JAR,
-                       SBA_JAR_URL, SCAN, SINGLE_DYNAMIC, SINGLE_STATIC,
-                       STATIC)
-from docker_utils import (cleanup_runtime_container, start_app_container,
-                          start_depcheck_container)
+from asoc_utils import (
+    download_report,
+    get_asoc_req_headers,
+    get_bearer_token,
+    get_download_config,
+    get_scans,
+    remove_old_scans,
+    start_asoc_presence,
+    wait_for_report,
+)
+from constants import (
+    ALL,
+    APP_URL_DICT,
+    APPSCAN_CONFIG,
+    APPSCAN_CONFIG_OP,
+    ASOC_API_ENDPOINT,
+    DEPCHECK,
+    DEPCHECK_REPO,
+    DEPCHECK_SCAN,
+    DYNAMIC,
+    HEADER_FIELDS,
+    IAC_JAR,
+    IAC_JAR_URL,
+    MAX_TRIES,
+    PADDING,
+    PENDING_STATUSES,
+    REPORT_FILE_TYPES,
+    REPORTS,
+    RT_SCAN,
+    SBA_JAR,
+    SBA_JAR_URL,
+    SCAN,
+    SINGLE_DYNAMIC,
+    SINGLE_STATIC,
+    STATIC,
+)
+from docker_utils import cleanup_runtime_container, start_app_container, start_depcheck_container
 from main_logger import main_logger
-from utils import (create_dir, download, f_logger, get_date_str,
-                   get_latest_image, parse_arguments, run_subprocess, timer,
-                   update_config_file, upload_reports_to_artifactory)
+from utils import (
+    create_dir,
+    download,
+    f_logger,
+    get_date_str,
+    get_latest_image,
+    parse_arguments,
+    run_subprocess,
+    timer,
+    update_config_file,
+    upload_reports_to_artifactory,
+)
 
 
 # ********************************* #
@@ -109,7 +143,9 @@ def call_asoc_apis_to_create_scan(
                 main_logger.info(f"TRYING #{try_count} OF {MAX_TRIES}...")
                 try:
                     file_upload_res = requests.post(
-                        f"{ASOC_API_ENDPOINT}/FileUpload", files=file_data, headers=file_req_header,
+                        f"{ASOC_API_ENDPOINT}/FileUpload",
+                        files=file_data,
+                        headers=file_req_header,
                     )
                     main_logger.info(f"File Upload Response: {file_upload_res}")
                     main_logger.info(file_upload_res.json())
@@ -163,6 +199,48 @@ def call_asoc_apis_to_create_scan(
     except Exception as error:
         main_logger.warning(traceback.format_exc())
         main_logger.warning(error)
+
+
+def create_static_scan_operators(args, file_req_header):
+    run_subprocess(
+        f"cd {args.workspace} && mkdir -p {args.workspace}/operators && rm -rf {args.workspace}/operators/*"
+    )
+    # clone OMS operators
+    run_subprocess(
+        f"git clone git@github.ibm.com:Order-Management-Fulfillment/ibm-oms-operator.git {args.workspace}/operators/ibm-oms-operator"
+    )
+
+    # clone JWT verifier operator
+    run_subprocess(
+        f"git clone git@github.ibm.com:cmus/ibm-jwt-verifier-operator.git {args.workspace}/operators/ibm-jwt-verifier-operator"
+    )
+
+    # clone SIP operator
+    run_subprocess(
+        f"git clone git@github.ibm.com:cmus/ibm-sip-operator.git {args.workspace}/operators/ibm-sip-operator"
+    )
+
+    operators = ["ibm-oms-operator", "ibm-jwt-verifier-operator", "ibm-sip-operator"]
+    for operator in operators:
+        main_logger.info(f"Generating appscan config file for {operator}...")
+        project_file_name = operator
+        with open(APPSCAN_CONFIG_OP) as reader:
+            text = reader.read().replace("PROJECT_PATH", f"{args.workspace}/operators/{operator}")
+        with open(f"appscan-config-{project_file_name}-tmp.xml", "w") as writer:
+            writer.write(text)
+
+        main_logger.info(f"Generating {project_file_name}.irx file...")
+        run_subprocess(
+            f"source ~/.bashrc && appscan.sh prepare -c appscan-config-{project_file_name}-tmp.xml -n {project_file_name}.irx -d {args.workspace}/operators/{operator}"
+        )
+
+        call_asoc_apis_to_create_scan(
+            file_req_header,
+            operator,
+            project_file_name,
+            f"{args.workspace}/operators/{operator}",
+            args.asoc_headers,
+        )
 
 
 def create_static_scan_operator(args, file_req_header):
@@ -260,7 +338,9 @@ def create_static_scan(args, project, tmpdir, file_req_header):
     print()
     process_project_message = f"PROCESSING PROJECT: {project} - {project_file_name}"
     main_logger.info("#" * (len(process_project_message) + PADDING))
-    main_logger.info(" " * int((PADDING / 2)) + process_project_message + " " * int((PADDING / 2)),)
+    main_logger.info(
+        " " * int((PADDING / 2)) + process_project_message + " " * int((PADDING / 2)),
+    )
     main_logger.info("#" * (len(process_project_message) + PADDING))
 
     # generate config file for appscan
@@ -275,7 +355,9 @@ def create_static_scan(args, project, tmpdir, file_req_header):
     )
     process_project_message = f"FINISHED PROCESSING PROJECT: {project} - {project_file_name}"
     main_logger.info("#" * (len(process_project_message) + PADDING))
-    main_logger.info(" " * int((PADDING / 2)) + process_project_message + " " * int((PADDING / 2)),)
+    main_logger.info(
+        " " * int((PADDING / 2)) + process_project_message + " " * int((PADDING / 2)),
+    )
     main_logger.info("#" * (len(process_project_message) + PADDING))
 
 
@@ -310,7 +392,6 @@ def static_scan(args):
     # - upload the generated irx file to ASoC
     # - create and execute the static scan
     with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdir:
-
         # if any of the old scan still pending, return
         for project in projects:
             project = project.strip()
@@ -327,8 +408,8 @@ def static_scan(args):
         main_logger.info("Create Static Scan for IAC")
         create_static_scan_iac(args, tmpdir, file_req_header)
 
-        main_logger.info("Create Static Scan for Operator")
-        create_static_scan_operator(args, file_req_header)
+        main_logger.info("Create Static Scan for Operators")
+        create_static_scan_operators(args, file_req_header)
 
         main_logger.debug(f"PROJECTS TO SCAN: {projects}")
         processes = []
@@ -504,7 +585,6 @@ def static_reports(args):
             return
 
     for report_file_type in REPORT_FILE_TYPES:
-
         # config data for the reports
         config_data = get_download_config(app_name, report_file_type)
 
@@ -663,7 +743,6 @@ def depcheck(args):
         args ([dict]): the arguments passed to the script
     """
     try:
-
         # get the latest image
         latest_image = get_latest_image()
         assert latest_image is not None
@@ -676,7 +755,6 @@ def depcheck(args):
 
         # creating the source dir
         with tempfile.TemporaryDirectory(dir=os.getcwd()) as tmpdir:
-
             third_party_jars = "3rdpartyjars"
 
             # build the ear
